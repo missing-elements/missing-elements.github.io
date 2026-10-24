@@ -1,0 +1,21 @@
+---
+layout: base.njk
+title: missing elements
+description: Standalone, self-hostable web components for viewing documents and content in the browser.
+---
+<main class="home" id="main">
+  <h1>missing elements</h1>
+  <p class="lead">Standalone, self-hostable web components for viewing documents and content in the browser.</p>
+  <ul class="elements">
+    {%- for element in site.elements %}
+    <li>
+      <h2><a href="{{ element.docs }}">{{ element.name }}</a></h2>
+      <p>{{ element.description }}</p>
+      <div class="links">
+        <a href="{{ element.docs }}">Docs</a>
+        <a href="{{ element.repo }}">GitHub</a>
+      </div>
+    </li>
+    {%- endfor %}
+  </ul>
+</main>

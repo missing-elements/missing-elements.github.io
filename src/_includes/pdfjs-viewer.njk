@@ -1,0 +1,60 @@
+---
+layout: base.njk
+bodyClass: docs-page
+---
+{%- set toc = content | toc -%}
+{%- macro tocList(items) -%}
+<ol>
+  {%- for item in items %}
+  <li class="toc-l{{ item.level }}"><a href="#{{ item.id }}">{{ item.text }}</a></li>
+  {%- endfor %}
+</ol>
+{%- endmacro -%}
+<div class="docs">
+  <nav class="toc" aria-label="On this page">
+    <a class="toc-home" href="/">missing elements</a>
+    {{ tocList(toc) }}
+  </nav>
+
+  <main class="content" id="main">
+    <header class="docs-header">
+      <div class="docs-header-row">
+        <h1>pdfjs-viewer</h1>
+        <button type="button" class="theme-toggle" data-theme-toggle hidden>
+          <span class="when-light">Dark theme</span><span class="when-dark">Light theme</span>
+        </button>
+      </div>
+      <p class="lead">A self-hostable PDF viewer web component, based on the <a href="https://mozilla.github.io/pdf.js/web/viewer.html">PDF.js default viewer</a>.</p>
+      <ul class="meta">
+        <li><a href="{{ pdfjsViewer.npm }}">v{{ pdfjsViewer.version }}</a></li>
+        <li>PDF.js {{ pdfjsViewer.pdfjsVersion }}</li>
+        <li><a href="{{ pdfjsViewer.repo }}">GitHub</a></li>
+        <li><a href="{{ pdfjsViewer.repo }}/blob/master/LICENSE">MIT</a></li>
+      </ul>
+      <details class="toc-inline">
+        <summary>On this page</summary>
+        {{ tocList(toc) }}
+      </details>
+    </header>
+
+    {{ content | safe }}
+
+    <footer class="docs-footer">
+      <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="{{ pdfjsViewer.repo }}/issues">open an issue</a>.</p>
+    </footer>
+  </main>
+
+  <aside class="preview" id="preview" aria-label="Live preview" data-preview>
+    <div class="preview-bar">
+      <span class="preview-title">Live preview</span>
+      <button type="button" class="button" data-preview-reset>Reset</button>
+      <button type="button" class="button preview-close" data-preview-close>Close</button>
+    </div>
+    <div class="preview-stage" data-preview-stage>
+      <noscript><p class="preview-note">The preview needs JavaScript.</p></noscript>
+    </div>
+    <div class="preview-markup" aria-live="polite"><code data-preview-markup></code></div>
+  </aside>
+  <button type="button" class="button preview-open" data-preview-open aria-controls="preview" aria-expanded="false" hidden>Preview</button>
+</div>
+<script type="module" src="/pdfjs-viewer/docs.js"></script>
