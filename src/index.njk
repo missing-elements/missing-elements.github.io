@@ -13,7 +13,9 @@ description: Standalone, self-hostable web components for viewing documents and 
       <p>{{ element.description }}</p>
       <div class="links">
         <a href="{{ element.docs }}">Docs</a>
+        {%- if element.repo %}
         <a href="{{ element.repo }}">GitHub</a>
+        {%- endif %}
       </div>
     </li>
     {%- endfor %}

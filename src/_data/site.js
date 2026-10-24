@@ -20,7 +20,7 @@ export default {
       name: "office-viewer",
       description: "A read-only viewer web component for DOCX, XLSX and PPTX files.",
       docs: "https://office-viewer-pi.vercel.app",
-      repo: "https://github.com/missing-elements/office-viewer",
+      // No repo link while the repository is private.
     },
   ],
 };
