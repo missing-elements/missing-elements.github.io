@@ -5,6 +5,7 @@ const ELEMENT_URL = '/pdfjs-viewer/vendor/pdfjs-viewer-element.js'
 const BASE_ATTRIBUTES = {
   src: '/pdfjs-viewer/samples/sample-pdf-with-images.pdf',
   'iframe-title': 'Live preview of the documented PDF viewer',
+  'image-resources-path': '/pdfjs-viewer/vendor/images/',
 }
 // Placeholder used in snippets where the file doesn't matter; Try keeps the current document.
 const PLACEHOLDER_SRC = '/file.pdf'

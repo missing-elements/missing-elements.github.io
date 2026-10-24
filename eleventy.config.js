@@ -67,7 +67,7 @@ export default function (eleventyConfig) {
 <th scope="row"><a href="#attr-${attr.name}"><code>${attr.name}</code></a></th>
 <td>${inline(attr.description)}</td>
 <td class="default">${attr.default ? inline(attr.default) : `<span class="muted"><span aria-hidden="true">—</span><span class="visually-hidden">None</span></span>`}</td>
-<td><span class="update update-${attr.update}">${{ live: "Live", load: "Next load", init: "Before connect" }[attr.update]}</span></td>
+<td><span class="update update-${attr.update}">${{ live: "Live", load: "Next load", init: "Before connect", none: "No effect" }[attr.update]}</span></td>
 </tr>`
       )
       .join("");

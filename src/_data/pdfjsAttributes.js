@@ -1,6 +1,7 @@
 // Attributes of <pdfjs-viewer-element>, rendered as the reference tables and the playground.
 // `update`: live = applies immediately, load = applies to the next document load,
-// init = read only when the viewer is built, so set it before the element is connected.
+// init = read only when the viewer is built, so set it before the element is connected,
+// none = has no effect.
 const samples = "/pdfjs-viewer/samples/";
 
 export default [
@@ -75,9 +76,9 @@ export default [
   {
     name: "locale-src-template",
     group: "interface",
-    description: "URL of the locale file, with a `{locale}` placeholder. Use it to self-host locales.",
+    description: "Absolute URL of the locale file, with a `{locale}` placeholder. Use it to self-host locales. Read when the viewer is built and when `locale` changes.",
     default: "`https://cdn.jsdelivr.net/gh/mozilla-l10n/firefox-l10n@main/{locale}/toolkit/toolkit/pdfviewer/viewer.ftl`",
-    update: "load",
+    update: "init",
   },
   {
     name: "iframe-title",
@@ -131,37 +132,37 @@ export default [
   {
     name: "c-map-url",
     group: "resources",
-    description: "Folder of CMaps, needed for some CJK text.",
+    description: "Absolute URL of the CMaps folder, ending in `/`. Needed for some CJK text.",
     default: "`../web/cmaps/`",
     update: "load",
   },
   {
     name: "standard-font-data-url",
     group: "resources",
-    description: "Folder of the standard fonts, for PDFs that use non-embedded base fonts.",
+    description: "Absolute URL of the standard fonts folder, ending in `/`. For PDFs that use non-embedded base fonts.",
     default: "`../web/standard_fonts/`",
     update: "load",
   },
   {
     name: "wasm-url",
     group: "resources",
-    description: "Folder of the WASM image decoders (JPEG 2000, JBIG2).",
+    description: "Absolute URL of the WASM image decoders folder (JPEG 2000, JBIG2), ending in `/`.",
     default: "`../web/wasm/`",
     update: "load",
   },
   {
     name: "icc-url",
     group: "resources",
-    description: "Folder of ICC color profiles.",
+    description: "Absolute URL of the ICC color profiles folder, ending in `/`.",
     default: "`../web/iccs/`",
     update: "load",
   },
   {
     name: "image-resources-path",
     group: "resources",
-    description: "Folder of annotation icons (`annotation-*.svg`). Shipped in the package as `dist/images/`.",
+    description: "Folder of annotation icons (`annotation-*.svg`), shipped in the package as `dist/images/`. The default is relative to your page, so set this or `assets-base`.",
     default: "`./images/`, or `assets-base` + `images/`",
-    update: "load",
+    update: "init",
   },
   {
     name: "sandbox-bundle-src",
@@ -173,8 +174,8 @@ export default [
   {
     name: "debugger-src",
     group: "resources",
-    description: "PDF.js debugger script URL.",
+    description: "PDF.js debugger script URL. It has no effect: the debugger isn't shipped in the package, and the element offers no way to turn it on.",
     default: "`./debugger.mjs`",
-    update: "load",
+    update: "none",
   },
 ];
