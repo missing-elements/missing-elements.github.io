@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # The docs run the pdfjs-viewer version they describe, so new releases arrive as their own PR.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    groups:
+      tooling:
+        patterns: ["*"]
+        exclude-patterns: ["@missing-elements/*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
