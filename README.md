@@ -37,4 +37,5 @@ Add `try` after the language of a code fence to give it a **▶ Try** button tha
 
 - **HTML snippets** copy the attributes of their `<pdfjs-viewer-element>` onto the preview. `style`, `id`, `class` and the placeholder `src="/file.pdf"` are skipped.
 - **JavaScript snippets** run exactly as written. `document.querySelector('pdfjs-viewer-element')` returns the preview element.
+- Every Try button comes with a **Reset** button that puts the preview back to its defaults.
 - **`try=fresh`** replaces the preview with a new element first. Use it for settings that only apply when the viewer is built, such as `setViewerOptions` and the "before connect" attributes.

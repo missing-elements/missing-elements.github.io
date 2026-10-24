@@ -4,7 +4,7 @@ title: pdfjs-viewer · PDF viewer web component
 description: Docs for @missing-elements/pdfjs-viewer, a self-hostable PDF viewer web component based on the PDF.js default viewer. Install, attributes, API, theming, hosting and framework guides.
 ---
 
-The full PDF.js viewer as one HTML element. It runs in an isolated iframe and has no runtime dependencies. PDF.js and its worker ship inside the package, so nothing loads from a CDN unless you choose to. Each **▶ Try** button applies its example to the preview on the right.
+The full PDF.js viewer as one HTML element. It runs in an isolated iframe and has no runtime dependencies. PDF.js and its worker ship inside the package, so nothing loads from a CDN unless you choose to. Each **Try** button applies its example to the live preview, and **Reset** puts the preview back to its defaults.
 
 ## Quick start
 
@@ -26,7 +26,7 @@ Or skip the build step and load it from a CDN:
 
 Then add the element. It's a block element with no intrinsic height, so give it one.
 
-```html try
+```html
 <pdfjs-viewer-element
   src="https://missing-elements.github.io/pdfjs-viewer/samples/sample-pdf-file.pdf"
   style="height: 100dvh">

@@ -12,13 +12,14 @@
   <link rel="canonical" href="{{ site.url }}{{ page.url }}">
   <meta property="og:title" content="{{ title }}">
   <meta property="og:description" content="{{ description }}">
-  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/site.css">
   {%- block head %}{% endblock %}
 </head>
 <body class="{{ bodyClass }}">
   <a class="skip-link" href="#main">Skip to content</a>
   {{ content | safe }}
+  <p class="visually-hidden" role="status" data-status="page"></p>
   <script type="module" src="/assets/site.js"></script>
 </body>
 </html>

@@ -1,4 +1,6 @@
 // Live preview: one <pdfjs-viewer-element> that the playground and the Try buttons drive.
+import { announce } from '/assets/site.js'
+
 const ELEMENT_URL = '/pdfjs-viewer/vendor/pdfjs-viewer-element.js'
 const BASE_ATTRIBUTES = {
   src: '/pdfjs-viewer/samples/sample-pdf-with-images.pdf',
@@ -12,11 +14,15 @@ const SKIPPED_ATTRIBUTES = new Set(['style', 'id', 'class'])
 const pane = document.querySelector('[data-preview]')
 const stage = pane.querySelector('[data-preview-stage]')
 const markup = pane.querySelector('[data-preview-markup]')
+const markupBox = pane.querySelector('[data-preview-markup-box]')
+const status = pane.querySelector('[data-status="preview"]')
 const openButton = document.querySelector('[data-preview-open]')
 const closeButton = pane.querySelector('[data-preview-close]')
 const playground = document.querySelector('[data-playground]')
 const schemeMeta = document.querySelector('meta[name="color-scheme"]')
 const narrow = matchMedia('(max-width: 999px)')
+// Everything behind the full-screen preview on phones.
+const background = document.querySelectorAll('.skip-link, .toc, .content, [data-preview-open]')
 
 let viewer = null
 let viewerReady = null
@@ -58,10 +64,25 @@ async function create(attributes) {
 
 const ensureViewer = () => viewerReady ?? mount()
 
+// The viewer's current markup, colored with the same token classes as the page's code blocks.
+const token = (type, text) => Object.assign(document.createElement('span'), { className: `token ${type}`, textContent: text })
+
 function renderMarkup() {
   if (!viewer) return
-  const lines = [...viewer.attributes].map(({ name, value }) => `  ${name}="${value}"`)
-  markup.textContent = `<pdfjs-viewer-element\n${lines.join('\n')}>\n</pdfjs-viewer-element>`
+  const parts = [token('punctuation', '<'), token('tag', 'pdfjs-viewer-element')]
+  for (const { name, value } of viewer.attributes) {
+    parts.push('\n  ', token('attr-name', name), token('punctuation', '="'), token('attr-value', value), token('punctuation', '"'))
+  }
+  parts.push(token('punctuation', '>'), '\n', token('punctuation', '</'), token('tag', 'pdfjs-viewer-element'), token('punctuation', '>'))
+  markup.replaceChildren(...parts)
+  updateMarkupFocus()
+}
+
+// The markup box is a tab stop only while it has to scroll.
+function updateMarkupFocus() {
+  requestAnimationFrame(() => {
+    markupBox.tabIndex = markupBox.scrollHeight > markupBox.clientHeight ? 0 : -1
+  })
 }
 
 function syncPlayground() {
@@ -90,25 +111,31 @@ function flash() {
 
 function showError(error) {
   markup.textContent = `Error: ${error.message}`
+  announce(`The example failed: ${error.message}`, status)
   console.error(error)
 }
 
-// Mobile: the preview is a full-screen panel.
+// Phones: the preview is a modal, full-screen dialog.
 function openPanel(opener) {
   if (!narrow.matches) return
   lastOpener = opener ?? openButton
   pane.dataset.open = ''
+  pane.setAttribute('role', 'dialog')
+  pane.setAttribute('aria-modal', 'true')
   openButton.setAttribute('aria-expanded', 'true')
-  document.querySelector('.content').inert = true
+  background.forEach((element) => (element.inert = true))
   ensureViewer()
   closeButton.focus()
+  updateMarkupFocus()
 }
 
 function closePanel() {
   if (!('open' in pane.dataset)) return
   delete pane.dataset.open
+  pane.setAttribute('role', 'complementary')
+  pane.removeAttribute('aria-modal')
   openButton.setAttribute('aria-expanded', 'false')
-  document.querySelector('.content').inert = false
+  background.forEach((element) => (element.inert = false))
   lastOpener?.focus()
 }
 
@@ -144,14 +171,23 @@ async function tryExample(example, button) {
       await new AsyncFunction(localUrl(code))()
     }
     flash()
+    announce('Example applied to the live preview', status)
   } catch (error) {
     showError(error)
   }
 }
 
+async function resetPreview() {
+  await mount()
+  flash()
+  announce('Preview reset', status)
+}
+
 document.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-try-button]')
-  if (button) tryExample(button.closest('.example'), button)
+  const tryButton = event.target.closest('[data-try-button]')
+  if (tryButton) tryExample(tryButton.closest('.example'), tryButton)
+  // On phones the viewer may not be loaded yet, and then there's nothing to reset.
+  if (event.target.closest('[data-reset-button]') && viewerReady) resetPreview()
 })
 
 // Playground: each control sets or removes its attribute.
@@ -169,7 +205,7 @@ playground?.addEventListener('input', (event) => {
   else apply()
 })
 
-pane.querySelector('[data-preview-reset]').addEventListener('click', () => mount())
+pane.querySelector('[data-preview-reset]').addEventListener('click', resetPreview)
 openButton.addEventListener('click', () => openPanel(openButton))
 closeButton.addEventListener('click', closePanel)
 document.addEventListener('keydown', (event) => {

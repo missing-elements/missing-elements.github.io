@@ -8,11 +8,12 @@
   --text: #1c1c1c;
   --muted: #5f5b55;
   --accent: #2f6db0;
-  --focus: #4a90d9;
+  --focus: #2f6db0;
+  --control: #8a847b;
   --tint: rgb(74 144 217 / 14%);
   --live: #2e6b45;
   --load: #8a5a00;
-  --t-comment: #7a746c;
+  --t-comment: #6b655d;
   --t-tag: #9c3d2e;
   --t-attr: #8a5a00;
   --t-string: #2e6b45;
@@ -36,10 +37,11 @@
     --muted: #a8a197;
     --accent: #7db0e4;
     --focus: #7db0e4;
+    --control: #7d766b;
     --tint: rgb(125 176 228 / 18%);
     --live: #8fcf9f;
     --load: #e0b46a;
-    --t-comment: #8c857b;
+    --t-comment: #a39c91;
     --t-tag: #e8917f;
     --t-attr: #e0b46a;
     --t-string: #9fd19a;
@@ -59,10 +61,11 @@
   --muted: #a8a197;
   --accent: #7db0e4;
   --focus: #7db0e4;
+  --control: #7d766b;
   --tint: rgb(125 176 228 / 18%);
   --live: #8fcf9f;
   --load: #e0b46a;
-  --t-comment: #8c857b;
+  --t-comment: #a39c91;
   --t-tag: #e8917f;
   --t-attr: #e0b46a;
   --t-string: #9fd19a;
@@ -129,6 +132,16 @@ blockquote > :last-child { margin-bottom: 0; }
 
 .muted { color: var(--muted); }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -164,7 +177,7 @@ blockquote > :last-child { margin-bottom: 0; }
   color: var(--muted);
 }
 .code-lang { margin-right: auto; text-transform: uppercase; letter-spacing: 0.04em; }
-.code-bar .button { font-size: 0.75rem; padding: 0.15rem 0.55rem; }
+.code-bar .button { font-size: 0.75rem; padding: 0.2rem 0.55rem; }
 
 pre[class*="language-"] {
   margin: 0;
@@ -174,6 +187,7 @@ pre[class*="language-"] {
   font: 0.8125rem/1.6 var(--mono);
   tab-size: 2;
 }
+pre[class*="language-"]:focus-visible { outline-offset: -2px; }
 /* Before the script wraps it, a code block still needs a frame. */
 pre[class*="language-"]:not(.code > pre) { margin: 1rem 0 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); }
 
@@ -232,15 +246,78 @@ tbody th a:hover code { text-decoration: underline; }
   width: 100%;
   max-width: 20rem;
   padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--control);
   border-radius: var(--radius);
   background: var(--raised);
   color: var(--text);
   font: inherit;
   font-size: 0.875rem;
 }
-.playground input[type="checkbox"] { justify-self: start; width: 1.1rem; height: 1.1rem; accent-color: var(--focus); }
-.playground-hint { grid-column: 1 / -1; margin: 0.25rem 0 0; font-size: 0.8125rem; color: var(--muted); }
+.playground select:hover, .playground input:not([type="checkbox"]):hover { border-color: var(--text); }
+
+/* Customizable select for mouse and trackpad. Touch keeps the native picker; other browsers keep the styled native select. */
+@media (pointer: fine) {
+  @supports (appearance: base-select) {
+    .playground select,
+    .playground select::picker(select) { appearance: base-select; }
+
+    .playground select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .playground select:open { border-color: var(--focus); }
+    .playground select::picker-icon {
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      background: var(--muted);
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+      transition: rotate 0.2s ease-out;
+    }
+    .playground select:open::picker-icon { rotate: 180deg; }
+
+    .playground select::picker(select) {
+      margin-block: 0.25rem;
+      padding: 0.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--raised);
+      color: var(--text);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
+      opacity: 0;
+      translate: 0 -0.25rem;
+      transition:
+        display 0.15s allow-discrete,
+        overlay 0.15s allow-discrete,
+        opacity 0.15s ease-out,
+        translate 0.15s ease-out;
+    }
+    .playground select:open::picker(select) { opacity: 1; translate: 0 0; }
+    @starting-style {
+      .playground select:open::picker(select) { opacity: 0; translate: 0 -0.25rem; }
+    }
+
+    .playground option {
+      gap: 0.5rem;
+      padding: 0.35rem 0.6rem 0.35rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .playground option:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+    .playground option:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+    /* Checked: checkmark, weight and background, so the state isn't carried by color alone. */
+    .playground option:checked { font-weight: 600; background: var(--tint); }
+    .playground option::checkmark { color: var(--focus); }
+  }
+}
+
+.playground input[type="checkbox"] { justify-self: start; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--focus); }
+.playground-hint { grid-column: 1 / -1; margin: 0 0 0.25rem; font-size: 0.8125rem; color: var(--muted); }
 
 /* Docs layout: table of contents | content | preview */
 .docs {
@@ -259,19 +336,23 @@ tbody th a:hover code { text-decoration: underline; }
   font-size: 0.875rem;
   scroll-target-group: auto;
 }
-.toc-home { display: block; margin-bottom: 1.25rem; color: var(--muted); font-weight: 600; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; text-decoration: none; }
+.brand img { width: 1.5rem; height: 1.5rem; }
+.brand:hover { text-decoration: underline; }
+.toc-home { margin-bottom: 1.25rem; }
+.docs-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
 .toc ol, .toc-inline ol { margin: 0; padding: 0; list-style: none; }
 .toc li + li, .toc-inline li + li { margin-top: 0; }
-.toc a, .toc-inline a {
+.toc ol a, .toc-inline a {
   display: block;
   padding: 0.2rem 0.5rem;
   border-left: 2px solid transparent;
   color: var(--muted);
   text-decoration: none;
 }
-.toc a:hover { color: var(--text); }
-.toc a:is(:target-current, .\:target-current) { border-left-color: var(--focus); color: var(--text); font-weight: 600; }
-.toc-l3 a { padding-left: 1.25rem; font-size: 0.8125rem; }
+.toc ol a:hover { color: var(--text); }
+.toc ol a:is(:target-current, .\:target-current) { border-left-color: var(--focus); color: var(--text); font-weight: 600; }
+:is(.toc, .toc-inline) .toc-l3 a { padding-left: 1.25rem; font-size: 0.8125rem; }
 
 .content {
   min-width: 0;
@@ -294,14 +375,66 @@ tbody th a:hover code { text-decoration: underline; }
 
 .docs-footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; color: var(--muted); }
 
-.theme-toggle { flex: none; }
-.theme-toggle .when-dark { display: none; }
-@media (prefers-color-scheme: dark) {
-  :root:not(:has(meta[name="color-scheme"][content="light"])) .theme-toggle .when-light { display: none; }
-  :root:not(:has(meta[name="color-scheme"][content="light"])) .theme-toggle .when-dark { display: inline; }
+/* Theme switch: the knob sits on the sun when light and on the moon when dark. */
+.theme-switch {
+  --track-pad: 0.1875rem;
+  --knob: 1.5rem;
+  position: relative;
+  flex: none;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  width: 3.5rem;
+  height: 1.875rem;
+  padding: 0 var(--track-pad);
+  border: 1px solid var(--control);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
 }
-:root:has(meta[name="color-scheme"][content="dark"]) .theme-toggle .when-light { display: none; }
-:root:has(meta[name="color-scheme"][content="dark"]) .theme-toggle .when-dark { display: inline; }
+.theme-switch:not([hidden]) { display: inline-grid; }
+.theme-switch input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  border-radius: inherit;
+  cursor: pointer;
+}
+.theme-switch:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.theme-switch input:focus-visible { outline: none; }
+.theme-switch-knob {
+  position: absolute;
+  top: 50%;
+  left: var(--track-pad);
+  width: var(--knob);
+  height: var(--knob);
+  border-radius: 50%;
+  background: var(--text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  transform: translateY(-50%);
+  transition: transform 0.15s ease-out;
+}
+.theme-switch input:checked ~ .theme-switch-knob {
+  transform: translate(calc(3.5rem - 2px - 2 * var(--track-pad) - var(--knob)), -50%);
+}
+.theme-switch svg {
+  position: relative;
+  z-index: 1;
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-switch input:not(:checked) ~ .theme-switch-sun,
+.theme-switch input:checked ~ .theme-switch-moon { color: var(--bg); }
 
 /* Preview pane */
 .preview {
@@ -325,14 +458,26 @@ tbody th a:hover code { text-decoration: underline; }
 .preview-stage { position: relative; flex: 1; min-height: 0; }
 .preview-stage pdfjs-viewer-element { height: 100%; }
 .preview-note { padding: 1rem; color: var(--muted); }
-.preview-markup {
-  max-height: 7.5rem;
-  overflow: auto;
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid var(--border);
-  font-size: 0.75rem;
-  color: var(--muted);
+.preview .code { margin: 0; border: 0; border-top: 1px solid var(--border); border-radius: 0; }
+.preview .code-lang { text-transform: none; letter-spacing: 0; font-weight: 600; }
+
+/* Decorative label icons, masked so they take a color like text does. */
+.preview-title, .preview .code-lang { display: inline-flex; align-items: center; gap: 0.4rem; }
+.preview-title::before, .preview .code-lang::before {
+  content: "";
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  background: var(--focus);
+  mask: var(--icon) center / contain no-repeat;
 }
+.preview-title {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+.preview .code-lang {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 18 6-6-6-6M8 6l-6 6 6 6'/%3E%3C/svg%3E");
+}
+.preview pre.preview-markup { max-height: 7.5rem; padding: 0.5rem 0.75rem; background: var(--bg); font-size: 0.75rem; }
 .preview-markup code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .flash { animation: flash 0.6s ease-out; }
@@ -341,7 +486,7 @@ tbody th a:hover code { text-decoration: underline; }
 @media (min-width: 1280px) {
   .docs { grid-template-columns: 15rem minmax(0, 1fr) var(--preview-width); }
   .toc { display: block; }
-  .toc-inline { display: none; }
+  .toc-inline, .docs-brand { display: none; }
 }
 
 /* Below 1000px the preview becomes a full-screen panel opened from a floating button. */
@@ -359,7 +504,7 @@ tbody th a:hover code { text-decoration: underline; }
   }
   .preview[data-open] { visibility: visible; transform: none; transition: transform 0.2s ease-out; }
   .preview-close { display: inline-flex; }
-  .preview-markup { max-height: 5rem; }
+  .preview pre.preview-markup { max-height: 5rem; }
   .preview-open {
     position: fixed;
     right: 1rem;
@@ -379,14 +524,26 @@ tbody th a:hover code { text-decoration: underline; }
   .preview-open { display: none; }
 }
 
+/* Forced colors paint transparent borders, so give the TOC marker system colors. */
+@media (forced-colors: active) {
+  /* Masked icons paint with their background, which forced colors would turn into Canvas. */
+  .preview-title::before, .preview .code-lang::before, .playground select::picker-icon { forced-color-adjust: none; background: CanvasText; }
+  .theme-switch-knob { border: 1px solid CanvasText; }
+  .toc ol a { border-left-color: Canvas; }
+  .toc ol a:is(:target-current, .\:target-current) { border-left-color: Highlight; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .preview, .preview[data-open] { transition: none; }
+  .preview, .preview[data-open], .theme-switch-knob { transition: none; }
+  .playground select, .playground select::picker(select), .playground select::picker-icon { transition: none; }
   .flash { animation: none; }
 }
 
 /* Org home */
 .home { max-width: 44rem; margin: 0 auto; padding: 4rem 1rem; }
 .home h1 { margin: 0 0 0.5rem; font-size: 2rem; }
+.brand-title { display: flex; align-items: center; gap: 0.75rem; }
+.brand-title img { width: 3rem; height: 3rem; }
 .home .lead { margin-bottom: 2rem; }
 .elements { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
 .elements li { margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }

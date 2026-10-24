@@ -1,3 +1,10 @@
+// Screen reader announcements through a polite status region.
+export function announce(message, region = document.querySelector('[data-status="page"]')) {
+  region.textContent = ''
+  // Cleared first so that repeating the same message is announced again.
+  setTimeout(() => (region.textContent = message), 50)
+}
+
 // Color scheme toggle: two states, the system default or its opposite.
 const schemeMeta = document.querySelector('meta[name="color-scheme"]')
 const systemDark = matchMedia('(prefers-color-scheme: dark)')
@@ -8,27 +15,35 @@ const storeScheme = (value) => {
   } catch {}
 }
 
+const systemScheme = () => (systemDark.matches ? 'dark' : 'light')
+const renderedScheme = () => (schemeMeta.content === 'light dark' ? systemScheme() : schemeMeta.content)
+const themeSwitches = [...document.querySelectorAll('[data-theme-toggle] input')]
+const syncSwitches = () => themeSwitches.forEach((input) => (input.checked = renderedScheme() === 'dark'))
+
 const applyScheme = (stored) => {
   schemeMeta.content = stored ?? 'light dark'
+  syncSwitches()
   document.dispatchEvent(new CustomEvent('colorschemechange'))
 }
 
-for (const toggle of document.querySelectorAll('[data-theme-toggle]')) {
-  toggle.hidden = false
-  toggle.addEventListener('click', () => {
-    const rendered = schemeMeta.content === 'light dark' ? (systemDark.matches ? 'dark' : 'light') : schemeMeta.content
-    const target = rendered === 'dark' ? 'light' : 'dark'
-    const stored = target === (systemDark.matches ? 'dark' : 'light') ? null : target
+for (const input of themeSwitches) {
+  input.closest('[data-theme-toggle]').hidden = false
+  input.addEventListener('change', () => {
+    const target = input.checked ? 'dark' : 'light'
+    // Switching back to what the system shows means following the system again.
+    const stored = target === systemScheme() ? null : target
     storeScheme(stored)
     applyScheme(stored)
   })
 }
+syncSwitches()
+systemDark.addEventListener('change', syncSwitches)
 
 addEventListener('storage', (event) => {
   if (event.key === 'color-scheme') applyScheme(event.newValue)
 })
 
-// Code blocks: a bar with the language, a Copy button and, inside `.example`, a Try button.
+// Code blocks: a bar with the language, a Copy button and, inside `.example`, Try and Reset buttons.
 const languageNames = { html: 'HTML', markup: 'HTML', js: 'JavaScript', jsx: 'JSX', ts: 'TypeScript', bash: 'Shell', css: 'CSS', json: 'JSON' }
 
 for (const pre of document.querySelectorAll('pre[class*="language-"]')) {
@@ -39,16 +54,26 @@ for (const pre of document.querySelectorAll('pre[class*="language-"]')) {
   bar.className = 'code-bar'
   const label = document.createElement('span')
   label.className = 'code-lang'
-  label.textContent = languageNames[language] ?? language
+  label.textContent = pre.dataset.label ?? languageNames[language] ?? language
   bar.append(label)
 
-  if (pre.closest('.example')) {
+  const example = pre.closest('.example')
+  if (example) {
+    let heading = example
+    while ((heading = heading.previousElementSibling) && !/^H[23]$/.test(heading.tagName));
     const tryButton = document.createElement('button')
     tryButton.type = 'button'
     tryButton.className = 'button button-primary'
     tryButton.dataset.tryButton = ''
-    tryButton.textContent = '▶ Try'
-    bar.append(tryButton)
+    tryButton.innerHTML = '<span aria-hidden="true">▶</span> Try'
+    if (heading) tryButton.setAttribute('aria-label', `Try the ${heading.textContent.trim()} example`)
+    const resetButton = document.createElement('button')
+    resetButton.type = 'button'
+    resetButton.className = 'button'
+    resetButton.dataset.resetButton = ''
+    resetButton.textContent = 'Reset'
+    resetButton.setAttribute('aria-label', 'Reset preview')
+    bar.append(tryButton, resetButton)
   }
 
   if (navigator.clipboard) {
@@ -60,8 +85,10 @@ for (const pre of document.querySelectorAll('pre[class*="language-"]')) {
       try {
         await navigator.clipboard.writeText(pre.textContent)
         copy.textContent = 'Copied'
+        announce('Copied to clipboard')
       } catch {
         copy.textContent = 'Copy failed'
+        announce('Copy failed')
       }
       setTimeout(() => (copy.textContent = 'Copy'), 1500)
     })

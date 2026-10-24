@@ -52,6 +52,13 @@ export default function (eleventyConfig) {
 
   const inline = (text) => markdown.renderInline(text);
 
+  const tableCaptions = {
+    document: "Document and navigation attributes",
+    interface: "Interface attributes",
+    files: "Runtime file attributes",
+    resources: "PDF.js resource attributes",
+  };
+
   eleventyConfig.addShortcode("attributeTable", (group) => {
     const rows = attributes
       .filter((attr) => attr.group === group)
@@ -59,12 +66,12 @@ export default function (eleventyConfig) {
         (attr) => `<tr id="attr-${attr.name}">
 <th scope="row"><a href="#attr-${attr.name}"><code>${attr.name}</code></a></th>
 <td>${inline(attr.description)}</td>
-<td class="default">${attr.default ? inline(attr.default) : `<span class="muted" aria-label="none">—</span>`}</td>
+<td class="default">${attr.default ? inline(attr.default) : `<span class="muted"><span aria-hidden="true">—</span><span class="visually-hidden">None</span></span>`}</td>
 <td><span class="update update-${attr.update}">${{ live: "Live", load: "Next load", init: "Before connect" }[attr.update]}</span></td>
 </tr>`
       )
       .join("");
-    return `<div class="table-wrap"><table class="attributes"><thead><tr><th scope="col">Attribute</th><th scope="col">Description</th><th scope="col">Default</th><th scope="col">Updates</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    return `<div class="table-wrap"><table class="attributes"><caption class="visually-hidden">${tableCaptions[group]}</caption><thead><tr><th scope="col">Attribute</th><th scope="col">Description</th><th scope="col">Default</th><th scope="col">Updates</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   });
 
   eleventyConfig.addShortcode("playground", () => {
@@ -89,7 +96,7 @@ export default function (eleventyConfig) {
         return `<div class="control"><label for="${id}"><code>${name}</code></label>${field}</div>`;
       })
       .join("");
-    return `<form class="playground" data-playground aria-label="Attribute playground">${controls}<p class="playground-hint">Changes apply to the preview as you edit them.</p></form>`;
+    return `<form class="playground" data-playground aria-label="Attribute playground"><p class="playground-hint">Each change applies to the live preview straight away.</p>${controls}</form>`;
   });
 
   return {

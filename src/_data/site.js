@@ -1,5 +1,5 @@
 export default {
-  name: "missing elements",
+  name: "Missing Elements",
   url: "https://missing-elements.github.io",
   github: "https://github.com/missing-elements",
   elements: [
