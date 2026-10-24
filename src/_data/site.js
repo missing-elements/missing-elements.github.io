@@ -16,11 +16,5 @@ export default {
       docs: "https://h5p-offline-player.vercel.app/",
       repo: "https://github.com/missing-elements/h5p-offline-player",
     },
-    {
-      name: "office-viewer",
-      description: "A read-only viewer web component for DOCX, XLSX and PPTX files.",
-      docs: "https://office-viewer-pi.vercel.app",
-      // No repo link while the repository is private.
-    },
   ],
 };
