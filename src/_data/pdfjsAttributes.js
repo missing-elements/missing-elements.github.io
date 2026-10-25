@@ -1,7 +1,6 @@
 // Attributes of <pdfjs-viewer-element>, rendered as the reference tables and the playground.
 // `update`: live = applies immediately, load = applies to the next document load,
-// init = read only when the viewer is built, so set it before the element is connected,
-// none = has no effect.
+// init = read only when the viewer is built, so set it before the element is connected.
 const samples = "/pdfjs-viewer/samples/";
 
 export default [
@@ -66,17 +65,17 @@ export default [
   {
     name: "locale",
     group: "interface",
-    description: "Interface language, such as `de`, `uk` or `ja`. Codes outside the [PDF.js locale list](https://github.com/mozilla/pdf.js/tree/master/l10n) are ignored.",
+    description: "Interface language, such as `de`, `ja` or `pt-BR`, in any case. Codes outside the [PDF.js locale list](https://github.com/mozilla/pdf.js/tree/master/l10n) are ignored.",
     update: "live",
     playground: {
       type: "select",
-      options: [["", "(unset, English)"], "de", "fr", "it", "nl", "pl", "uk", "tr", "ja", "ko", ["ar", "ar (right-to-left)"], ["he", "he (right-to-left)"]],
+      options: [["", "(unset, English)"], "de", "fr", "it", "nl", "pl", "uk", "tr", "ja", "ko", "pt-BR", "zh-CN", ["ar", "ar (right-to-left)"], ["he", "he (right-to-left)"]],
     },
   },
   {
     name: "locale-src-template",
     group: "interface",
-    description: "Absolute URL of the locale file, with a `{locale}` placeholder. Use it to self-host locales. Read when the viewer is built and when `locale` changes.",
+    description: "URL of the locale file, with a `{locale}` placeholder that's replaced with the locale's folder name, such as `pt-BR`. Use it to self-host locales. Read when the viewer is built and when `locale` changes.",
     default: "`https://cdn.jsdelivr.net/gh/mozilla-l10n/firefox-l10n@main/{locale}/toolkit/toolkit/pdfviewer/viewer.ftl`",
     update: "init",
   },
@@ -90,7 +89,7 @@ export default [
   {
     name: "assets-base",
     group: "files",
-    description: "Folder URL holding the five runtime files. Only needed when your bundler doesn't emit them, or to load them from a CDN. See [Bundlers](#bundlers-and-assets-base).",
+    description: "Folder URL of the package's `dist` files: the five runtime files and the PDF.js data folders. Needed when your bundler doesn't emit the files, when a bundled app's documents need the data, or to load everything from a CDN. See [Bundlers](#bundlers-and-assets-base).",
     default: "Folder of `pdfjs-viewer-element.js`",
     update: "init",
   },
@@ -132,50 +131,43 @@ export default [
   {
     name: "c-map-url",
     group: "resources",
-    description: "Absolute URL of the CMaps folder, ending in `/`. Needed for some CJK text.",
-    default: "`../web/cmaps/`",
+    description: "CMaps folder, needed for some CJK text.",
+    default: "`cmaps/` next to `viewer.mjs`",
     update: "load",
   },
   {
     name: "standard-font-data-url",
     group: "resources",
-    description: "Absolute URL of the standard fonts folder, ending in `/`. For PDFs that use non-embedded base fonts.",
-    default: "`../web/standard_fonts/`",
+    description: "Standard fonts folder, for PDFs that use non-embedded base fonts.",
+    default: "`standard_fonts/` next to `viewer.mjs`",
     update: "load",
   },
   {
     name: "wasm-url",
     group: "resources",
-    description: "Absolute URL of the WASM image decoders folder (JPEG 2000, JBIG2), ending in `/`.",
-    default: "`../web/wasm/`",
+    description: "WASM folder: the JPEG 2000 and JBIG2 image decoders, and the engine the scripting sandbox runs on.",
+    default: "`wasm/` next to `viewer.mjs`",
     update: "load",
   },
   {
     name: "icc-url",
     group: "resources",
-    description: "Absolute URL of the ICC color profiles folder, ending in `/`.",
-    default: "`../web/iccs/`",
+    description: "ICC color profiles folder.",
+    default: "`iccs/` next to `viewer.mjs`",
     update: "load",
   },
   {
     name: "image-resources-path",
     group: "resources",
-    description: "Folder of annotation icons (`annotation-*.svg`), shipped in the package as `dist/images/`. The default is relative to your page, so set this or `assets-base`.",
-    default: "`./images/`, or `assets-base` + `images/`",
-    update: "init",
+    description: "Annotation icons folder (`annotation-*.svg`).",
+    default: "`images/` next to `viewer.mjs`",
+    update: "load",
   },
   {
     name: "sandbox-bundle-src",
     group: "resources",
-    description: "PDF.js scripting sandbox URL, for PDFs with JavaScript (forms).",
-    default: "`../build/pdf.sandbox.mjs`",
+    description: "Scripting sandbox module, which runs the JavaScript in PDFs, such as form calculations.",
+    default: "`pdf.sandbox.mjs` next to `pdf.mjs`",
     update: "load",
-  },
-  {
-    name: "debugger-src",
-    group: "resources",
-    description: "PDF.js debugger script URL. It has no effect: the debugger isn't shipped in the package, and the element offers no way to turn it on.",
-    default: "`./debugger.mjs`",
-    update: "none",
   },
 ];

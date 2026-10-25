@@ -4,7 +4,7 @@ title: pdfjs-viewer · PDF viewer web component
 description: Docs for @missing-elements/pdfjs-viewer, a self-hostable PDF viewer web component based on the PDF.js default viewer. Install, attributes, API, theming, hosting and framework guides.
 ---
 
-The full PDF.js viewer as one HTML element. It runs in an isolated iframe and has no runtime dependencies. PDF.js and its worker ship inside the package, so by default nothing loads from a CDN. The one exception is locale files, which come from jsDelivr when you set `locale`. Each **Try** button applies its example to the live preview, and **Reset** puts the preview back to its defaults.
+The full PDF.js viewer as one HTML element. It runs in an isolated iframe and has no runtime dependencies. PDF.js, its worker and the data some PDFs need ship inside the package, so by default nothing loads from a CDN. The one exception is locale files, which come from jsDelivr when you set `locale`. Each **Try** button applies its example to the live preview, and **Reset** puts the preview back to its defaults.
 
 ## Quick start
 
@@ -45,7 +45,7 @@ viewer.setAttribute('zoom', 'page-fit')
 
 The **Updates** column in the tables below says when a change takes effect:
 
-- **Live**: immediately. Changing `src` opens the new file without rebuilding the viewer. `page`, `zoom`, `pagemode`, `search` and `phrase` are applied together. Changing any of them also goes to the page in `page` (page 1 when it's unset) and resets the sidebar to `pagemode`, closing a sidebar the reader opened.
+- **Live**: immediately. Changing `src` opens the new file without rebuilding the viewer. `page`, `zoom`, `pagemode`, `search` and `phrase` are applied together: changing one also reapplies the others that are set, so with `page` set the viewer goes back to that page. Unset ones leave the reader's page and sidebar alone.
 - **Next load**: with the next document the viewer opens.
 - **Before connect**: read once, when the viewer is built. Set it before you add the element to the page.
 
@@ -78,7 +78,7 @@ You rarely need these. See [Hosting](#hosting).
 
 ### PDF.js resources
 
-Data that only some PDFs need. The package doesn't include it, and the defaults are relative paths that don't work inside the viewer. See [PDF.js resources](#cmaps-fonts-and-other-resources) before you set these.
+Data that only some PDFs need. It ships in the package's `dist` folder, and the defaults load it from next to the viewer files, so set these only to serve it from somewhere else. Bundled apps are the exception: see [PDF.js resources](#cmaps-fonts-and-other-resources).
 
 {% attributeTable "resources" %}
 
@@ -109,7 +109,7 @@ await viewer.setViewerOptions({
 })
 ```
 
-The options are applied while the viewer is being built, so call this right after you add the element. A call made after `initPromise` has resolved has no effect until the viewer rebuilds. Each call replaces the options of the previous one, and the options are cleared once applied. A rebuild (a `locale` change that can't be applied in place, or moving the element to another place in the page) drops them, so call it again after one. It resolves to `{ viewerOptions }` once the viewer is ready.
+The options are applied while the viewer is being built, so call this right after you add the element. A call made after `initPromise` has resolved takes effect only when the viewer rebuilds. Options from every call are kept and merged, and applied again whenever the viewer rebuilds, for example after a `locale` change that can't be applied in place, or when the element moves to another place in the page. It resolves to `{ viewerOptions }` once the viewer is ready.
 
 ### `injectViewerStyles(css)`
 
@@ -150,19 +150,21 @@ The default Paper & Ink theme follows the system color scheme. To force one sche
 
 ### Your own colors
 
-The viewer is styled with CSS custom properties. To restyle it, override them with `injectViewerStyles`. Paper & Ink sets its palette on `:root`, and on `:root[data-color-scheme=dark]` when dark is forced, so target both selectors. Any variable you don't override keeps the current scheme's value, so pair a custom palette with a fixed `viewer-css-theme`:
+The viewer is styled with CSS custom properties. To restyle it, override them with `injectViewerStyles`. Paper & Ink sets its palette on `:root`, and on `:root[data-color-scheme=dark]` when dark is forced, so target both selectors. Any variable you don't override keeps the current scheme's value, so pair a custom palette with a fixed `viewer-css-theme`. Wrap it in a `not (forced-colors: active)` media query, as Paper & Ink does: in forced colors mode, such as Windows High Contrast, fixed colors hide the toolbar icons.
 
 ```js try
 const viewer = document.querySelector('pdfjs-viewer-element')
 viewer.setAttribute('viewer-css-theme', 'LIGHT')
 viewer.injectViewerStyles(`
-  :root, :root[data-color-scheme] {
-    --main-color: #3b2bd9;
-    --body-bg-color: #eeedfb;
-    --toolbar-bg-color: #dcd9f8;
-    --toolbar-border-color: #b9b3f0;
-    --toolbar-icon-bg-color: #2a1fa3;
-    --field-border-color: #8e85e8;
+  @media not all and (forced-colors: active) {
+    :root, :root[data-color-scheme] {
+      --main-color: #3b2bd9;
+      --body-bg-color: #eeedfb;
+      --toolbar-bg-color: #dcd9f8;
+      --toolbar-border-color: #b9b3f0;
+      --toolbar-icon-bg-color: #2a1fa3;
+      --field-border-color: #8e85e8;
+    }
   }
 `)
 ```
@@ -191,27 +193,25 @@ The interface is in English unless you set `locale`. The locale file is download
 </pdfjs-viewer-element>
 ```
 
-Right-to-left locales such as `ar` and `he` also switch the layout direction.
+Codes with a region, such as `pt-BR` and `zh-CN`, work too, and case doesn't matter. Right-to-left locales such as `ar` and `he` also switch the layout direction.
 
-> **Known issue in v{{ pdfjsViewer.version }}:** codes are checked against a lowercase list, so codes with a region, such as `pt-BR`, `zh-CN`, `es-ES` and `sv-SE`, are ignored and the viewer stays in English. These languages have no language-only code to fall back on. As a workaround, use the lowercase code, such as `pt-br`, with a self-hosted `locale-src-template` that uses the same lowercase folder name.
-
-To serve locale files yourself, which is useful under a strict CSP or when you can't rely on third parties, copy them from [mozilla-l10n/firefox-l10n](https://github.com/mozilla-l10n/firefox-l10n) (`<locale>/toolkit/toolkit/pdfviewer/viewer.ftl`) and point `locale-src-template` at them. The template must be an absolute URL: a relative one breaks all of the viewer's interface text.
+To serve locale files yourself, which is useful under a strict CSP or when you can't rely on third parties, copy them from [mozilla-l10n/firefox-l10n](https://github.com/mozilla-l10n/firefox-l10n) (`<locale>/toolkit/toolkit/pdfviewer/viewer.ftl`) and point `locale-src-template` at them. `{locale}` is replaced with the locale's folder name in its original case, such as `pt-BR`, so keep the folder names as they are.
 
 ```html
 <pdfjs-viewer-element
   src="/file.pdf"
-  locale="de"
-  locale-src-template="https://example.com/locales/{locale}/viewer.ftl">
+  locale="pt-BR"
+  locale-src-template="/locales/{locale}/viewer.ftl">
 </pdfjs-viewer-element>
 ```
 
 ## Hosting
 
-The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element.
+The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element. The [data some PDFs need](#cmaps-fonts-and-other-resources) sits beside them.
 
 ### Bundlers and `assets-base`
 
-**Vite and webpack 5** need no configuration. The element references its files as `new URL('./file', import.meta.url)`, so these bundlers emit them as assets and rewrite the URLs.
+**Vite and webpack 5** need no configuration for the viewer. The element references its files as `new URL('./file', import.meta.url)`, so these bundlers emit them as assets and rewrite the URLs. They don't copy the PDF.js data folders, though: if your documents need them, serve the package's `dist` folder and set `assets-base`, as below.
 
 **esbuild, plain Rollup and other bundlers** that don't handle that pattern move the element into your bundle without the files, and the viewer fails with 404s. Serve the package's `dist` folder as static files and point `assets-base` at it:
 
@@ -229,9 +229,7 @@ The same attribute can load the files from a CDN:
 </pdfjs-viewer-element>
 ```
 
-`assets-base` is read when the viewer is built, so set it before the element is connected. A per-file attribute such as `worker-src` overrides it for that file.
-
-Annotation icons need this whichever bundler you use. PDF.js loads them by name at runtime (`annotation-<name>.svg`), so no bundler emits them, and the default path is relative to your page. Serve the package's `dist/images` folder and point `image-resources-path` at it, or set `assets-base`, which covers the icons too.
+`assets-base` covers the data folders too. It's read when the viewer is built, so set it before the element is connected. A per-file attribute such as `worker-src` or `c-map-url` overrides it for that file.
 
 ### Static pipelines with hashed file names
 
@@ -244,12 +242,11 @@ If your pipeline renames files, for example with content hashes, set each runtim
   viewer-src="/static/viewer.9b8e7d.mjs"
   worker-src="/static/pdf.worker.min.5c4d3e.mjs"
   viewer-css-src="/static/viewer.1a2b3c.css"
-  theme-css-src="/static/paper-and-ink.4d5e6f.css"
-  image-resources-path="/static/pdfjs-images/">
+  theme-css-src="/static/paper-and-ink.4d5e6f.css">
 </pdfjs-viewer-element>
 ```
 
-Keep the `dist/images` folder unhashed: annotation icons are loaded by name.
+The data folders are looked up next to `viewer-src`, and the scripting sandbox next to `pdfjs-lib-src`. Copy `cmaps/`, `standard_fonts/`, `wasm/`, `iccs/`, `images/` and `pdf.sandbox.mjs` from `dist` there and keep their names unhashed, because PDF.js loads them by name. Or point the [resource attributes](#pdf-js-resources) somewhere else.
 
 ### Worker
 
@@ -266,20 +263,25 @@ Set `worker-src` only to serve the worker from somewhere else, and use the match
 
 ### CMaps, fonts and other resources
 
-Most PDFs render with just the package. Some need extra PDF.js data: CMaps for some CJK text, standard fonts for non-embedded base fonts, WASM decoders for JPEG 2000 and JBIG2 images, and the scripting sandbox for PDFs with JavaScript. The package doesn't include these, and the defaults are relative paths that don't work inside the viewer.
+Most PDFs render with just the viewer files. Some need extra PDF.js data: CMaps for some CJK text, standard fonts for non-embedded base fonts, WASM decoders for JPEG 2000 and JBIG2 images, ICC color profiles, annotation icons, and the scripting sandbox for PDFs with JavaScript. All of it ships in the package and loads only for documents that need it.
 
-If your documents need them, copy the folders from `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}` into your static files and point the attributes at them. Use absolute URLs that end in `/`. PDF.js fetches these folders from its worker, which runs from a `blob:` URL where relative paths don't resolve, and it rejects a folder URL without the trailing slash.
+Each resource is loaded from next to the viewer files by default, so nothing needs setting when the element comes from a CDN or you serve `dist` with `assets-base`. In bundled apps, serve `dist` and set `assets-base`, or point the attributes at your own copy. Relative URLs work, and folder URLs get a missing trailing `/` added:
 
 ```html
 <pdfjs-viewer-element
   src="/file.pdf"
-  c-map-url="https://example.com/pdfjs/cmaps/"
-  standard-font-data-url="https://example.com/pdfjs/standard_fonts/"
-  wasm-url="https://example.com/pdfjs/wasm/"
-  icc-url="https://example.com/pdfjs/iccs/"
-  sandbox-bundle-src="https://example.com/pdfjs/build/pdf.sandbox.min.mjs">
+  c-map-url="/static/pdfjs/cmaps/"
+  standard-font-data-url="/static/pdfjs/standard_fonts/"
+  wasm-url="/static/pdfjs/wasm/"
+  icc-url="/static/pdfjs/iccs/"
+  image-resources-path="/static/pdfjs/images/"
+  sandbox-bundle-src="/static/pdfjs/pdf.sandbox.mjs">
 </pdfjs-viewer-element>
 ```
+
+PDF.js runs the JavaScript in PDFs, such as form calculations, in its sandbox. To turn that off, call `setViewerOptions({ enableScripting: false })` right after you add the element.
+
+If your page has a Content Security Policy, the WASM decoders and the scripting sandbox need `'wasm-unsafe-eval'` in `script-src`. Without it, PDF JavaScript doesn't run. Resources fetched from another origin need CORS headers, and must be set before the element connects, because the viewer writes its own CSP when it's built.
 
 ### Cross-origin PDFs
 
@@ -320,7 +322,7 @@ type PdfjsViewerAttribute =
   | 'viewer-css-theme' | 'locale' | 'locale-src-template' | 'iframe-title'
   | 'assets-base' | 'worker-src' | 'pdfjs-lib-src' | 'viewer-src' | 'viewer-css-src' | 'theme-css-src'
   | 'c-map-url' | 'standard-font-data-url' | 'wasm-url' | 'icc-url'
-  | 'image-resources-path' | 'sandbox-bundle-src' | 'debugger-src'
+  | 'image-resources-path' | 'sandbox-bundle-src'
 
 declare module 'react' {
   namespace JSX {
@@ -439,6 +441,7 @@ Name every viewer with `iframe-title`. Screen readers announce it as the name of
 - Label the viewer in the surrounding page, for example with a heading.
 - Set `locale` to match your app's language.
 - If you inject CSS, keep focus indicators visible and contrast sufficient.
+- In forced colors mode, such as Windows High Contrast, Paper & Ink steps aside and PDF.js's own high-contrast styles apply. Keep your own colors out of that mode too, as in [Your own colors](#your-own-colors).
 - The viewer can't fix an inaccessible PDF. Use tagged documents with a sensible reading order and text alternatives.
 
 More in the [accessibility guide]({{ pdfjsViewer.repo }}/blob/master/ACCESSIBILITY.md).
@@ -463,8 +466,9 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 <script type="module" src="https://cdn.jsdelivr.net/npm/@missing-elements/pdfjs-viewer@{{ pdfjsViewer.major }}/dist/pdfjs-viewer-element.js"></script>
 ```
 
-If you're coming from an older major version:
+If you're coming from an older version:
 
+- **From 4.3 or earlier:** if you worked around region locales with a lowercase code and lowercase locale folders, rename the folders back to their original case, such as `pt-BR`, and use any case in `locale`. PDF JavaScript now runs; see [PDF.js resources](#cmaps-fonts-and-other-resources) to turn it off. Absolute resource URLs keep working, and `debugger-src` is gone (it never had an effect).
 - **From 3.x:** version 4 moved from PDF.js 5 to PDF.js 6. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. From 3.0.x, also replace `viewer-extra-styles` and `viewer-extra-styles-urls` with [`injectViewerStyles()`](#injectviewerstyles-css).
 - **From 2.x:** PDF.js is now bundled, so remove `viewer-path` and your copy of the PDF.js prebuild. Replace `initialize()` with [`initPromise`](#initpromise), and `viewer-extra-styles` and `viewer-extra-styles-urls` with [`injectViewerStyles()`](#injectviewerstyles-css). The `nameddest`, `text-layer`, `disable-*` and `verbosity` attributes are gone:
   - `disableRange`, `disableStream`, `disableAutoFetch`, `disableFontFace`, `textLayerMode` and `verbosity` can be set as PDF.js options with [`setViewerOptions()`](#setvieweroptions-options).
