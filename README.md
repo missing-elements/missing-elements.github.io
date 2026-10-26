@@ -17,7 +17,7 @@ pnpm dev     # http://localhost:8080
 pnpm build   # writes _site/
 ```
 
-Pushes to `main` deploy through [.github/workflows/pages.yml](.github/workflows/pages.yml).
+Pushes to `main` deploy through [.github/workflows/pages.yml](.github/workflows/pages.yml). Pull requests get a build check from [.github/workflows/build.yml](.github/workflows/build.yml).
 
 ## Editing the pdfjs-viewer docs
 
