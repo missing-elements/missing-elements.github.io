@@ -205,6 +205,8 @@ To serve locale files yourself, which is useful under a strict CSP or when you c
 </pdfjs-viewer-element>
 ```
 
+If your page has a Content Security Policy, allow the locale file's origin in `connect-src`: `https://cdn.jsdelivr.net` for the default files, or `'self'` for your own. If the file can't be loaded, the interface stays in English.
+
 ## Hosting
 
 The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element. The [data some PDFs need](#cmaps-fonts-and-other-resources) sits beside them.
@@ -468,6 +470,7 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 
 If you're coming from an older version:
 
+- **From 4.4.0 or earlier:** if your Content Security Policy allows `blob:` in `connect-src` only for locales, you can remove it.
 - **From 4.3 or earlier:** if you worked around region locales with a lowercase code and lowercase locale folders, rename the folders back to their original case, such as `pt-BR`, and use any case in `locale`. PDF JavaScript now runs; see [PDF.js resources](#cmaps-fonts-and-other-resources) to turn it off. Absolute resource URLs keep working, and `debugger-src` is gone (it never had an effect).
 - **From 3.x:** version 4 moved from PDF.js 5 to PDF.js 6. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. From 3.0.x, also replace `viewer-extra-styles` and `viewer-extra-styles-urls` with [`injectViewerStyles()`](#injectviewerstyles-css).
 - **From 2.x:** PDF.js is now bundled, so remove `viewer-path` and your copy of the PDF.js prebuild. Replace `initialize()` with [`initPromise`](#initpromise), and `viewer-extra-styles` and `viewer-extra-styles-urls` with [`injectViewerStyles()`](#injectviewerstyles-css). The `nameddest`, `text-layer`, `disable-*` and `verbosity` attributes are gone:

@@ -12,6 +12,6 @@
     "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2"
   },
   "dependencies": {
-    "@missing-elements/pdfjs-viewer": "4.4.0"
+    "@missing-elements/pdfjs-viewer": "4.4.1"
   }
 }
