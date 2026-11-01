@@ -213,14 +213,42 @@ The element loads the viewer at runtime from five files next to `pdfjs-viewer-el
 
 ### Bundlers and `assets-base`
 
-**Vite and webpack 5** need no configuration for the viewer. The element references its files as `new URL('./file', import.meta.url)`, so these bundlers emit them as assets and rewrite the URLs. They don't copy the PDF.js data folders, though: if your documents need them, serve the package's `dist` folder and set `assets-base`, as below.
+**Vite, webpack 5 and Next.js**, with webpack or Turbopack, need no configuration for the viewer. The element references its files as `new URL('./file', import.meta.url)`, so these bundlers emit them as assets and rewrite the URLs.
 
-**esbuild, plain Rollup and other bundlers** that don't handle that pattern move the element into your bundle without the files, and the viewer fails with 404s. Serve the package's `dist` folder as static files and point `assets-base` at it:
+They don't copy the PDF.js [data folders](#cmaps-fonts-and-other-resources), though, because PDF.js loads those files by name. Without them, most PDFs still render fully, but:
+
+- Scanned pages compressed with JBIG2, CCITT or JPEG 2000 render blank or black.
+- CJK text in fonts the PDF doesn't embed goes missing.
+- JavaScript in PDFs, such as form calculations, doesn't run.
+- Note icons are missing, and ICC color profiles aren't applied.
+
+**esbuild, plain Rollup and other bundlers** that don't handle that pattern move the element into your bundle without the files, and the viewer fails with 404s.
+
+To support every PDF with any bundler, copy the package's `dist` folder into your static files and point `assets-base` at it. A `postinstall` script keeps the copy at the installed version:
+
+```js
+// scripts/copy-pdfjs-viewer.mjs
+import { cpSync, rmSync } from 'node:fs'
+
+const dist = new URL('dist/', import.meta.resolve('@missing-elements/pdfjs-viewer/package.json'))
+rmSync('public/pdfjs-viewer', { recursive: true, force: true })
+cpSync(dist, 'public/pdfjs-viewer', { recursive: true })
+```
+
+```json
+{
+  "scripts": {
+    "postinstall": "node scripts/copy-pdfjs-viewer.mjs"
+  }
+}
+```
 
 ```html
-<pdfjs-viewer-element src="/file.pdf" assets-base="/static/pdfjs-viewer/">
+<pdfjs-viewer-element src="/file.pdf" assets-base="/pdfjs-viewer/">
 </pdfjs-viewer-element>
 ```
+
+`public/` is the static folder in Vite and Next.js. Add `public/pdfjs-viewer/` to `.gitignore`, since the script recreates it. If your CI skips install scripts, run the copy in your `build` and `dev` scripts instead, for example `"build": "node scripts/copy-pdfjs-viewer.mjs && next build"`.
 
 The same attribute can load the files from a CDN:
 
@@ -265,9 +293,9 @@ Set `worker-src` only to serve the worker from somewhere else, and use the match
 
 ### CMaps, fonts and other resources
 
-Most PDFs render with just the viewer files. Some need extra PDF.js data: CMaps for some CJK text, standard fonts for non-embedded base fonts, WASM decoders for JPEG 2000 and JBIG2 images, ICC color profiles, annotation icons, and the scripting sandbox for PDFs with JavaScript. All of it ships in the package and loads only for documents that need it.
+Most PDFs render with just the viewer files. Some need extra PDF.js data: CMaps for some CJK text, standard fonts for non-embedded base fonts, WASM decoders for JBIG2, CCITT and JPEG 2000 images, ICC color profiles, annotation icons, and the scripting sandbox for PDFs with JavaScript. All of it ships in the package and loads only for documents that need it.
 
-Each resource is loaded from next to the viewer files by default, so nothing needs setting when the element comes from a CDN or you serve `dist` with `assets-base`. In bundled apps, serve `dist` and set `assets-base`, or point the attributes at your own copy. Relative URLs work, and folder URLs get a missing trailing `/` added:
+Each resource is loaded from next to the viewer files by default, so nothing needs setting when the element comes from a CDN or you serve `dist` with `assets-base`. In bundled apps, [copy `dist` and set `assets-base`](#bundlers-and-assets-base), or point the attributes at your own copy. Relative URLs work, and folder URLs get a missing trailing `/` added:
 
 ```html
 <pdfjs-viewer-element

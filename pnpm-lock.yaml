@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@missing-elements/pdfjs-viewer':
-        specifier: 4.4.1
-        version: 4.4.1
+        specifier: 4.4.2
+        version: 4.4.2
     devDependencies:
       '@11ty/eleventy':
         specifier: 3.1.7
@@ -77,8 +77,8 @@ packages:
     resolution: {integrity: sha512-oI7m8pa7/IAU/3lqRU9vjBbs20iKFo7x+1K9kT3aVira6scc1X9MjBdgLCHzLJeJ7iB6wydioA+kr9/qPnvmlQ==}
     engines: {node: '>=18'}
 
-  '@missing-elements/pdfjs-viewer@4.4.1':
-    resolution: {integrity: sha512-FBwaTOeNMsd0aXxio2ChQ9IBGLNmsdTYJ+ZUrOFvCg9L+/jyiDUE+fndOw1MwAXowZeWaKdAjNiFAU87Myy+zQ==}
+  '@missing-elements/pdfjs-viewer@4.4.2':
+    resolution: {integrity: sha512-Lq651Ukf2Evac4efj3JR/6u1atxbDqiklQGgQfL9bJeaEm5IMnw+vd15qCD7WyZOqsqcI/jZpdYFOnkv5h2rsw==}
 
   '@napi-rs/canvas-android-arm64@1.0.13':
     resolution: {integrity: sha512-trn7AaDzQ+yeeA0ezhkC7cB1ZDPtp4UYk0EvB5F8qtYL9jEVWtVrU30WOpI52DszoTxaTsCgf5PP4ZVaOlOIHQ==}
@@ -678,7 +678,7 @@ snapshots:
       minimatch: 3.1.5
       slash: 3.0.0
 
-  '@missing-elements/pdfjs-viewer@4.4.1':
+  '@missing-elements/pdfjs-viewer@4.4.2':
     dependencies:
       pdfjs-dist: 6.4.299
 
