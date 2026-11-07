@@ -209,7 +209,7 @@ If your page has a Content Security Policy, allow the locale file's origin in `c
 
 ## Hosting
 
-The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element. The [data some PDFs need](#cmaps-fonts-and-other-resources) sits beside them.
+The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element. The [data some PDFs need](#cmaps-fonts-and-other-resources) sits beside them. With [worker rendering](#worker) on, the viewer also loads `pdf.renderer.min.mjs` from the same folder.
 
 ### Bundlers and `assets-base`
 
@@ -276,6 +276,8 @@ If your pipeline renames files, for example with content hashes, set each runtim
 </pdfjs-viewer-element>
 ```
 
+If you turn on [worker rendering](#worker), set `renderer-src` too.
+
 The data folders are looked up next to `viewer-src`, and the scripting sandbox next to `pdfjs-lib-src`. Copy `cmaps/`, `standard_fonts/`, `wasm/`, `iccs/`, `images/` and `pdf.sandbox.mjs` from `dist` there and keep their names unhashed, because PDF.js loads them by name. Or point the [resource attributes](#pdf-js-resources) somewhere else.
 
 ### Worker
@@ -290,6 +292,10 @@ Set `worker-src` only to serve the worker from somewhere else, and use the match
   worker-src="https://cdn.jsdelivr.net/npm/pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}/build/pdf.worker.min.mjs">
 </pdfjs-viewer-element>
 ```
+
+PDF.js can also draw pages in a second worker, off the main thread. This is off by default. To turn it on, call [`setViewerOptions({ disableWorkerRendering: false })`](#setvieweroptions-options) right after you add the element.
+
+That worker runs the bundled `pdf.renderer.min.mjs`. PDF.js starts it from a `blob:` URL too, so it needs the same Content Security Policy as the main worker. Set `renderer-src` only to serve the file from somewhere else, and use the matching PDF.js version ({{ pdfjsViewer.pdfjsVersion }}). If the worker can't start, PDF.js logs a "Renderer worker disabled" warning and draws on the main thread.
 
 ### CMaps, fonts and other resources
 
@@ -350,7 +356,8 @@ import type { PdfjsViewerElement } from '@missing-elements/pdfjs-viewer'
 type PdfjsViewerAttribute =
   | 'src' | 'page' | 'zoom' | 'pagemode' | 'search' | 'phrase'
   | 'viewer-css-theme' | 'locale' | 'locale-src-template' | 'iframe-title'
-  | 'assets-base' | 'worker-src' | 'pdfjs-lib-src' | 'viewer-src' | 'viewer-css-src' | 'theme-css-src'
+  | 'assets-base' | 'worker-src' | 'renderer-src' | 'pdfjs-lib-src'
+  | 'viewer-src' | 'viewer-css-src' | 'theme-css-src'
   | 'c-map-url' | 'standard-font-data-url' | 'wasm-url' | 'icc-url'
   | 'image-resources-path' | 'sandbox-bundle-src'
 
@@ -498,6 +505,7 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 
 If you're coming from an older version:
 
+- **From 4.4.2 or earlier:** version 4.5 moved from PDF.js 6.4 to 6.5. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. TypeScript now rejects a bare `Uint8Array` in `viewerApp.open()`, which already failed at runtime. Pass `{ data }`, as in [Open a PDF from bytes](#open-a-pdf-from-bytes).
 - **From 4.4.0 or earlier:** if your Content Security Policy allows `blob:` in `connect-src` only for locales, you can remove it.
 - **From 4.3 or earlier:** if you worked around region locales with a lowercase code and lowercase locale folders, rename the folders back to their original case, such as `pt-BR`, and use any case in `locale`. PDF JavaScript now runs; see [PDF.js resources](#cmaps-fonts-and-other-resources) to turn it off. Absolute resource URLs keep working, and `debugger-src` is gone (it never had an effect).
 - **From 3.x:** version 4 moved from PDF.js 5 to PDF.js 6. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. From 3.0.x, also replace `viewer-extra-styles` and `viewer-extra-styles-urls` with [`injectViewerStyles()`](#injectviewerstyles-css).
