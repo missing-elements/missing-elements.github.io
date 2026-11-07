@@ -89,7 +89,7 @@ export default [
   {
     name: "assets-base",
     group: "files",
-    description: "Folder URL of the package's `dist` files: the five runtime files and the PDF.js data folders. Needed when your bundler doesn't emit the files, when a bundled app's documents need the data, or to load everything from a CDN. See [Bundlers](#bundlers-and-assets-base).",
+    description: "Folder URL of the package's `dist` files: the runtime files and the PDF.js data folders. Needed when your bundler doesn't emit the files, when a bundled app's documents need the data, or to load everything from a CDN. See [Bundlers](#bundlers-and-assets-base).",
     default: "Folder of `pdfjs-viewer-element.js`",
     update: "init",
   },
@@ -98,6 +98,13 @@ export default [
     group: "files",
     description: "PDF.js worker module URL. Must match the bundled PDF.js version.",
     default: "Bundled `pdf.worker.min.mjs`",
+    update: "load",
+  },
+  {
+    name: "renderer-src",
+    group: "files",
+    description: "PDF.js renderer worker module URL, used only when [worker rendering](#worker) is on. Must match the bundled PDF.js version.",
+    default: "Bundled `pdf.renderer.min.mjs`",
     update: "load",
   },
   {
