@@ -7,6 +7,7 @@ Docs and tools for the [missing-elements](https://github.com/missing-elements) w
 | `/` | [src/index.njk](src/index.njk), project list in [src/_data/site.js](src/_data/site.js) |
 | `/pdfjs-viewer/` | [src/pdfjs-viewer/index.md](src/pdfjs-viewer/index.md) |
 | `/h5p/build/` | The H5P build page, [src/h5p/build/](src/h5p/build/): see [The H5P build page](#the-h5p-build-page) |
+| `/h5p/build/types/` | The h5p-author skill's type files, which the build page copies for the chat, written by [vite.config.ts](vite.config.ts): see [The type files](#the-type-files) |
 | `/h5p/bundles/` | The build tool and a library bundle per content type, written by [vite.config.ts](vite.config.ts): see [The bundles](#the-bundles) |
 
 Built with [Eleventy](https://www.11ty.dev/). The pages ship no framework: the only client-side JavaScript is the theme toggle, code-block buttons, the live preview and the build page, which [Vite](https://vite.dev/) bundles with the H5P player.
@@ -51,7 +52,7 @@ Add `try` after the language of a code fence to give it a **▶ Try** button tha
 
 ## The H5P build page
 
-`/h5p/build/` is for an AI chat that wrote a source with the [h5p-author skill](https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author) but cannot build it. ChatGPT's sandbox reaches npm only through OpenAI's own mirror, which was reported refusing every install from July 2026, so `npx @missing-elements/h5p-author` does not run there, and the skill hands over the source and this page's address instead. The page builds with `@missing-elements/h5p-author/browser`, the same build as the command's, and lists every problem at once by its path, ready to copy back into the chat. Its libraries are `@missing-elements/h5p-libraries/install`'s pack, one part per library, so a build fetches only the parts its package needs and carries the editor libraries an H5P site's upload check asks for. The package then plays in the player on the page, and downloads from it.
+`/h5p/build/` is for an AI chat that wrote a source with the [h5p-author skill](https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author) but cannot build it. ChatGPT's sandbox reaches npm only through OpenAI's own mirror, which was reported refusing every install from July 2026, so `npx @missing-elements/h5p-author` does not run there, and the skill hands over the source and this page's address instead. The page builds with `@missing-elements/h5p-author/browser`, the same build as the command's, and lists every problem at once by its path, ready to copy back into the chat with [the type files](#the-type-files) that chat lacked. Its libraries are `@missing-elements/h5p-libraries/install`'s pack, one part per library, so a build fetches only the parts its package needs and carries the editor libraries an H5P site's upload check asks for. The package then plays in the player on the page, and downloads from it.
 
 Nothing leaves the browser. A link can carry the source in its fragment, which no server sees: `/h5p/build/#source=<base64url>`, the bytes being the source's JSON as UTF-8, or that JSON compressed with raw deflate (Node's `zlib.deflateRawSync`, Python's `zlib.compressobj(wbits=-15)`) to keep the link short. A linked source is built at once, unless it names files of its own, which only the person can choose. A source that names a picture by web address gets it only where that host allows CORS.
 
@@ -59,14 +60,33 @@ Nothing leaves the browser. A link can carry the source in its fragment, which n
 | --- | --- |
 | `src/h5p/build/index.njk` | The page's markup, in the site's layout, and its Content-Security-Policy: GitHub Pages sends no headers, so a `<meta>` tag is the only policy it gets |
 | `src/h5p/build/build-page.ts` | The page's wiring: the build, the player, the download, a link's source |
-| `src/h5p/build/build-source.ts` | What it does with a source with no DOM: the link's fragment, the files a source names, the text for the chat |
+| `src/h5p/build/build-source.ts` | What it does with a source with no DOM: the link's fragment, the files a source names, the content types it is written in, the text for the chat |
 | `src/assets/site.css` | Its styles, under *H5P build page* |
-| `vite.config.ts` | The page's script, `/h5p/build/build-page.js`, with the player, its runtime, the pack and their licence files in `/h5p/assets/` |
-| `e2e/`, `playwright.config.ts` | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed for the chat; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder |
+| `vite.config.ts` | The page's script, `/h5p/build/build-page.js`, with the player, its runtime, the pack and their licence files in `/h5p/assets/`, and the type files in `/h5p/build/types/` |
+| `e2e/`, `playwright.config.ts` | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder |
 
 The player's Service Worker is in `/h5p/assets/` too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it. The address names who runs the page, as H5P Group's trademark policy asks of a name with "H5P" in it, and the page uses the word descriptively.
 
 The page and the bundles were embed-my.github.io's `/build` and `/bundles/` until 2026-11-10. Its `/build` becomes a redirect here that keeps the fragment, so the links chats wrote before still build: [embed-my/embed-my.github.io#18](https://github.com/embed-my/embed-my.github.io/pull/18), a step of its own, deployed once this page is live.
+
+### The type files
+
+A chat in a browser, such as Gemini in Chrome, has the skill's text and none of its files, and can run nothing. It guesses how a content type is written, and each round of problems tells it the names of one level. So **Copy the problems for the chat** copies more than the list: after the problems come the skill's type files of the source's own content type and of the libraries it names, each a type's notes, an example and its fields.
+
+```
+The build page found 2 problems in the source. Fix them all and write the whole source again:
+- params.chapters[0]: is the params of sub-content, without the sub-content around them: write params.chapters[0] as { "library": "H5P.Column", "params": { "content": … } }
+- params.chapters[0].metadata.title: is required: the chapter's name in the table of contents
+
+How these content types are written, from the h5p-author skill's type files:
+
+# Interactive Book (H5P.InteractiveBook)
+…
+```
+
+`vite.config.ts` writes them to `/h5p/build/types/<Type>.md` from the pinned `@missing-elements/h5p-author`, which carries them since 0.7.0, with `index.json`, the author's version and the types there is a file for. They are that release's, so they describe the fields of the build the page runs, and a Dependabot update of the package moves both. The page fetches them when it lists a source's problems, so the copy is written within the button's press; where they cannot be fetched, the problems are copied alone.
+
+Measured in [h5p-offline-player#172](https://github.com/missing-elements/h5p-offline-player/issues/172) on the weakest Claude model, Haiku 5.5, in that position: with the files beside the first problems, 42 of 46 sources of 23 content types were right by its second reply, and 29 without them. The page copies that text byte for byte: the 39 sources that failed their first build in the test's runs were built again on this page, and all but one copied what the model had been given, the one a Game Map whose problems 0.7.0 says better.
 
 ## The bundles
 

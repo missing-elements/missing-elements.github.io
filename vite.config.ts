@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,6 +13,8 @@ import { build, defineConfig, type Plugin } from 'vite'
  *   player, its runtime and the library pack name their files relative to their own modules, and
  *   Vite emits them into `/h5p/assets/` with everything else. The player's Service Worker lands
  *   there too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it.
+ * - `/h5p/build/types/`, the h5p-author skill's type files, which the page copies for the chat
+ *   with a source's problems (see `typeFiles()`).
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
  *
  * Moved here from embed-my.github.io's `/build` and `/bundles/` (#7).
@@ -20,6 +22,8 @@ import { build, defineConfig, type Plugin } from 'vite'
 
 /** Where the files a package's licence asks to travel with it are emitted, beside them. */
 const ASSETS = 'h5p/assets'
+/** Where the skill's type files are emitted, beside the build page that copies them. */
+const TYPES = 'h5p/build/types'
 
 /**
  * Vite writes into Eleventy's `_site/`, so it cannot empty its output folder: the folders only it
@@ -34,7 +38,7 @@ function emptyOwnFolders(): Plugin {
       outDir = resolve(config.root, config.build.outDir)
     },
     async buildStart() {
-      for (const folder of [ASSETS, 'h5p/bundles']) await rm(join(outDir, folder), { recursive: true, force: true })
+      for (const folder of [ASSETS, TYPES, 'h5p/bundles']) await rm(join(outDir, folder), { recursive: true, force: true })
     }
   }
 }
@@ -55,6 +59,34 @@ function licenceFiles(): Plugin {
         this.emitFile({ type: 'asset', fileName: `${ASSETS}/runtime-${file}`, source: readFileSync(new URL(file, runtime)) })
       }
       this.emitFile({ type: 'asset', fileName: `${ASSETS}/libraries-LICENSES.txt`, source: readFileSync(new URL('libraries.txt', libraries)) })
+    }
+  }
+}
+
+/**
+ * `/h5p/build/types/`, the h5p-author skill's type files, as the pinned author package carries
+ * them since 0.7.0: `<Type>.md`, a content type's notes, an example and its fields, and
+ * `index.json`, the author's version and the types there is a file for.
+ *
+ * A chat in a browser has the skill's text and none of its files, so it guesses how a content type
+ * is written, and learns one level's names from each round of problems. The build page copies the
+ * files of a source's own type, and of the libraries it names, for the chat along with the
+ * source's problems (h5p-offline-player#172). They are the release's, so they describe the fields
+ * of the build this page runs.
+ */
+function typeFiles(): Plugin {
+  const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
+  const folder = new URL('references/types/', author)
+  return {
+    name: 'missing-elements:type-files',
+    apply: 'build',
+    generateBundle() {
+      const names = readdirSync(folder).filter((name) => name.endsWith('.md')).sort()
+      if (!names.length) throw new Error(`@missing-elements/h5p-author has no type files in ${fileURLToPath(folder)}`)
+      for (const name of names) this.emitFile({ type: 'asset', fileName: `${TYPES}/${name}`, source: readFileSync(new URL(name, folder)) })
+      const { version } = JSON.parse(readFileSync(new URL('package.json', author), 'utf8')) as { version: string }
+      const listing = { author: version, types: names.map((name) => name.slice(0, -'.md'.length)) }
+      this.emitFile({ type: 'asset', fileName: `${TYPES}/index.json`, source: `${JSON.stringify(listing, null, 2)}\n` })
     }
   }
 }
@@ -131,7 +163,7 @@ function bundles(): Plugin {
 
 export default defineConfig({
   publicDir: false,
-  plugins: [emptyOwnFolders(), licenceFiles(), bundles()],
+  plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), bundles()],
   build: {
     outDir: '_site',
     emptyOutDir: false,

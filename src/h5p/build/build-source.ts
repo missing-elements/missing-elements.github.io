@@ -1,13 +1,19 @@
 /**
  * What the build page does with a source before and after `@missing-elements/h5p-author` sees it,
- * with no DOM: the source a link carries, the files a source names, and the lines a chat is given
- * back. The browser tests reach it through the page.
+ * with no DOM: the source a link carries, the files a source names, the content types it is
+ * written in, and the text a chat is given back. The browser tests reach it through the page.
  */
 
 /** A problem or a note, as the author package reports them: where in the source, and what. */
 export interface Problem {
   path: string
   message: string
+}
+
+/** A content type's file of the h5p-author skill: its notes, an example and its fields. */
+export interface TypeFile {
+  type: string
+  text: string
 }
 
 /**
@@ -103,13 +109,47 @@ export function matchFiles(paths: string[], chosen: File[]): { files: Record<str
   return { files, missing }
 }
 
-/** The problems, as the text a person pastes back into the chat that wrote the source. */
-export function forTheChat(problems: Problem[]): string {
+/**
+ * The content types a source is written in, by machine name: its own, then every library it names
+ * as sub-content, in the order they come, each once. Their type files are what the chat that wrote
+ * the source lacked.
+ */
+export function typesNamed(source: unknown): string[] {
+  const found = new Set<string>()
+  const add = (value: unknown): void => {
+    const name = typeof value === 'string' ? value.trim().split(/\s+/)[0] : ''
+    if (name) found.add(name)
+  }
+  const walk = (value: unknown): void => {
+    if (Array.isArray(value)) value.forEach(walk)
+    else if (value && typeof value === 'object') {
+      add((value as { library?: unknown }).library)
+      Object.values(value).forEach(walk)
+    }
+  }
+  if (source && typeof source === 'object' && !Array.isArray(source)) add((source as { type?: unknown }).type)
+  walk(source)
+  return [...found]
+}
+
+/**
+ * The problems, as the text a person pastes back into the chat that wrote the source, and after
+ * them the type files of the content types the source is written in. A chat in a browser has the
+ * skill's text and none of its files, so it guesses a type's fields, and a problem tells it one
+ * level's names a round. With the files beside the first problems, the weakest model tried wrote
+ * 42 of 46 sources right by its second reply, and 29 without them (h5p-offline-player#172). The
+ * wording is the one measured.
+ */
+export function forTheChat(problems: Problem[], typeFiles: TypeFile[] = []): string {
   const count = `${problems.length} problem${problems.length === 1 ? '' : 's'}`
-  return [
+  const lines = [
     `The build page found ${count} in the source. Fix them all and write the whole source again:`,
     ...problems.map(({ path, message }) => `- ${path}: ${message}`)
-  ].join('\n')
+  ]
+  if (typeFiles.length) {
+    lines.push('', "How these content types are written, from the h5p-author skill's type files:", '', typeFiles.map(({ text }) => text.trim()).join('\n\n---\n\n'))
+  }
+  return lines.join('\n')
 }
 
 /**

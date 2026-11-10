@@ -1,12 +1,13 @@
+import { readdir, readFile } from 'node:fs/promises'
 import { deflateRawSync } from 'node:zlib'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 /*
  * The build page, /h5p/build/, in a real browser against the built site: a source pasted, opened
  * from a link or naming a file of its own becomes a package that plays on the page and downloads
- * from it, and a source with problems gets them listed, all at once, for the chat that wrote it.
- * Every library comes from this origin, and any Content-Security-Policy violation or page error
- * fails the test.
+ * from it, and a source with problems gets them listed, all at once, for the chat that wrote it,
+ * and copied with the h5p-author skill's type files, which that chat lacked. Every library comes
+ * from this origin, and any Content-Security-Policy violation or page error fails the test.
  */
 
 const RIVERS = {
@@ -35,6 +36,19 @@ function watch(page: Page, baseURL: string | undefined): { problems: string[], e
     if (/^https?:/.test(url) && !url.startsWith(baseURL ?? '')) elsewhere.push(url)
   })
   return { problems, elsewhere }
+}
+
+/** What the copy says before the type files, and a type file as this site serves it, as the copy carries it. */
+const TYPES_HEADING = "How these content types are written, from the h5p-author skill's type files:"
+const typeFile = async (request: APIRequestContext, type: string): Promise<string> => {
+  const response = await request.get(`/h5p/build/types/${type}.md`)
+  expect(response.ok(), type).toBe(true)
+  return (await response.text()).trim()
+}
+const copied = async (page: Page): Promise<string> => {
+  await page.locator('#copy-problems').click()
+  await expect(page.locator('#copy-result')).toHaveText('Copied.')
+  return page.evaluate(() => navigator.clipboard.readText())
 }
 
 const playerState = (page: Page) => page.locator('h5p-player').evaluate((element: HTMLElement & { state?: string }) => element.state)
@@ -77,7 +91,7 @@ test('a pasted source builds, plays and downloads', async ({ page, baseURL }) =>
   expect(problems, problems.join('\n')).toEqual([])
 })
 
-test('a source with problems gets them all listed, ready for the chat', async ({ page, context, baseURL }) => {
+test('a source with problems gets them all listed, ready for the chat', async ({ page, context, request, baseURL }) => {
   const { problems } = watch(page, baseURL)
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/h5p/build/')
@@ -91,18 +105,125 @@ test('a source with problems gets them all listed, ready for the chat', async ({
   await expect(listed.locator('code', { hasText: /^title$/ })).toHaveCount(1)
   await expect(page.locator('#play-step')).toBeHidden()
 
-  await page.locator('#copy-problems').click()
-  await expect(page.locator('#copy-result')).toHaveText('Copied.')
-  const copied = await page.evaluate(() => navigator.clipboard.readText())
-  expect(copied).toMatch(/^The build page found \d+ problems in the source\. Fix them all and write the whole source again:\n- /)
-  expect(copied).toContain('- colour: ')
+  // The copy is the problems, then how the source's content type is written: its type file, whole.
+  await expect(page.locator('#copy-types')).toHaveText('The copy also carries the skill’s notes on H5P.Blanks, with its fields and an example, so the chat does not have to guess.')
+  const text = await copied(page)
+  expect(text).toMatch(/^The build page found \d+ problems in the source\. Fix them all and write the whole source again:\n- /)
+  expect(text).toContain('- colour: ')
+  const [list, files] = text.split(`\n\n${TYPES_HEADING}\n\n`)
+  expect(list.split('\n').slice(1).every((line) => line.startsWith('- ')), list).toBe(true)
+  expect(files).toBe(await typeFile(request, 'H5P.Blanks'))
 
-  // Text that is not JSON is a problem of its own, said where it is.
+  // Text that is not JSON is a problem of its own, said where it is, and names no content type.
   await page.locator('#source').fill('{ "type": "H5P.Blanks", ')
   await page.locator('#build').click()
   await expect(listed).toHaveCount(1)
   await expect(listed.first()).toContainText('is not valid JSON')
+  await expect(page.locator('#copy-types')).toBeHidden()
+  expect(await copied(page)).toMatch(/^The build page found 1 problem in the source\. Fix them all and write the whole source again:\n- source: is not valid JSON[^\n]*$/)
   expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('the copy carries the type files of the source’s type and of the libraries it names', async ({ page, context, request, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  // What a chat with the skill's text and no type file wrote (h5p-offline-player#172): a chapter
+  // without the H5P.Column around it. H5P.Table has no type file, and a library named twice has one.
+  const text = (words: string) => ({ library: 'H5P.AdvancedText', params: { text: words } })
+  const book = {
+    type: 'H5P.InteractiveBook', title: 'Rivers', language: 'en', license: 'CC BY', authors: [{ name: 'Ann Author', role: 'Author' }],
+    params: {
+      chapters: [{
+        content: [
+          text('The Danube flows into the Black Sea.'),
+          { library: 'H5P.MultiChoice 1.16', params: { question: 'Where does the Danube end?', answers: [{ text: 'The Black Sea', correct: true }, { text: 'The North Sea', correct: false }] } },
+          { library: 'H5P.Table', params: { text: '<table><tbody><tr><td>Danube</td></tr></tbody></table>' } },
+          text('The Rhine flows into the North Sea.')
+        ]
+      }]
+    }
+  }
+  await page.goto('/h5p/build/')
+  await page.locator('#source').fill(JSON.stringify(book))
+  await page.locator('#build').click()
+  await expect(page.locator('#status')).toHaveAttribute('data-state', 'error')
+  // The build says what to write, as h5p-author 0.7.0 does.
+  await expect(page.locator('#problems li').first()).toContainText('write params.chapters[0] as { "library": "H5P.Column", "params": { "content": … } }')
+  await expect(page.locator('#copy-types')).toHaveText('The copy also carries the skill’s notes on H5P.InteractiveBook, H5P.AdvancedText and H5P.MultiChoice, with their fields and an example, so the chat does not have to guess.')
+  const [list, files] = (await copied(page)).split(`\n\n${TYPES_HEADING}\n\n`)
+  expect(list).toContain('- params.chapters[0]: is the params of sub-content')
+  // The source's own type first, then the libraries in the order it names them.
+  expect(files).toBe([await typeFile(request, 'H5P.InteractiveBook'), await typeFile(request, 'H5P.AdvancedText'), await typeFile(request, 'H5P.MultiChoice')].join('\n\n---\n\n'))
+
+  // A type the pack does not have has no file: its problems are copied alone.
+  await page.locator('#source').fill(JSON.stringify({ ...book, type: 'H5P.ImageChoice', params: {} }))
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li')).not.toHaveCount(0)
+  const alone = await copied(page)
+  expect(alone).toMatch(/^The build page found \d+ problems? in the source\./)
+  expect(alone).not.toContain(TYPES_HEADING)
+  await expect(page.locator('#copy-types')).toBeHidden()
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('the problems are copied alone where the type files cannot be fetched, and with them once they can', async ({ page, context, request }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.route('**/h5p/build/types/**', (route) => route.fulfill({ status: 503, body: 'unavailable' }))
+  await page.goto('/h5p/build/')
+  const { title: _title, ...untitled } = RIVERS
+  await page.locator('#source').fill(JSON.stringify(untitled))
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li')).toHaveCount(1)
+  expect(await copied(page)).toMatch(/^The build page found 1 problem in the source\. Fix them all and write the whole source again:\n- title: [^\n]*$/)
+  await expect(page.locator('#copy-types')).toBeHidden()
+
+  await page.unroute('**/h5p/build/types/**')
+  await page.locator('#build').click()
+  await expect(page.locator('#copy-types')).toContainText('H5P.Blanks')
+  expect((await copied(page)).endsWith(`\n\n${TYPES_HEADING}\n\n${await typeFile(request, 'H5P.Blanks')}`)).toBe(true)
+})
+
+test('type files that arrive once newer problems are shown are not copied with those', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  let release = (): void => {}
+  const held = new Promise<void>((resolve) => { release = resolve })
+  await page.route('**/h5p/build/types/H5P.Blanks.md', async (route) => {
+    await held
+    await route.continue()
+  })
+  await page.goto('/h5p/build/')
+  const { title: _title, ...untitled } = RIVERS
+  await page.locator('#source').fill(JSON.stringify(untitled))
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li code')).toHaveText('title')
+  // Its type file is on its way when the next source's problems replace these: text that names no type.
+  await page.locator('#source').fill('{ "type": ')
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li')).toContainText('is not valid JSON')
+  const arrived = page.waitForResponse('**/h5p/build/types/H5P.Blanks.md')
+  release()
+  await (await arrived).finished()
+  // Long enough for the page to have taken the file, had it not dropped it.
+  await page.waitForTimeout(300)
+  await expect(page.locator('#copy-types')).toBeHidden()
+  expect(await copied(page)).not.toContain(TYPES_HEADING)
+})
+
+test('the type files are served as the pinned author package carries them', async ({ request }) => {
+  const folder = new URL('../node_modules/@missing-elements/h5p-author/references/types/', import.meta.url)
+  const names = (await readdir(folder)).filter((name) => name.endsWith('.md')).sort()
+  const listing = await (await request.get('/h5p/build/types/index.json')).json() as { author: string, types: string[] }
+  const bundles = await (await request.get('/h5p/bundles/index.json')).json() as { author: string }
+  // The same release as the build's, so the files describe the fields this page's build takes.
+  expect(listing.author).toBe(bundles.author)
+  expect(listing.types).toEqual(names.map((name) => name.slice(0, -'.md'.length)))
+  // Every content type the skill lists, and the parts other content holds.
+  expect(listing.types.length).toBeGreaterThanOrEqual(32)
+  for (const type of listing.types) {
+    const response = await request.get(`/h5p/build/types/${type}.md`)
+    expect(response.ok(), type).toBe(true)
+    expect(await response.text(), type).toBe(await readFile(new URL(`${type}.md`, folder), 'utf8'))
+  }
 })
 
 test('a link carrying the source builds it at once, deflated or not', async ({ page, baseURL }) => {
