@@ -9,6 +9,7 @@ Docs and tools for the [missing-elements](https://github.com/missing-elements) w
 | `/h5p/build/` | The H5P build page, [src/h5p/build/](src/h5p/build/): see [The H5P build page](#the-h5p-build-page) |
 | `/h5p/build/types/` | The h5p-author skill's type files, which the build page copies for the chat, written by [vite.config.ts](vite.config.ts): see [The type files](#the-type-files) |
 | `/h5p/bundles/` | The build tool and a library bundle per content type, written by [vite.config.ts](vite.config.ts): see [The bundles](#the-bundles) |
+| `/h5p/skill/` | The h5p-author skill's files and a page of their addresses, [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js): see [The skill](#the-skill) |
 
 Built with [Eleventy](https://www.11ty.dev/). The pages ship no framework: the only client-side JavaScript is the theme toggle, code-block buttons, the live preview and the build page, which [Vite](https://vite.dev/) bundles with the H5P player.
 
@@ -21,7 +22,7 @@ pnpm install
 pnpm dev       # http://localhost:8080
 pnpm build     # type-checks, then writes _site/: the pages with Eleventy, then /h5p/ with Vite
 pnpm preview   # serves _site/ as GitHub Pages does, http://localhost:4173
-pnpm e2e       # the build page and the bundles in a browser, against _site/: build first, and once
+pnpm e2e       # the build page, the bundles and the skill, against _site/: build first, and once
                # per machine: pnpm exec playwright install chromium
 ```
 
@@ -63,7 +64,7 @@ Nothing leaves the browser. A link can carry the source in its fragment, which n
 | `src/h5p/build/build-source.ts` | What it does with a source with no DOM: the link's fragment, the files a source names, the content types it is written in, the text for the chat |
 | `src/assets/site.css` | Its styles, under *H5P build page* |
 | `vite.config.ts` | The page's script, `/h5p/build/build-page.js`, with the player, its runtime, the pack and their licence files in `/h5p/assets/`, and the type files in `/h5p/build/types/` |
-| `e2e/`, `playwright.config.ts` | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder |
+| `e2e/`, `playwright.config.ts` | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder; `/h5p/skill/` serves the skill's files as the package carries them, and writes out every address |
 
 The player's Service Worker is in `/h5p/assets/` too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it. The address names who runs the page, as H5P Group's trademark policy asks of a name with "H5P" in it, and the page uses the word descriptively.
 
@@ -103,3 +104,13 @@ The page copies that text byte for byte. The 14 rounds that failed in the second
 | `/h5p/bundles/libraries.txt` | The pack's licence list, which asks to travel with its libraries |
 
 `vite.config.ts` writes them at build from the packages the lockfile pins, so a Dependabot update of `@missing-elements/h5p-author` or `@missing-elements/h5p-libraries` moves them, and they live in `_site/` only, not in git: 113 MB with pack 1.1.0, well within GitHub Pages' 1 GB. A question type's bundle is about 1 MB, a Question Set's 2.6 MB, a container's up to 8.4 MB. embed-my.github.io keeps serving its own `/bundles/` until the next pack release, for copies of the skill installed before the move.
+
+## The skill
+
+`/h5p/skill/` serves the h5p-author skill as the pinned `@missing-elements/h5p-author` carries it since 0.9.0: `SKILL.md`, its licence and `references/`, the brief and a file per content type, copied as they are by `eleventy.config.js`. It is for a chat that cannot install the skill and reads it from a web address. From GitHub that can fail: GitHub limits anonymous reads per address, chat apps fetch from addresses they share, and the Claude app answered "I couldn't access the GitHub SKILL.md file due to rate limiting". GitHub Pages serves this site with no such limit.
+
+Give a chat the page's address, `https://missing-elements.github.io/h5p/skill/`, not `SKILL.md`'s. The page, `src/h5p/skill/index.njk`, writes out the full address of every file, each as its link's text, because a chat's fetch tool may open only addresses it has seen whole: Claude's web fetch is documented to fetch only addresses given in the conversation or found in an earlier search or fetch, and `SKILL.md`'s relative links (`./references/authoring.md`) and the `<Type>` in a type file's address are not whole. `/h5p/skill/index.json` lists the author's version and the files, from `src/_data/skill.js`, which stops the build if the pinned package carries no `SKILL.md`.
+
+The addresses carry no version. The site builds from one pinned release, the one the build page runs, so a versioned folder would hold only that one, and an address with the previous version, given to a chat before, would stop working at the next update. The page and `index.json` say which release it is, and a Dependabot update of the package moves the files with the build page.
+
+GitHub Pages serves `LICENSE`, which has no extension, as `application/octet-stream`; a chat never needs to read it. `pnpm preview` and the browser tests answer a missing file with a 404, as GitHub Pages does (`appType: 'mpa'` in `vite.config.ts`), so a test that a file is served fails when it is not.

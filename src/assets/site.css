@@ -546,6 +546,9 @@ tbody th a:hover code { text-decoration: underline; }
 .elements p { margin: 0 0 0.5rem; color: var(--muted); }
 .elements .links { display: flex; gap: 1rem; font-size: 0.875rem; }
 
+/* The h5p-author skill's files, /h5p/skill/: whole addresses, which give way on a phone. */
+.skill-files a { overflow-wrap: anywhere; }
+
 /* H5P build page, /h5p/build/ */
 .build { --ok: var(--live); --bad: var(--t-tag); }
 .build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }

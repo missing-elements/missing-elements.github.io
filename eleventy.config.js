@@ -16,6 +16,13 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("src/pdfjs-viewer/docs.js");
   // The docs run the exact package version they describe, served from this site.
   eleventyConfig.addPassthroughCopy({ "node_modules/@missing-elements/pdfjs-viewer/dist": "pdfjs-viewer/vendor" });
+  // The h5p-author skill, as the pinned author package carries it, listed by src/h5p/skill/.
+  const author = "node_modules/@missing-elements/h5p-author";
+  eleventyConfig.addPassthroughCopy({
+    [`${author}/SKILL.md`]: "h5p/skill/SKILL.md",
+    [`${author}/LICENSE`]: "h5p/skill/LICENSE",
+    [`${author}/references`]: "h5p/skill/references",
+  });
 
   // A page with a Content-Security-Policy (`csp` in its front matter, written first in <head> by
   // base.njk, and holding no double quote) allows its inline scripts by hash, as they are written:

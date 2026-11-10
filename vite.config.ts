@@ -17,6 +17,9 @@ import { build, defineConfig, type Plugin } from 'vite'
  *   with a source's problems (see `typeFiles()`).
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
  *
+ * `/h5p/skill/`, the h5p-author skill's files and a page of their addresses, is Eleventy's
+ * (`eleventy.config.js`, `src/h5p/skill/`).
+ *
  * Moved here from embed-my.github.io's `/build` and `/bundles/` (#7).
  */
 
@@ -163,6 +166,9 @@ function bundles(): Plugin {
 
 export default defineConfig({
   publicDir: false,
+  // A missing file is a 404, as on GitHub Pages, not the home page: the browser tests read
+  // `vite preview`'s answers, and an SPA's fallback would answer every address with a page.
+  appType: 'mpa',
   plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), bundles()],
   build: {
     outDir: '_site',
