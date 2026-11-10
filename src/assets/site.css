@@ -545,3 +545,70 @@ tbody th a:hover code { text-decoration: underline; }
 .elements h2 { margin: 0 0 0.25rem; padding: 0; border: 0; font-size: 1.125rem; }
 .elements p { margin: 0 0 0.5rem; color: var(--muted); }
 .elements .links { display: flex; gap: 1rem; font-size: 0.875rem; }
+
+/* H5P build page, /h5p/build/ */
+.build { --ok: var(--live); --bad: var(--t-tag); }
+.build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
+/* A longer heading than the docs' package names, so it gives way on a phone. */
+.build .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
+.build .step h2 { display: flex; align-items: center; gap: 0.6rem; margin: 2.5rem 0 1rem; }
+.build h3 { margin: 1.5rem 0 0.25rem; font-size: 1rem; }
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.9375rem;
+}
+.build label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+.build label.inline-label { display: inline; margin-right: 0.5rem; }
+.build textarea {
+  display: block;
+  width: 100%;
+  min-height: 12rem;
+  resize: vertical;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--control);
+  border-radius: var(--radius);
+  background: var(--raised);
+  color: var(--text);
+  font: 0.8125rem/1.6 var(--mono);
+}
+.build textarea:hover { border-color: var(--text); }
+.build input[type="file"] { max-width: 100%; font: inherit; font-size: 0.875rem; color: var(--muted); }
+.build input[type="file"]::file-selector-button {
+  margin-right: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.build input[type="file"]::file-selector-button:hover { background: var(--tint); }
+.build a.button { text-decoration: none; }
+.button-large { padding: 0.45rem 1rem; font-size: 0.9375rem; }
+.build .button:disabled { opacity: 0.6; cursor: progress; }
+.build .status {
+  padding: 0.6rem 0.85rem;
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+.build .status:empty { display: none; }
+.build .status[data-state="building"] { border-left-color: var(--focus); background: var(--tint); }
+.build .status[data-state="ready"] { border-left-color: var(--ok); }
+.build .status[data-state="error"] { border-left-color: var(--bad); }
+.build .messages, .build .file-list { padding-left: 1.2rem; }
+.build .problems li::marker { color: var(--bad); }
+.build .file-list li[data-chosen="true"]::marker { color: var(--ok); }
+.build .file-list li[data-chosen="false"] { color: var(--muted); }
+.build .hint { color: var(--muted); font-size: 0.875rem; }
+/* H5P content draws on white, whatever the page's theme. */
+.player-box { margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #ffffff; }
+.player-box h5p-player { display: block; }

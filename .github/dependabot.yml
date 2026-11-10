@@ -1,6 +1,7 @@
 version: 2
 updates:
-  # The docs run the pdfjs-viewer version they describe, so new releases arrive as their own PR.
+  # The docs run the pdfjs-viewer version they describe, and /h5p/ serves the H5P packages it
+  # builds with, so their releases arrive as their own PRs.
   - package-ecosystem: npm
     directory: /
     schedule:
