@@ -2,7 +2,7 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { forTheChat, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from './build-source'
+import { forTheChat, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
 
 /**
  * The build page, `/h5p/build/`: a source an AI chat wrote with the h5p-author skill becomes a
@@ -12,8 +12,10 @@ import { forTheChat, matchFiles, namedFiles, packageName, parseSource, sized, so
  * `@missing-elements/h5p-libraries/install`'s pack, which Vite emits into `/h5p/assets/` one part
  * per library, the build fetching only the parts a package needs. The package then plays in the
  * player on this page and downloads from it. Nothing leaves the browser: a link that carries a
- * source carries it in its fragment, `#source=`, which no server sees. The page's markup is
- * `index.njk` beside this file, and its styles are the site's own, in `site.css`.
+ * source carries it in its fragment, `#source=`, which no server sees. A source with problems gets
+ * them listed, and copied for the chat with the skill's type files, which this site serves beside
+ * the page (`TYPES`). The page's markup is `index.njk` beside this file, and its styles are the
+ * site's own, in `site.css`.
  */
 
 type Opened = Awaited<ReturnType<typeof openPack>>
@@ -37,6 +39,7 @@ const problemsBox = $('problems-box')
 const problemsList = $<HTMLUListElement>('problems')
 const copyProblems = $<HTMLButtonElement>('copy-problems')
 const copyResult = $('copy-result')
+const copyTypes = $('copy-types')
 const notesBox = $('notes-box')
 const notesList = $<HTMLUListElement>('notes')
 const playStep = $('play-step')
@@ -51,6 +54,16 @@ let opened: Promise<Opened> | null = null
 const chosen = new Map<string, File>()
 /** The problems last shown, for the copy button. */
 let shownProblems: Problem[] = []
+/** Where the site serves the h5p-author skill's type files, and the list of them (vite.config.ts). */
+const TYPES = '/h5p/build/types/'
+/** The type files there are, asked for once, and each one's text as it was fetched. */
+let typeIndex: Promise<Set<string>> | null = null
+const typeTexts = new Map<string, Promise<string>>()
+/** The type files of the problems shown, once they are here, and the fetch that brings them. */
+let shownTypeFiles: TypeFile[] = []
+let typeFilesArriving: Promise<void> | null = null
+/** Counts the lists of problems shown, so that type files fetched for an earlier one are dropped. */
+let shows = 0
 /** The address of the package last built, given back when the next one replaces it. */
 let packageUrl: string | null = null
 /** Counts builds, so that one overtaken by a newer one shows nothing. */
@@ -71,11 +84,58 @@ function fillList(list: HTMLUListElement, items: Problem[]): void {
   }))
 }
 
-function showProblems(problems: Problem[]): void {
+/**
+ * The type files of the content types a source is written in, of those the skill has a file for:
+ * what the chat that wrote it lacked. None where they cannot be fetched, and the problems are then
+ * copied without them.
+ */
+async function typeFilesOf(source: unknown): Promise<TypeFile[]> {
+  const names = typesNamed(source)
+  if (!names.length) return []
+  const fetched = async (path: string): Promise<Response> => {
+    const response = await fetch(`${TYPES}${path}`)
+    if (!response.ok) throw new Error(`${path}: ${response.status}`)
+    return response
+  }
+  try {
+    typeIndex ??= fetched('index.json').then(async (response) => new Set((await response.json() as { types: string[] }).types))
+    const known = await typeIndex
+    return await Promise.all(names.filter((name) => known.has(name)).map(async (type) => {
+      let text = typeTexts.get(type)
+      if (!text) typeTexts.set(type, text = fetched(`${type}.md`).then((response) => response.text()))
+      return { type, text: await text }
+    }))
+  } catch {
+    // Asked for again with the next problems.
+    typeIndex = null
+    typeTexts.clear()
+    return []
+  }
+}
+
+/**
+ * Lists the problems. With the source they are of, its type files are fetched at once, so that the
+ * copy button has them when it is pressed: a browser lets a page write to the clipboard only
+ * within the press.
+ */
+function showProblems(problems: Problem[], source?: unknown): void {
+  const show = ++shows
   shownProblems = problems
+  shownTypeFiles = []
   fillList(problemsList, problems)
   problemsBox.hidden = problems.length === 0
   copyResult.textContent = ''
+  copyTypes.hidden = true
+  typeFilesArriving = problems.length && source !== undefined
+    ? typeFilesOf(source).then((files) => {
+        if (show !== shows) return
+        shownTypeFiles = files
+        typeFilesArriving = null
+        const names = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(files.map(({ type }) => type))
+        copyTypes.textContent = `The copy also carries the skill’s notes on ${names}, with ${files.length === 1 ? 'its' : 'their'} fields and an example, so the chat does not have to guess.`
+        copyTypes.hidden = files.length === 0
+      })
+    : null
 }
 
 function showNotes(notes: Problem[]): void {
@@ -154,7 +214,7 @@ async function build(): Promise<void> {
     if (error instanceof SourceError) {
       const problems = (error as SourceError & { problems: Problem[] }).problems
       setStatus(`The source has ${problems.length} problem${problems.length === 1 ? '' : 's'}; nothing was built.`, 'error')
-      showProblems(problems)
+      showProblems(problems, parsed.source)
     } else {
       setStatus(`The build failed: ${error instanceof Error ? error.message : error}`, 'error')
       // A pack that could not open is opened again at the next build.
@@ -198,7 +258,9 @@ buildButton.addEventListener('click', () => void build())
 
 copyProblems.addEventListener('click', async () => {
   try {
-    await navigator.clipboard.writeText(forTheChat(shownProblems))
+    // Only where the button is pressed before the type files are here, which takes a moment.
+    while (typeFilesArriving) await typeFilesArriving
+    await navigator.clipboard.writeText(forTheChat(shownProblems, shownTypeFiles))
     copyResult.textContent = 'Copied.'
   } catch {
     copyResult.textContent = 'The browser did not allow copying; select the list and copy it.'
