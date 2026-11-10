@@ -10,6 +10,11 @@ updates:
       tooling:
         patterns: ["*"]
         exclude-patterns: ["@missing-elements/*"]
+    # New versions wait three days, but ours are taken the day they are released: they are what
+    # these pages run. pnpm-workspace.yaml leaves them out of pnpm's age check to match (#9).
+    cooldown:
+      default-days: 3
+      exclude: ["@missing-elements/*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
