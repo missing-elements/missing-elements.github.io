@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { contentTypes, openPack } from "@missing-elements/h5p-author";
 
 // The h5p-author skill as the pinned @missing-elements/h5p-author carries it since 0.9.0: its
 // SKILL.md, licence and references/, which eleventy.config.js copies to /h5p/skill/ as they are.
@@ -14,10 +15,23 @@ const references = readdirSync(`${author}/references`, { recursive: true, withFi
   .sort();
 const types = references.filter((path) => path.startsWith("references/types/"));
 
+// What a build where npm cannot be reached fetches (SKILL.md's step 3), which vite.config.ts
+// writes to /h5p/bundles/ after this page: the command line, and a bundle per content type, named
+// by the author package's own list of them, the one its `writeBundles` writes from.
+const pack = await openPack();
+let bundles;
+try {
+  bundles = (await contentTypes(pack)).map((part) => `${part.library.machineName}.zip`);
+} finally {
+  await pack.close();
+}
+
 export default {
   version,
   // What SKILL.md names and the type files, apart, as the page lists them; `files` is every one.
   named: [...references.filter((path) => !types.includes(path)), "LICENSE"],
   types,
   files: ["SKILL.md", ...references.filter((path) => !types.includes(path)), "LICENSE", ...types],
+  // In /h5p/bundles/, the tool first.
+  bundles: ["h5p-author.mjs", ...bundles],
 };

@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: The h5p-author skill · Missing Elements
-description: The h5p-author skill's files, each at its full address, for an AI chat that cannot install the skill.
+description: The h5p-author skill's files and those its build fetches, each at its full address, for an AI chat that cannot install the skill.
 # No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
@@ -9,6 +9,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 {#- Every address is written out whole, as its link's text too: a chat's fetch tool may open only
     the addresses it has seen in full, and a relative link, or SKILL.md's <Type>, is none. -#}
 {%- set base = site.url + "/h5p/skill/" -%}
+{%- set bundlesBase = site.url + "/h5p/bundles/" -%}
 <main class="content skill" id="main">
   <header class="docs-header">
     <a class="brand build-brand" href="/"><img src="/assets/logo.svg" alt="" width="24" height="24">{{ site.name }}</a>
@@ -17,13 +18,15 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       {% include "theme-switch.njk" %}
     </div>
     <p class="lead">
-      Its files, each at its full address, for an AI chat that cannot install the skill.
+      Its files and those its build fetches, each at its full address, for an AI chat that cannot
+      install the skill.
     </p>
     <p>
       Read <code>SKILL.md</code> first and follow its steps. A file it names, such as
       <code>references/authoring.md</code> or a content type's <code>references/types/&lt;Type&gt;.md</code>,
-      is the one listed here under that path. These are the files of h5p-author {{ skill.version }},
-      the release the build page at <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs.
+      is the one listed here under that path, and a bundle its step 3 fetches is listed last. These
+      are the files of h5p-author {{ skill.version }}, the release the build page at
+      <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs.
     </p>
     <p>
       Where skills can be installed, install it instead:
@@ -58,6 +61,21 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <ul class="skill-files">
       {%- for path in skill.types %}
       <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a></li>
+      {%- endfor %}
+    </ul>
+  </section>
+
+  <section aria-labelledby="bundles-heading">
+    <h2 id="bundles-heading">To build where npm cannot be reached</h2>
+    <p>
+      The build tool, which runs with Node and nothing installed, and a bundle per content type:
+      the libraries a build of that type reads. Fetch the tool and the bundle of the source's own
+      type, as step 3 of <code>SKILL.md</code> says.
+    </p>
+    <ul class="skill-files">
+      {%- for file in skill.bundles %}
+      <li><a href="{{ bundlesBase }}{{ file }}">{{ bundlesBase }}{{ file }}</a>
+        {%- if file == "h5p-author.mjs" %}: the build tool{% endif %}</li>
       {%- endfor %}
     </ul>
   </section>
