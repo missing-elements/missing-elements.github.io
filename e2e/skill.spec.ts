@@ -64,10 +64,11 @@ test('serves every address SKILL.md gives, relative to itself or on this site', 
   const relativeLinks = [...skill.matchAll(/\]\((?![a-z]+:|#)([^)\s]+)\)/g)].map(([, link]) => new URL(link, here).pathname)
   expect(relativeLinks).toEqual(expect.arrayContaining(['/h5p/skill/LICENSE', '/h5p/skill/references/authoring.md']))
   // Its addresses on this site, with a content type for the name it leaves to fill in, and no fragment.
-  // Which they are moves with the release: since h5p-author 0.9.1 it names this page for a type's
-  // file, where 0.9.0 named /h5p/build/types/<Type>.md (h5p-offline-player#180).
   const filled = skill.replace(/<type>/gi, 'H5P.QuestionSet')
   const onSite = [...new Set([...filled.matchAll(/https:\/\/missing-elements\.github\.io(\/[^\s`)>"'#]*)/g)].map(([, path]) => path))]
   expect(onSite).toEqual(expect.arrayContaining(['/h5p/bundles/H5P.QuestionSet.zip', '/h5p/build/']))
+  // A type's file, at an address of its own as h5p-author 0.9.0 gives it, or from this page, which
+  // writes each one out (the first test), as the release after it does (h5p-offline-player#180).
+  expect(onSite.some((path) => path === '/h5p/build/types/H5P.QuestionSet.md' || path === '/h5p/skill/'), 'a way to a type\'s file').toBe(true)
   for (const path of [...relativeLinks, ...onSite]) expect((await request.get(path)).ok(), path).toBe(true)
 })
