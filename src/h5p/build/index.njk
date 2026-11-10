@@ -2,9 +2,11 @@
 layout: base.njk
 title: Build an H5P activity · Missing Elements
 description: Turn the source an AI chat wrote with the h5p-author skill into a .h5p file, in your browser. Nothing is uploaded.
-# The page's only policy: GitHub Pages sends no headers. Packages it built play in the player's frame,
-# under the policy the player's Service Worker gives each response there. A file a source names by
-# web address is fetched by the build, so any host may be connected to.
+# The page's only policy: GitHub Pages sends no headers. base.njk writes it first in <head>, and the
+# site's inline color-scheme script is added to script-src by its hash at build (eleventy.config.js).
+# Packages it built play in the player's frame, under the policy the player's Service Worker gives
+# each response there. A file a source names by web address is fetched by the build, so any host may
+# be connected to.
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src * data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'"
 ---
 {#- The markup build-page.ts wires up, built into /h5p/build/build-page.js by Vite (vite.config.ts). -#}

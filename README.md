@@ -24,7 +24,7 @@ pnpm e2e       # the build page and the bundles in a browser, against _site/: bu
                # per machine: pnpm exec playwright install chromium
 ```
 
-`pnpm dev` serves the pages as Eleventy writes them; the build page's script is there only after a `pnpm build`.
+`pnpm dev` serves the pages as Eleventy writes them; the build page's script is there only after a `pnpm build`. The bundles test unzips a bundle with `unzip`, as the h5p-author skill's steps do: macOS and Linux have it, and so does CI's Ubuntu runner; on Windows, run the tests under WSL.
 
 Pushes to `main` deploy through [.github/workflows/pages.yml](.github/workflows/pages.yml). Pull requests get a build check from [.github/workflows/build.yml](.github/workflows/build.yml), which runs the browser tests too.
 
@@ -66,7 +66,7 @@ Nothing leaves the browser. A link can carry the source in its fragment, which n
 
 The player's Service Worker is in `/h5p/assets/` too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it. The address names who runs the page, as H5P Group's trademark policy asks of a name with "H5P" in it, and the page uses the word descriptively.
 
-The page and the bundles were embed-my.github.io's `/build` and `/bundles/` until 2026-11-10. `/build` there now redirects here with its fragment, so the links chats wrote before still build.
+The page and the bundles were embed-my.github.io's `/build` and `/bundles/` until 2026-11-10. Its `/build` becomes a redirect here that keeps the fragment, so the links chats wrote before still build: [embed-my/embed-my.github.io#18](https://github.com/embed-my/embed-my.github.io/pull/18), a step of its own, deployed once this page is live.
 
 ## The bundles
 

@@ -19,7 +19,7 @@ const RIVERS = {
 }
 
 /** A 2×2 PNG, red. */
-const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANHQEDasKb6QAAAABJRU5ErkJggg==', 'base64')
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR42mP4z8AARAwQCgAf7gP9Y167WwAAAABJRU5ErkJggg==', 'base64')
 
 /** Collects console errors, CSP reports, page errors and requests that leave the origin. */
 function watch(page: Page, baseURL: string | undefined): { problems: string[], elsewhere: string[] } {
@@ -170,5 +170,7 @@ test('a source that names a file waits for it, then builds with it', async ({ pa
   await page.locator('#build').click()
   await expectPlays(page)
   await expect(page.locator('#status')).toContainText('1 media file')
+  // The picture reaches the content and decodes: 2×2, as chosen.
+  await expect.poll(() => page.frameLocator('h5p-player iframe').first().locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(2)
   expect(problems, problems.join('\n')).toEqual([])
 })
