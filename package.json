@@ -3,15 +3,29 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.24.0",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "eleventy --serve",
-    "build": "eleventy"
+    "build": "tsc && eleventy && vite build",
+    "typecheck": "tsc",
+    "preview": "vite preview",
+    "e2e": "playwright test"
   },
   "devDependencies": {
     "@11ty/eleventy": "3.1.7",
-    "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2"
+    "@11ty/eleventy-plugin-syntaxhighlight": "5.0.2",
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
   },
   "dependencies": {
+    "@missing-elements/h5p-author": "0.6.0",
+    "@missing-elements/h5p-libraries": "1.1.0",
+    "@missing-elements/h5p-offline-player": "1.5.1",
+    "@missing-elements/h5p-runtime": "1.0.1",
     "@missing-elements/pdfjs-viewer": "4.5.0"
   }
 }
