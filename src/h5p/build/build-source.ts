@@ -4,6 +4,8 @@
  * written in, and the text a chat is given back. The browser tests reach it through the page.
  */
 
+import { sourceType } from '@missing-elements/h5p-author/browser'
+
 /** A problem or a note, as the author package reports them: where in the source, and what. */
 export interface Problem {
   path: string
@@ -110,24 +112,30 @@ export function matchFiles(paths: string[], chosen: File[]): { files: Record<str
 }
 
 /**
- * The content types a source is written in, by machine name: its own, then every library it names
- * as sub-content, in the order they come, each once. Their type files are what the chat that wrote
- * the source lacked.
+ * The content types a source is written in, of those listed, by machine name: its own as the build
+ * reads it, then every one named below it as it is, under any key, in the order they come, each
+ * once. Their type files are what the chat that wrote the source lacked.
+ *
+ * The source's own type is h5p-author's reading of it, `sourceType`: its `type` as it is or as it is
+ * spoken of, "interactive-book", or with none the one under `contentType` or `library`. A chat with
+ * no skill text writes it so, and a rule of the page's own, `type` as written, gave its first copy
+ * no file (h5p-offline-player#176). Below it a name counts only as it is, a listed machine name with
+ * or without a major and minor: what reads like one, a slide's element `{ "type": "text" }`, is no
+ * H5P.Text.
  */
-export function typesNamed(source: unknown): string[] {
+export function typesNamed(source: unknown, listed: Iterable<string>): string[] {
+  const names = new Set(listed)
   const found = new Set<string>()
-  const add = (value: unknown): void => {
-    const name = typeof value === 'string' ? value.trim().split(/\s+/)[0] : ''
-    if (name) found.add(name)
-  }
+  const own = sourceType(source, names)
+  if (own) found.add(own)
   const walk = (value: unknown): void => {
-    if (Array.isArray(value)) value.forEach(walk)
-    else if (value && typeof value === 'object') {
-      add((value as { library?: unknown }).library)
-      Object.values(value).forEach(walk)
-    }
+    if (typeof value === 'string') {
+      // A name is short: a sentence that happens to hold one is not it.
+      const name = value.length <= 64 ? /^\s*(\S+)(?:\s+\d+\.\d+)?\s*$/.exec(value)?.[1] : undefined
+      if (name && names.has(name)) found.add(name)
+    } else if (Array.isArray(value)) value.forEach(walk)
+    else if (value && typeof value === 'object') Object.values(value).forEach(walk)
   }
-  if (source && typeof source === 'object' && !Array.isArray(source)) add((source as { type?: unknown }).type)
   walk(source)
   return [...found]
 }
