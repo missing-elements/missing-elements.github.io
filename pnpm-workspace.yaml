@@ -1,0 +1,7 @@
+# pnpm settings for this site, which is one package, not a workspace.
+#
+# Dependabot holds every new version back three days and runs pnpm with that minimum release age,
+# which then refuses any locked version younger than it. The site pins @missing-elements releases
+# on the day they come out, so they are left out of the age; every other package keeps it (#9).
+minimumReleaseAgeExclude:
+  - "@missing-elements/*"
