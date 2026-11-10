@@ -1,0 +1,73 @@
+---
+layout: base.njk
+title: The h5p-author skill · Missing Elements
+description: The h5p-author skill's files, each at its full address, for an AI chat that cannot install the skill.
+# No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
+# is added to script-src by its hash at build (eleventy.config.js).
+csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
+---
+{#- Every address is written out whole, as its link's text too: a chat's fetch tool may open only
+    the addresses it has seen in full, and a relative link, or SKILL.md's <Type>, is none. -#}
+{%- set base = site.url + "/h5p/skill/" -%}
+<main class="content skill" id="main">
+  <header class="docs-header">
+    <a class="brand build-brand" href="/"><img src="/assets/logo.svg" alt="" width="24" height="24">{{ site.name }}</a>
+    <div class="docs-header-row">
+      <h1>The h5p-author skill</h1>
+      {% include "theme-switch.njk" %}
+    </div>
+    <p class="lead">
+      Its files, each at its full address, for an AI chat that cannot install the skill.
+    </p>
+    <p>
+      Read <code>SKILL.md</code> first and follow its steps. A file it names, such as
+      <code>references/authoring.md</code> or a content type's <code>references/types/&lt;Type&gt;.md</code>,
+      is the one listed here under that path. These are the files of h5p-author {{ skill.version }},
+      the release the build page at <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs.
+    </p>
+    <p>
+      Where skills can be installed, install it instead:
+      <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>.
+    </p>
+  </header>
+
+  <section aria-labelledby="first-heading">
+    <h2 id="first-heading">Read first</h2>
+    <ul class="skill-files">
+      <li><a href="{{ base }}SKILL.md">{{ base }}SKILL.md</a>: the skill's steps</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="named-heading">
+    <h2 id="named-heading">The files it names</h2>
+    <ul class="skill-files">
+      {%- for path in skill.named %}
+      <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a>
+        {%- if path == "references/authoring.md" %}: the brief, read once
+        {%- elif path == "LICENSE" %}: the skill's licence, MIT, which goes with it{% endif %}</li>
+      {%- endfor %}
+    </ul>
+  </section>
+
+  <section aria-labelledby="types-heading">
+    <h2 id="types-heading">A content type's file</h2>
+    <p>
+      One per content type: its notes, an example and its fields. Read the file of the type the
+      source is written in, and those of the parts it holds, such as H5P.AdvancedText or H5P.Image.
+    </p>
+    <ul class="skill-files">
+      {%- for path in skill.types %}
+      <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a></li>
+      {%- endfor %}
+    </ul>
+  </section>
+
+  <footer class="docs-footer">
+    <p>
+      The skill and <code>@missing-elements/h5p-author</code> are MIT, from
+      <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">h5p-offline-player</a>.
+      Not affiliated with H5P Group; H5P is a registered trademark of H5P Group AS.
+    </p>
+    <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="https://github.com/missing-elements/h5p-offline-player/issues">open an issue</a>.</p>
+  </footer>
+</main>
