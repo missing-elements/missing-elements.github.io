@@ -90,8 +90,7 @@ function fillList(list: HTMLUListElement, items: Problem[]): void {
  * copied without them.
  */
 async function typeFilesOf(source: unknown): Promise<TypeFile[]> {
-  const names = typesNamed(source)
-  if (!names.length) return []
+  if (!source || typeof source !== 'object') return []
   const fetched = async (path: string): Promise<Response> => {
     const response = await fetch(`${TYPES}${path}`)
     if (!response.ok) throw new Error(`${path}: ${response.status}`)
@@ -99,8 +98,9 @@ async function typeFilesOf(source: unknown): Promise<TypeFile[]> {
   }
   try {
     typeIndex ??= fetched('index.json').then(async (response) => new Set((await response.json() as { types: string[] }).types))
-    const known = await typeIndex
-    return await Promise.all(names.filter((name) => known.has(name)).map(async (type) => {
+    // The listed types are what a name is read against, as it is or as it is spoken of.
+    const names = typesNamed(source, await typeIndex)
+    return await Promise.all(names.map(async (type) => {
       let text = typeTexts.get(type)
       if (!text) typeTexts.set(type, text = fetched(`${type}.md`).then((response) => response.text()))
       return { type, text: await text }

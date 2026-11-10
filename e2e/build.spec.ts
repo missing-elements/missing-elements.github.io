@@ -147,7 +147,7 @@ test('the copy carries the type files of the source’s type and of the librarie
   await page.locator('#source').fill(JSON.stringify(book))
   await page.locator('#build').click()
   await expect(page.locator('#status')).toHaveAttribute('data-state', 'error')
-  // The build says what to write, as h5p-author 0.7.0 does.
+  // The build says what to write, as h5p-author does since 0.7.0.
   await expect(page.locator('#problems li').first()).toContainText('write params.chapters[0] as { "library": "H5P.Column", "params": { "content": … } }')
   await expect(page.locator('#copy-types')).toHaveText('The copy also carries the skill’s notes on H5P.InteractiveBook, H5P.AdvancedText and H5P.MultiChoice, with their fields and an example, so the chat does not have to guess.')
   const [list, files] = (await copied(page)).split(`\n\n${TYPES_HEADING}\n\n`)
@@ -163,6 +163,44 @@ test('the copy carries the type files of the source’s type and of the librarie
   expect(alone).toMatch(/^The build page found \d+ problems? in the source\./)
   expect(alone).not.toContain(TYPES_HEADING)
   await expect(page.locator('#copy-types')).toBeHidden()
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('the copy carries the type file of a type named as it is spoken of, or under contentType, as the build reads it', async ({ page, context, request, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  const META = { title: 'Physics', language: 'en', license: 'CC BY', authors: [{ name: 'Ann Author', role: 'Author' }] }
+  /** The type files a source's copy carries after its problems, once a problem of it is shown. */
+  const filesOf = async (source: unknown, said: string): Promise<string | undefined> => {
+    await page.goto('/h5p/build/')
+    await page.locator('#source').fill(JSON.stringify(source))
+    await page.locator('#build').click()
+    await expect(page.locator('#problems')).toContainText(said)
+    return (await copied(page)).split(`\n\n${TYPES_HEADING}\n\n`)[1]
+  }
+  const files = async (...types: string[]) => (await Promise.all(types.map((type) => typeFile(request, type)))).join('\n\n---\n\n')
+
+  // As the weakest model wrote one with no skill text (h5p-offline-player#174): the content's
+  // fields beside `type`, the type as it is spoken of, a question named by its machine name.
+  const spoken = { type: 'interactive-book', title: 'Physics', chapters: [{ title: 'Newton', content: [{ type: 'H5P.MultiChoice', question: 'Which law?', answers: [{ text: 'F = ma', correct: true }] }] }] }
+  expect(await filesOf(spoken, 'takes the machine name, "H5P.InteractiveBook"')).toBe(await files('H5P.InteractiveBook', 'H5P.MultiChoice'))
+  await expect(page.locator('#copy-types')).toHaveText('The copy also carries the skill’s notes on H5P.InteractiveBook and H5P.MultiChoice, with their fields and an example, so the chat does not have to guess.')
+
+  // As Gemini in Chrome wrote one from a link to the skill: the type under `contentType`, the
+  // source's own fields in `metadata`, sub-content naming its library the same way.
+  const gemini = {
+    contentType: 'H5P.InteractiveBook',
+    metadata: { title: 'Physics', license: 'CC BY', authors: META.authors },
+    params: { chapters: [{ title: 'Newton', content: [{ contentType: 'H5P.AdvancedText', params: { text: '<p>F = ma</p>' } }] }] }
+  }
+  expect(await filesOf(gemini, 'the content type is its type: write "type": "H5P.InteractiveBook"')).toBe(await files('H5P.InteractiveBook', 'H5P.AdvancedText'))
+
+  // A name the build does not read for the type, under another key, is none; nor below it is a
+  // text that only reads like one: a slide's element `{ "type": "text" }` is no H5P.Text.
+  expect(await filesOf({ ...META, contentTypeName: 'interactive book', params: {} }, 'contentTypeName')).toBeUndefined()
+  await expect(page.locator('#copy-types')).toBeHidden()
+  const slides = { ...META, type: 'H5P.CoursePresentation', params: { presentation: { slides: [{ elements: [{ type: 'text', x: 5, y: 5, text: 'Newton' }] }] } } }
+  expect(await filesOf(slides, 'params.presentation.slides[0].elements[0]')).toBe(await files('H5P.CoursePresentation'))
   expect(problems, problems.join('\n')).toEqual([])
 })
 

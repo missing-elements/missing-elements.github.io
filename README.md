@@ -71,7 +71,7 @@ The page and the bundles were embed-my.github.io's `/build` and `/bundles/` unti
 
 ### The type files
 
-A chat in a browser, such as Gemini in Chrome, has the skill's text and none of its files, and can run nothing. It guesses how a content type is written, and each round of problems tells it the names of one level. So **Copy the problems for the chat** copies more than the list: after the problems come the skill's type files of the source's own content type and of the libraries it names, each a type's notes, an example and its fields.
+A chat in a browser, such as Gemini in Chrome, has the skill's text and none of its files, and can run nothing. It guesses how a content type is written, and each round of problems tells it the names of one level. So **Copy the problems for the chat** copies more than the list: after the problems come the skill's type files of the source's own content type and of the libraries named below it, each a type's notes, an example and its fields. The source's own type is the one the build takes it to be, h5p-author's `sourceType` (since 0.8.0): its `type` as written or as it is spoken of, `"interactive-book"`, or with none the one under `contentType` or `library`, as a chat with no skill text writes it. Below it, a library counts by its machine name, under any key: a slide's element `{ "type": "text" }` is no H5P.Text.
 
 ```
 The build page found 2 problems in the source. Fix them all and write the whole source again:
@@ -86,7 +86,9 @@ How these content types are written, from the h5p-author skill's type files:
 
 `vite.config.ts` writes them to `/h5p/build/types/<Type>.md` from the pinned `@missing-elements/h5p-author`, which carries them since 0.7.0, with `index.json`, the author's version and the types there is a file for. They are that release's, so they describe the fields of the build the page runs, and a Dependabot update of the package moves both. The page fetches them when it lists a source's problems, so the copy is written within the button's press; where they cannot be fetched, the problems are copied alone.
 
-Measured in [h5p-offline-player#172](https://github.com/missing-elements/h5p-offline-player/issues/172) on the weakest Claude model, Haiku 5.5, in that position: with the files beside the first problems, 42 of 46 sources of 23 content types were right by its second reply, and 29 without them. The page copies that text byte for byte: the 39 sources that failed their first build in the test's runs were built again on this page, and all but one copied what the model had been given, the one a Game Map whose problems 0.7.0 says better.
+Measured in [h5p-offline-player#172](https://github.com/missing-elements/h5p-offline-player/issues/172) on the weakest Claude model, Haiku 5.5, in that position: with the files beside the first problems, 42 of 46 sources of 23 content types were right by its second reply, and 29 without them. And in [#174](https://github.com/missing-elements/h5p-offline-player/issues/174), with no skill text at all, the position of a chat given only a link to the skill: with h5p-author 0.7.1 and the file of a type named as it is spoken of, 10 of 12 sources were right by the second reply and all 12 by the third; with 0.7.0 and the page's rule before, 3 and 8 by the fourth, four never.
+
+The page copies that text byte for byte. The 14 rounds that failed in the second test were built again on this page, and each copied what the model had been given. Of the 39 sources that failed their first build in the first, 36 did; the other three carry the same type files, and their problems read better since: a Game Map (0.7.0), and two books whose chapters had a title beside them, 13 problems now 7 (0.7.1).
 
 ## The bundles
 
