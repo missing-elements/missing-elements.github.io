@@ -5,9 +5,10 @@ import { expect, test } from '@playwright/test'
 
 /*
  * /h5p/skill/ as a chat that cannot install the h5p-author skill reads it: a page that writes out
- * the full address of every file, since a chat's fetch tool may open only addresses it has seen
- * whole; each file there as the pinned author package carries it; and every address SKILL.md gives,
- * relative to itself or written out, served by this site.
+ * the full address of every file, and of the build tool and every bundle in /h5p/bundles/, since a
+ * chat's fetch tool may open only addresses it has seen whole; each file there as the pinned author
+ * package carries it; and every address SKILL.md gives, relative to itself or written out, served
+ * by this site.
  */
 
 const SITE = 'https://missing-elements.github.io'
@@ -38,6 +39,17 @@ test('the page writes out the full address of every file of the skill, as its li
   expect([...listing.files].sort()).toEqual(files)
 })
 
+test('writes out the full address of the build tool and of every bundle the site serves, as its link and its text', async ({ page, request }) => {
+  // The page names the bundles before Vite writes them; the listing is what Vite wrote.
+  const listing = await (await request.get('/h5p/bundles/index.json')).json() as { tool: string, bundles: Array<{ file: string }> }
+  expect(listing.bundles.length).toBeGreaterThan(40)
+  await page.goto('/h5p/skill/')
+  const links = await page.locator(`main a[href^="${SITE}/h5p/bundles/"]`).evaluateAll((anchors) =>
+    anchors.map((anchor) => ({ href: anchor.getAttribute('href'), text: anchor.textContent?.trim() })))
+  expect(links.map(({ href }) => href)).toEqual([listing.tool, ...listing.bundles.map(({ file }) => file)].map((file) => `${SITE}/h5p/bundles/${file}`))
+  for (const { href, text } of links) expect(text).toBe(href)
+})
+
 test('serves each file at its address as the pinned author package carries it', async ({ request }) => {
   for (const file of await carried()) {
     const response = await request.get(`/h5p/skill/${file}`)
@@ -54,6 +66,9 @@ test('serves every address SKILL.md gives, relative to itself or on this site', 
   // Its addresses on this site, with a content type for the name it leaves to fill in, and no fragment.
   const filled = skill.replace(/<type>/gi, 'H5P.QuestionSet')
   const onSite = [...new Set([...filled.matchAll(/https:\/\/missing-elements\.github\.io(\/[^\s`)>"'#]*)/g)].map(([, path]) => path))]
-  expect(onSite).toEqual(expect.arrayContaining(['/h5p/build/types/H5P.QuestionSet.md', '/h5p/bundles/H5P.QuestionSet.zip', '/h5p/build/']))
+  expect(onSite).toEqual(expect.arrayContaining(['/h5p/bundles/H5P.QuestionSet.zip', '/h5p/build/']))
+  // A type's file, at an address of its own as h5p-author 0.9.0 gives it, or from this page, which
+  // writes each one out (the first test), as the release after it does (h5p-offline-player#180).
+  expect(onSite.some((path) => path === '/h5p/build/types/H5P.QuestionSet.md' || path === '/h5p/skill/'), 'a way to a type\'s file').toBe(true)
   for (const path of [...relativeLinks, ...onSite]) expect((await request.get(path)).ok(), path).toBe(true)
 })

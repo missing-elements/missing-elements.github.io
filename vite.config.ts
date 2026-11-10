@@ -18,7 +18,8 @@ import { build, defineConfig, type Plugin } from 'vite'
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
  *
  * `/h5p/skill/`, the h5p-author skill's files and a page of their addresses, is Eleventy's
- * (`eleventy.config.js`, `src/h5p/skill/`).
+ * (`eleventy.config.js`, `src/h5p/skill/`). The page lists the bundles too, written before them:
+ * it names them from the author package's `contentTypes`, the list `writeBundles` writes from.
  *
  * Moved here from embed-my.github.io's `/build` and `/bundles/` (#7).
  */
