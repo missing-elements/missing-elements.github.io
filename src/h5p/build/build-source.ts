@@ -5,11 +5,17 @@
  */
 
 import { sourceType } from '@missing-elements/h5p-author/browser'
+import { jsonProblem, unfence } from './json-scan'
 
-/** A problem or a note, as the author package reports them: where in the source, and what. */
+/**
+ * A problem or a note, as the author package reports them: where in the source, and what. A
+ * problem with the text itself, which is not JSON, has no path in the source, and says where in
+ * the text it is: `at`, an offset.
+ */
 export interface Problem {
   path: string
   message: string
+  at?: number
 }
 
 /** A content type's file of the h5p-author skill: its notes, an example and its fields. */
@@ -62,13 +68,19 @@ function isJson(text: string): boolean {
  */
 export function parseSource(text: string): { source: unknown } | { problem: Problem } {
   if (!text.trim()) return { problem: { path: 'source', message: 'is empty: paste the JSON the chat wrote' } }
+  const problem = jsonProblem(text)
+  if (problem) return { problem: { path: 'source', message: `is not valid JSON ${problem.message}`, at: problem.at } }
   // A chat often hands the source inside a Markdown code fence; take what is inside it.
-  const fenced = /^\s*```[\w-]*\s*\n([\s\S]*?)\n\s*```\s*$/.exec(text)
-  try {
-    return { source: JSON.parse(fenced ? fenced[1] : text) }
-  } catch (error) {
-    return { problem: { path: 'source', message: `is not valid JSON: ${error instanceof Error ? error.message : error}` } }
-  }
+  return { source: JSON.parse(unfence(text).text) }
+}
+
+/**
+ * The source laid out, one field to a line, and out of the code fence a chat may have put it in:
+ * the same JSON, as the text of an editor that tidies it, or `null` where it is not JSON.
+ */
+export function formatSource(text: string): string | null {
+  if (!text.trim() || jsonProblem(text)) return null
+  return JSON.stringify(JSON.parse(unfence(text).text), null, 2)
 }
 
 /** Whether a file's `path` is a web address, which the build fetches itself, rather than a file to choose. */

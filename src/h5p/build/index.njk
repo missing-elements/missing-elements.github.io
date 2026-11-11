@@ -31,9 +31,18 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
 
   <section class="step" aria-labelledby="source-heading">
     <h2 id="source-heading"><span class="step-number">1</span> Source</h2>
-    <p>
-      <label for="source">The source, as JSON</label>
+    <div class="field">
+      <label for="source" id="source-label">The source, as JSON</label>
       <textarea id="source" rows="12" spellcheck="false" autocomplete="off" placeholder='{ "type": "H5P.Blanks", "title": "Rivers", "language": "en", "license": "CC BY", "authors": [{ "name": "Ann Author", "role": "Author" }], "params": { "questions": ["The *Danube* flows into the Black Sea."] } }'></textarea>
+    </div>
+    <p class="source-tools">
+      <button type="button" class="button" id="format">Format</button>
+      <span class="hint" id="source-state" role="status" aria-live="polite"></span>
+    </p>
+    <p class="hint">
+      You can change the source here before you build it. A mistake in the JSON is marked as you
+      type, and each problem the build finds is marked where it is: choose its name in the list
+      to go there.
     </p>
     <p>
       <label for="source-file" class="inline-label">Or open a file</label>

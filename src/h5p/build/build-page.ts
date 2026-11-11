@@ -2,7 +2,9 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { forTheChat, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
+import { forTheChat, formatSource, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
+import type { SourceEditor } from './editor'
+import { jsonProblem, place, type Target } from './json-scan'
 
 /**
  * The build page, `/h5p/build/`: a source an AI chat wrote with the h5p-author skill becomes a
@@ -14,8 +16,9 @@ import { forTheChat, matchFiles, namedFiles, packageName, parseSource, sized, so
  * player on this page and downloads from it. Nothing leaves the browser: a link that carries a
  * source carries it in its fragment, `#source=`, which no server sees. A source with problems gets
  * them listed, and copied for the chat with the skill's type files, which this site serves beside
- * the page (`TYPES`). The page's markup is `index.njk` beside this file, and its styles are the
- * site's own, in `site.css`.
+ * the page (`TYPES`). The source is edited in an editor (`editor.ts`), loaded apart, in place of the
+ * textarea, which stays under it as the field this page reads. The page's markup is `index.njk`
+ * beside this file, and its styles are the site's own, in `site.css`.
  */
 
 type Opened = Awaited<ReturnType<typeof openPack>>
@@ -27,6 +30,9 @@ const $ = <T extends HTMLElement>(id: string): T => {
 }
 
 const sourceField = $<HTMLTextAreaElement>('source')
+const sourceLabel = $('source-label')
+const sourceState = $('source-state')
+const formatButton = $<HTMLButtonElement>('format')
 const sourceFile = $<HTMLInputElement>('source-file')
 const filesStep = $('files-step')
 const fileList = $<HTMLUListElement>('file-list')
@@ -48,6 +54,8 @@ const player = $('player') as HTMLElementTagNameMap['h5p-player']
 
 player.runtime = runtime
 
+/** The editor the source is in, once it has loaded; until then, and where it cannot, the textarea. */
+let editor: SourceEditor | null = null
 /** The pack, opened at the first build and kept for the page's builds. */
 let opened: Promise<Opened> | null = null
 /** The files chosen so far, by name; a file chosen again under the same name replaces the first. */
@@ -74,12 +82,38 @@ function setStatus(text: string, state: 'idle' | 'building' | 'ready' | 'error')
   status.dataset.state = state
 }
 
-function fillList(list: HTMLUListElement, items: Problem[]): void {
-  list.replaceChildren(...items.map(({ path, message }) => {
+/** Where a problem is in the source, for the button that goes there: its place in the text, or none. */
+function target({ path, at }: Problem): Target {
+  return at === undefined ? { path } : { at }
+}
+
+/** Selects where a target is in the source, in the editor or, where it has not loaded, the textarea. */
+function goTo(where: Target): boolean {
+  if (editor) return editor.goTo(where)
+  const range = place(sourceField.value, where)
+  if (!range) return false
+  sourceField.focus()
+  sourceField.setSelectionRange(range.from, range.to)
+  return true
+}
+
+/** The list's items, each problem's path a button that goes where it is in the source, where it is anywhere. */
+function fillList(list: HTMLUListElement, items: Problem[], jump = false): void {
+  list.replaceChildren(...items.map((problem) => {
     const item = document.createElement('li')
     const where = document.createElement('code')
-    where.textContent = path
-    item.append(where, ` ${message}`)
+    where.textContent = problem.path
+    if (jump && place(sourceField.value, target(problem))) {
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = 'jump'
+      button.title = 'Show where it is in the source'
+      button.append(where)
+      button.addEventListener('click', () => goTo(target(problem)))
+      item.append(button, ` ${problem.message}`)
+    } else {
+      item.append(where, ` ${problem.message}`)
+    }
     return item
   }))
 }
@@ -122,7 +156,8 @@ function showProblems(problems: Problem[], source?: unknown): void {
   const show = ++shows
   shownProblems = problems
   shownTypeFiles = []
-  fillList(problemsList, problems)
+  fillList(problemsList, problems, true)
+  editor?.mark(problems)
   problemsBox.hidden = problems.length === 0
   copyResult.textContent = ''
   copyTypes.hidden = true
@@ -235,18 +270,68 @@ player.addEventListener('error', (event) => {
   setStatus(`It was built, but does not play: ${message}`, 'error')
 })
 
+/** Says where the source stops being JSON, if it does, as it is typed, and what it names. */
+function checkSource(): void {
+  const problem = jsonProblem(sourceField.value)
+  sourceState.dataset.state = problem ? 'error' : ''
+  if (!problem) {
+    sourceState.replaceChildren()
+    return
+  }
+  const nodes: (string | HTMLElement)[] = [`Not valid JSON ${problem.message}`]
+  if (problem.at !== undefined) {
+    const at = problem.at
+    const show = document.createElement('button')
+    show.type = 'button'
+    show.className = 'link-button'
+    show.textContent = 'Show where'
+    show.addEventListener('click', () => goTo({ at }))
+    nodes.push(' ', show)
+  }
+  sourceState.replaceChildren(...nodes)
+}
+
 let typing: ReturnType<typeof setTimeout> | undefined
-sourceField.addEventListener('input', () => {
+/** The source changed, by typing or by the editor: what it says is looked at once the typing pauses. */
+function sourceChanged(): void {
   clearTimeout(typing)
-  typing = setTimeout(updateFiles, 300)
-})
+  typing = setTimeout(() => {
+    checkSource()
+    updateFiles()
+  }, 300)
+}
+sourceField.addEventListener('input', sourceChanged)
+
+/** The source replaced, as by a file or a link: in the editor if it is there, and always in the textarea. */
+function setSource(text: string): void {
+  sourceField.value = text
+  editor?.set(text)
+  checkSource()
+  updateFiles()
+}
 
 sourceFile.addEventListener('change', async () => {
   const file = sourceFile.files?.[0]
   if (!file) return
-  sourceField.value = await file.text()
-  updateFiles()
+  setSource(await file.text())
 })
+
+formatButton.addEventListener('click', () => {
+  const formatted = formatSource(sourceField.value)
+  if (formatted === null) {
+    // Nothing to lay out, or not JSON yet: the line under the source says where, and the source shows it.
+    checkSource()
+    const problem = jsonProblem(sourceField.value)
+    if (problem?.at !== undefined) goTo({ at: problem.at })
+    else if (!sourceField.value.trim()) sourceState.textContent = 'There is nothing to lay out yet.'
+    return
+  }
+  setSource(formatted)
+  sourceState.textContent = 'Laid out.'
+})
+
+// The label is for the textarea, which the editor hides: a click on it goes to the editor.
+sourceLabel.addEventListener('click', () => editor?.focus())
 
 filesInput.addEventListener('change', () => {
   for (const file of filesInput.files ?? []) chosen.set(file.name, file)
@@ -277,7 +362,7 @@ async function fromLink(): Promise<void> {
     return
   }
   if (text === null) return
-  sourceField.value = text
+  setSource(text)
   const paths = updateFiles()
   if (paths.length) setStatus('The source names files: choose them, then Build.', 'idle')
   else await build()
@@ -286,3 +371,10 @@ async function fromLink(): Promise<void> {
 updateFiles()
 void fromLink()
 window.addEventListener('hashchange', () => void fromLink())
+
+// The editor is loaded apart: where it cannot be, the textarea is the source, as it was.
+import('./editor').then(({ mountEditor }) => {
+  editor = mountEditor(sourceField, sourceChanged)
+}).catch((error: unknown) => {
+  console.warn('The source editor did not load; the source stays a plain text field.', error)
+})
