@@ -2,10 +2,8 @@ import { expect, test } from '@playwright/test'
 
 /*
  * The org home, /: a card for each element, one for each tool, the build page, and a footer of
- * links; and the build page links the skill's page at the whole address a person gives the chat.
+ * links; and the build page links the skill's page, which has no card of its own.
  */
-
-const SKILL = 'https://missing-elements.github.io/h5p/skill/'
 
 test('the home page links to the build page, and the build page to the skill’s page, and both answer', async ({ page, request }) => {
   await page.goto('/')
@@ -15,6 +13,6 @@ test('the home page links to the build page, and the build page to the skill’s
   expect((await request.get('/h5p/build/')).ok()).toBe(true)
 
   await page.goto('/h5p/build/')
-  await expect(page.getByRole('link', { name: SKILL, exact: true })).toHaveAttribute('href', SKILL)
+  await expect(page.getByRole('link', { name: "the h5p-author skill's page" })).toHaveAttribute('href', '/h5p/skill/')
   expect((await request.get('/h5p/skill/')).ok()).toBe(true)
 })

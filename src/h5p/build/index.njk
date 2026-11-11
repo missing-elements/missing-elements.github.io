@@ -27,11 +27,14 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
       site takes. Nothing is uploaded: the package is built in your browser, from the libraries this
       site serves.
     </p>
-    {#- The skill's page at its whole address, which a person gives the chat as it is. -#}
+    {#- A prompt to copy, which site.js gives a Copy button as it does a code block. It carries the
+        skill's page at its whole address, which a chat's fetch tool needs. -#}
     <p>
-      No source yet? Give the chat <a href="{{ site.url }}/h5p/skill/">{{ site.url }}/h5p/skill/</a>
-      and ask it for an activity: the h5p-author skill there tells it how to write one.
+      <strong>No source yet?</strong> Paste this into an AI chat, with a subject of your own. It
+      sends the chat to <a href="/h5p/skill/">the h5p-author skill's page</a>, which tells it how
+      to write an activity.
     </p>
+    <pre class="language-text prompt" data-label="Prompt">Read {{ site.url }}/h5p/skill/ and follow it to make an H5P quiz with five questions about the rivers of Europe.</pre>
   </header>
 
   {#- The steps are drawn as a timeline by site.css: a marker for each, on a rail that runs on to
@@ -102,6 +105,35 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
       <a href="/h5p/assets/libraries-LICENSES.txt">the pack's licence list</a>: check those terms
       before you share it.
     </p>
+  </section>
+
+  {#- Under the steps, and there before anything is built: where else a package plays, with no H5P
+      site, which is h5p-offline-player, the player this page plays it in; and where to say how
+      the build went. -#}
+  <section class="plays" aria-labelledby="plays-heading">
+    <h2 id="plays-heading">Play it without an H5P site</h2>
+    <p>
+      Any H5P site takes the file you download. With none, use h5p-offline-player, the player this
+      page plays it in:
+      <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">on a site of your own</a>,
+      or <a href="https://h5p-offline-player.vercel.app/app/">offline, in its app</a>.
+    </p>
+  </section>
+
+  {#- Two ways, the email first: it asks for no account, and a teacher may have none on GitHub. -#}
+  <section class="feedback" aria-labelledby="feedback-heading">
+    <div>
+      <h2 id="feedback-heading">How did it go?</h2>
+      <p>
+        Say what you made, and what went well or wrong with the chat's source or this page. Write
+        to the author or, with a GitHub
+        account, start a public discussion where the h5p-author skill is made.
+      </p>
+    </div>
+    <div class="feedback-actions">
+      <a class="button button-primary button-large" href="{{ site.buildFeedback.email }}">Email feedback</a>
+      <a class="button button-large" href="{{ site.buildFeedback.github }}">Discuss on GitHub</a>
+    </div>
   </section>
 
   <footer class="docs-footer">

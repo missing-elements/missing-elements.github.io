@@ -118,6 +118,44 @@ test('a pasted source builds, plays and downloads', async ({ page, baseURL }) =>
   expect(problems, problems.join('\n')).toEqual([])
 })
 
+test('before anything is built the page gives a prompt to try, and says where a package plays and where to say how it went', async ({ page, context, baseURL }) => {
+  const { problems, elsewhere } = watch(page, baseURL)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/h5p/build/')
+  // The prompt carries the skill's page at its whole address, which a chat's fetch tool needs, and its button copies it.
+  const prompt = page.locator('pre.prompt')
+  await expect(prompt).toHaveText('Read https://missing-elements.github.io/h5p/skill/ and follow it to make an H5P quiz with five questions about the rivers of Europe.')
+  await page.locator('.docs-header').getByRole('button', { name: 'Copy' }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await prompt.textContent())
+
+  // With no H5P site: the player this page plays it in, in two links in a paragraph, to how to set it
+  // up on a site of one's own and to its app, offline.
+  const plays = page.getByRole('region', { name: 'Play it without an H5P site' })
+  await expect(plays.locator('p a')).toHaveCount(2)
+  await expect(plays.getByRole('link', { name: 'on a site of your own' })).toHaveAttribute('href', 'https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md')
+  await expect(plays.getByRole('link', { name: 'offline, in its app' })).toHaveAttribute('href', 'https://h5p-offline-player.vercel.app/app/')
+
+  // Feedback asks for no account: an email, with a subject and two questions to start from.
+  const feedback = page.getByRole('region', { name: 'How did it go?' })
+  const email = feedback.getByRole('link', { name: 'Email feedback' })
+  await expect(email).toBeVisible()
+  const letter = new URL((await email.getAttribute('href'))!)
+  expect(letter.protocol).toBe('mailto:')
+  expect(letter.pathname).toMatch(/^[^@\s]+@[^@\s]+$/)
+  expect(letter.searchParams.get('subject')).toBe('Feedback on the H5P build page')
+  expect(letter.searchParams.get('body')).toBe('What I made (the content type, and the chat that wrote the source):\r\n\r\n\r\nWhat went well, or wrong:\r\n\r\n')
+  // And for someone with a GitHub account, a new discussion where the author is made, which starts the same.
+  const discussion = new URL((await feedback.getByRole('link', { name: 'Discuss on GitHub' }).getAttribute('href'))!)
+  expect(discussion.origin + discussion.pathname).toBe('https://github.com/missing-elements/h5p-offline-player/discussions/new')
+  expect(discussion.searchParams.get('category')).toBe('general')
+  expect(discussion.searchParams.get('title')).toBe('Feedback on the H5P build page')
+  expect(discussion.searchParams.get('body')).toBe(letter.searchParams.get('body')!.replaceAll('\r\n', '\n'))
+
+  // They are links: the page still fetches nothing from another site.
+  expect(elsewhere, 'nothing was fetched from another site').toEqual([])
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
 test('a source with problems gets them all listed, ready for the chat', async ({ page, context, request, baseURL }) => {
   const { problems } = watch(page, baseURL)
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])

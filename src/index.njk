@@ -10,7 +10,7 @@ description: Standalone, self-hostable web components for viewing documents and 
 
   <section aria-labelledby="elements-heading">
     <h2 id="elements-heading">Web components</h2>
-    <ul class="elements" role="list">
+    <ul class="cards" role="list">
       {%- for element in site.elements %}
       <li>
         <h3><a href="{{ element.docs }}">{{ element.name }}</a></h3>
@@ -27,7 +27,7 @@ description: Standalone, self-hostable web components for viewing documents and 
   <section aria-labelledby="tools-heading">
     <h2 id="tools-heading">Tools</h2>
     <p>Apps built on the elements, which run in your browser.</p>
-    <ul class="elements" role="list">
+    <ul class="cards" role="list">
       {%- for tool in site.tools %}
       <li>
         <h3><a href="{{ tool.page }}">{{ tool.name }}</a></h3>

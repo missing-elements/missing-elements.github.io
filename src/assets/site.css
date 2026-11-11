@@ -547,24 +547,21 @@ tbody th a:hover code { text-decoration: underline; }
 .home section + section { margin-top: 3rem; }
 .home section > h2 { margin: 0 0 0.75rem; padding: 0; border: 0; font-size: 1.5rem; }
 .home section > p { max-width: var(--measure); margin: 0 0 1.25rem; color: var(--muted); }
-/* The cards two to a row where two fit, each as tall as its row, with its links at its foot. Every
-   section has the same two columns, so a section of one card keeps it the width of the others. */
-.home section { container-type: inline-size; }
-.elements {
+/* Cards: on the home page, the elements and the tools. Two to a row where two fit and never more,
+   so one alone keeps the width of the others. Each is as tall as its row, with its links at its
+   foot. */
+.cards {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(18rem, calc((100% - 1rem) / 2))), 1fr));
   gap: 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-@container (width > 36rem) {
-  .elements { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-.elements li { display: flex; flex-direction: column; margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.elements h3 { margin: 0 0 0.25rem; font-size: 1.125rem; }
-.elements p { margin: 0 0 0.5rem; color: var(--muted); }
-.elements .links { display: flex; gap: 1rem; margin-top: auto; font-size: 0.875rem; }
+.cards > li { display: flex; flex-direction: column; margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.cards :is(h3, h4) { margin: 0 0 0.25rem; font-size: 1.125rem; }
+.cards p { margin: 0 0 0.5rem; color: var(--muted); }
+.cards .links { display: flex; gap: 1rem; margin-top: auto; font-size: 0.875rem; }
 /* The home page's footer: where else the elements are, in columns of links. */
 .site-footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.875rem; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem 4rem; }
@@ -582,6 +579,11 @@ tbody th a:hover code { text-decoration: underline; }
 :is(.build, .skill) .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
 /* Prose keeps a line a reader can follow; the source, the lists and what plays take the whole width. */
 :is(.build, .skill) p:not(.status) { max-width: var(--measure); }
+
+/* A prompt to copy for a chat, in a code block's frame for its Copy button: prose, so it wraps and
+   is no wider than the prose around it. */
+.docs-header :is(.code, pre) { max-width: var(--measure); }
+pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* H5P build page, /h5p/build/ */
 .build {
@@ -653,7 +655,7 @@ tbody th a:hover code { text-decoration: underline; }
   border: 0;
   font-size: 1.25rem;
 }
-.build h3 { margin: 1.5rem 0 0.5rem; font-size: 1rem; }
+.build .step h3 { margin: 1.5rem 0 0.5rem; font-size: 1rem; }
 .step-marker {
   position: absolute;
   top: 0;
@@ -795,6 +797,28 @@ tbody th a:hover code { text-decoration: underline; }
 /* H5P content draws on white, whatever the page's theme. */
 .player-box { margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #ffffff; }
 .player-box h5p-player { display: block; }
+
+/* Under the steps: where else what was built plays, its title the size of a step's, and a card of
+   its own for saying how it went, with its two buttons at its end, which share a row where it is
+   wide enough and take one each where it is not. */
+.plays h2 { font-size: 1.25rem; }
+.feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.feedback > :first-child { flex: 1 1 28rem; }
+.feedback h2 { margin: 0 0 0.25rem; padding: 0; border: 0; font-size: 1.125rem; }
+.feedback p { margin: 0; color: var(--muted); }
+.feedback-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.feedback-actions .button { flex: 1 1 auto; justify-content: center; }
 
 @media (max-width: 480px) {
   .step { --marker: 1.75rem; --indent: calc(var(--marker) + 0.75rem); }
