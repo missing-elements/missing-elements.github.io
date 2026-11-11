@@ -34,16 +34,19 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     </p>
   </header>
 
-  <section aria-labelledby="first-heading">
-    <h2 id="first-heading">Read first</h2>
-    <ul class="skill-files">
+  {#- The sections are steps, in the order a chat reads them, drawn as the build page's timeline
+      (site.css). The lists are drawn without bullets, and Safari then reads one as a list only if
+      it is told. -#}
+  <section class="step" aria-labelledby="first-heading">
+    <h2 id="first-heading"><span class="step-marker"><span class="step-number">1</span></span> Read first</h2>
+    <ul class="skill-files" role="list">
       <li><a href="{{ base }}SKILL.md">{{ base }}SKILL.md</a>: the skill's steps</li>
     </ul>
   </section>
 
-  <section aria-labelledby="named-heading">
-    <h2 id="named-heading">The files it names</h2>
-    <ul class="skill-files">
+  <section class="step" aria-labelledby="named-heading">
+    <h2 id="named-heading"><span class="step-marker"><span class="step-number">2</span></span> The files it names</h2>
+    <ul class="skill-files" role="list">
       {%- for path in skill.named %}
       <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a>
         {%- if path == "references/authoring.md" %}: the brief, read once
@@ -52,27 +55,27 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     </ul>
   </section>
 
-  <section aria-labelledby="types-heading">
-    <h2 id="types-heading">A content type's file</h2>
+  <section class="step" aria-labelledby="types-heading">
+    <h2 id="types-heading"><span class="step-marker"><span class="step-number">3</span></span> A content type's file</h2>
     <p>
       One per content type: its notes, an example and its fields. Read the file of the type the
       source is written in, and those of the parts it holds, such as H5P.AdvancedText or H5P.Image.
     </p>
-    <ul class="skill-files">
+    <ul class="skill-files" role="list">
       {%- for path in skill.types %}
       <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a></li>
       {%- endfor %}
     </ul>
   </section>
 
-  <section aria-labelledby="bundles-heading">
-    <h2 id="bundles-heading">To build where npm cannot be reached</h2>
+  <section class="step" aria-labelledby="bundles-heading">
+    <h2 id="bundles-heading"><span class="step-marker"><span class="step-number">4</span></span> To build where npm cannot be reached</h2>
     <p>
       The build tool, which runs with Node and nothing installed, and a bundle per content type:
       the libraries a build of that type reads. Fetch the tool and the bundle of the source's own
       type, as step 3 of <code>SKILL.md</code> says.
     </p>
-    <ul class="skill-files">
+    <ul class="skill-files" role="list">
       {%- for file in skill.bundles %}
       <li><a href="{{ bundlesBase }}{{ file }}">{{ bundlesBase }}{{ file }}</a>
         {%- if file == "h5p-author.mjs" %}: the build tool{% endif %}</li>

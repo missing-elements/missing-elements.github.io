@@ -574,27 +574,27 @@ tbody th a:hover code { text-decoration: underline; }
 .footer-links a { color: var(--muted); text-decoration: none; }
 .footer-links a:hover { color: var(--text); text-decoration: underline; }
 
-/* The h5p-author skill's files, /h5p/skill/: whole addresses, which give way on a phone. */
-.skill-files a { overflow-wrap: anywhere; }
+/* The H5P pages, the build page and the skill's: one wide column, its prose at --measure, and its
+   sections as steps. */
+:is(.build, .skill) { max-width: var(--page-width); }
+.build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
+/* A longer heading than the docs' package names, so it gives way on a phone. */
+:is(.build, .skill) .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
+/* Prose keeps a line a reader can follow; the source, the lists and what plays take the whole width. */
+:is(.build, .skill) p:not(.status) { max-width: var(--measure); }
 
 /* H5P build page, /h5p/build/ */
 .build {
-  max-width: var(--page-width);
   --ok: var(--live);
   --bad: var(--t-tag);
   /* Masked, like the preview pane's icons, so they take a color like text does. */
   --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
   --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 5v8.5M12 18.5v.01'/%3E%3C/svg%3E");
 }
-.build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
-/* A longer heading than the docs' package names, so it gives way on a phone. */
-.build .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
-/* Prose keeps a line a reader can follow; the source, the lists and what plays take the whole width. */
-.build p:not(.status) { max-width: var(--measure); }
-
-/* The steps are a timeline: a marker for each, on a rail that runs on to the next. A step the page
-   hides, as the files of a source that names none, is not on it, and the rail ends at the last shown. */
-.build .step {
+/* The steps are a timeline, on this page and the skill's: a marker for each, on a rail that runs on
+   to the next. A step the page hides, as the files of a source that names none, is not on it, and
+   the rail ends at the last shown. How a step stands, done or wrong, is the build page's alone. */
+.step {
   --marker: 2rem;
   --indent: calc(var(--marker) + 1rem);
   /* How the step stands, which the rules under these set from what the page says of it. */
@@ -605,7 +605,7 @@ tbody th a:hover code { text-decoration: underline; }
   position: relative;
   padding: 0 0 1.5rem var(--indent);
 }
-.build .docs-header + .step { margin-top: 2.5rem; }
+.docs-header + .step { margin-top: 2.5rem; }
 /* The source is JSON, every file it names is chosen, the build is ready: the step is done. */
 .build .step:is(
   :has(#source-state[data-state="ok"]),
@@ -626,7 +626,7 @@ tbody th a:hover code { text-decoration: underline; }
 }
 
 /* The rail, from under a step's marker to the next one's. It is a border, which forced colors keep. */
-.build .step::before {
+.step::before {
   content: "";
   position: absolute;
   top: calc(var(--marker) + 0.5rem);
@@ -637,14 +637,14 @@ tbody th a:hover code { text-decoration: underline; }
   transition: border-color 0.2s, opacity 0.3s, scale 0.3s ease-out;
 }
 /* None from the last step shown: it is drawn down to a step as that one joins. */
-.build .step:not(:has(~ .step:not([hidden])))::before { opacity: 0; }
+.step:not(:has(~ .step:not([hidden])))::before { opacity: 0; }
 /* A step that joins the others, the files or the play, comes in. */
 #files-step, #play-step { transition: opacity 0.3s ease-out, translate 0.3s ease-out; }
 @starting-style {
   #files-step, #play-step { opacity: 0; }
 }
 
-.build .step h2 {
+.step h2 {
   display: flex;
   align-items: center;
   min-height: var(--marker);
@@ -752,16 +752,20 @@ tbody th a:hover code { text-decoration: underline; }
 .build .status[data-state="building"] { border-left-color: var(--focus); background: var(--tint); }
 .build .status[data-state="ready"] { border-left-color: var(--ok); }
 .build .status[data-state="error"] { border-left-color: var(--bad); }
-/* The problems, the notes and the files, a row each. */
-.build .messages, .build .file-list {
+/* The problems, the notes and the files, a row each; on the skill page, its addresses. */
+.build .messages, .build .file-list, .skill-files {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--raised);
   list-style: none;
 }
-.build .messages li, .build .file-list li { margin: 0; padding: 0.55rem 0.85rem; overflow-wrap: anywhere; }
-.build .messages li + li, .build .file-list li + li { border-top: 1px solid var(--border); }
+.build .messages li, .build .file-list li, .skill-files li { margin: 0; padding: 0.55rem 0.85rem; overflow-wrap: anywhere; }
+.build .messages li + li, .build .file-list li + li, .skill-files li + li { border-top: 1px solid var(--border); }
+/* A whole address in the site's mono font, and what the file is, muted, after it. */
+.skill-files { color: var(--muted); }
+.skill-files li { font-size: 0.875rem; }
+.skill-files a { font-family: var(--mono); font-size: 0.9375em; }
 /* A file's name, then whether it is chosen: at the row's end where both fit on a line, under the name where they do not. */
 .build .file-list li {
   position: relative;
@@ -793,7 +797,7 @@ tbody th a:hover code { text-decoration: underline; }
 .player-box h5p-player { display: block; }
 
 @media (max-width: 480px) {
-  .build .step { --marker: 1.75rem; --indent: calc(var(--marker) + 0.75rem); }
+  .step { --marker: 1.75rem; --indent: calc(var(--marker) + 0.75rem); }
   .step-marker { font-size: 0.8125rem; }
   /* The last step has no rail beside it, so on a phone what plays takes the column's whole width. */
   .player-box { margin-left: calc(-1 * var(--indent)); }
@@ -807,7 +811,7 @@ tbody th a:hover code { text-decoration: underline; }
 
 /* What moves, only where motion is not asked to be reduced: the rail drawn down, a step coming up, the ring turning. */
 @media (prefers-reduced-motion: no-preference) {
-  .build .step:not(:has(~ .step:not([hidden])))::before { scale: 1 0; }
+  .step:not(:has(~ .step:not([hidden])))::before { scale: 1 0; }
   @starting-style {
     #files-step, #play-step { translate: 0 0.5rem; }
   }
