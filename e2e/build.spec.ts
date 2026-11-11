@@ -51,6 +51,19 @@ const copied = async (page: Page): Promise<string> => {
   return page.evaluate(() => navigator.clipboard.readText())
 }
 
+/**
+ * Fills the source. It is edited in an editor, which loads apart and takes the textarea's place;
+ * the textarea stays under it holding the same text, which is how the page reads the source. The
+ * text is typed over a selection of all of it, made by the editor's own key: a page selection that
+ * a test makes itself can be taken back by the editor, which keeps its own.
+ */
+async function fillSource(page: Page, text: string): Promise<void> {
+  await page.locator('.source-editor .cm-content').click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.insertText(text)
+  await expect(page.locator('#source')).toHaveValue(text)
+}
+
 const playerState = (page: Page) => page.locator('h5p-player').evaluate((element: HTMLElement & { state?: string }) => element.state)
 
 async function expectPlays(page: Page): Promise<void> {
@@ -67,7 +80,7 @@ test('a pasted source builds, plays and downloads', async ({ page, baseURL }) =>
   await expect(page.locator('[data-theme-toggle]')).toBeVisible()
   await expect(page.locator('#files-step')).toBeHidden()
   // A chat hands the source in a code fence; the page takes what is inside it.
-  await page.locator('#source').fill('```json\n' + JSON.stringify(RIVERS, null, 2) + '\n```')
+  await fillSource(page, '```json\n' + JSON.stringify(RIVERS, null, 2) + '\n```')
   await page.locator('#build').click()
   await expectPlays(page)
   await expect(page.locator('#status')).toContainText('Built “Rivers”: H5P.Blanks, ')
@@ -96,7 +109,7 @@ test('a source with problems gets them all listed, ready for the chat', async ({
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/h5p/build/')
   const { title: _title, ...untitled } = RIVERS
-  await page.locator('#source').fill(JSON.stringify({ ...untitled, colour: 'blue' }))
+  await fillSource(page, JSON.stringify({ ...untitled, colour: 'blue' }))
   await page.locator('#build').click()
   await expect(page.locator('#status')).toHaveAttribute('data-state', 'error')
   const listed = page.locator('#problems li')
@@ -115,7 +128,7 @@ test('a source with problems gets them all listed, ready for the chat', async ({
   expect(files).toBe(await typeFile(request, 'H5P.Blanks'))
 
   // Text that is not JSON is a problem of its own, said where it is, and names no content type.
-  await page.locator('#source').fill('{ "type": "H5P.Blanks", ')
+  await fillSource(page, '{ "type": "H5P.Blanks", ')
   await page.locator('#build').click()
   await expect(listed).toHaveCount(1)
   await expect(listed.first()).toContainText('is not valid JSON')
@@ -144,7 +157,7 @@ test('the copy carries the type files of the source’s type and of the librarie
     }
   }
   await page.goto('/h5p/build/')
-  await page.locator('#source').fill(JSON.stringify(book))
+  await fillSource(page, JSON.stringify(book))
   await page.locator('#build').click()
   await expect(page.locator('#status')).toHaveAttribute('data-state', 'error')
   // The build says what to write, as h5p-author does since 0.7.0.
@@ -156,7 +169,7 @@ test('the copy carries the type files of the source’s type and of the librarie
   expect(files).toBe([await typeFile(request, 'H5P.InteractiveBook'), await typeFile(request, 'H5P.AdvancedText'), await typeFile(request, 'H5P.MultiChoice')].join('\n\n---\n\n'))
 
   // A type the pack does not have has no file: its problems are copied alone.
-  await page.locator('#source').fill(JSON.stringify({ ...book, type: 'H5P.ImageChoice', params: {} }))
+  await fillSource(page, JSON.stringify({ ...book, type: 'H5P.ImageChoice', params: {} }))
   await page.locator('#build').click()
   await expect(page.locator('#problems li')).not.toHaveCount(0)
   const alone = await copied(page)
@@ -173,7 +186,7 @@ test('the copy carries the type file of a type named as it is spoken of, or unde
   /** The type files a source's copy carries after its problems, once a problem of it is shown. */
   const filesOf = async (source: unknown, said: string): Promise<string | undefined> => {
     await page.goto('/h5p/build/')
-    await page.locator('#source').fill(JSON.stringify(source))
+    await fillSource(page, JSON.stringify(source))
     await page.locator('#build').click()
     await expect(page.locator('#problems')).toContainText(said)
     return (await copied(page)).split(`\n\n${TYPES_HEADING}\n\n`)[1]
@@ -209,7 +222,7 @@ test('the problems are copied alone where the type files cannot be fetched, and 
   await page.route('**/h5p/build/types/**', (route) => route.fulfill({ status: 503, body: 'unavailable' }))
   await page.goto('/h5p/build/')
   const { title: _title, ...untitled } = RIVERS
-  await page.locator('#source').fill(JSON.stringify(untitled))
+  await fillSource(page, JSON.stringify(untitled))
   await page.locator('#build').click()
   await expect(page.locator('#problems li')).toHaveCount(1)
   expect(await copied(page)).toMatch(/^The build page found 1 problem in the source\. Fix them all and write the whole source again:\n- title: [^\n]*$/)
@@ -231,11 +244,11 @@ test('type files that arrive once newer problems are shown are not copied with t
   })
   await page.goto('/h5p/build/')
   const { title: _title, ...untitled } = RIVERS
-  await page.locator('#source').fill(JSON.stringify(untitled))
+  await fillSource(page, JSON.stringify(untitled))
   await page.locator('#build').click()
   await expect(page.locator('#problems li code')).toHaveText('title')
   // Its type file is on its way when the next source's problems replace these: text that names no type.
-  await page.locator('#source').fill('{ "type": ')
+  await fillSource(page, '{ "type": ')
   await page.locator('#build').click()
   await expect(page.locator('#problems li')).toContainText('is not valid JSON')
   const arrived = page.waitForResponse('**/h5p/build/types/H5P.Blanks.md')
@@ -332,4 +345,112 @@ test('a source that names a file waits for it, then builds with it', async ({ pa
   // The picture reaches the content and decodes: 2×2, as chosen.
   await expect.poll(() => page.frameLocator('h5p-player iframe').first().locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(2)
   expect(problems, problems.join('\n')).toEqual([])
+})
+
+// The source's editor: CodeMirror, loaded apart, in place of the textarea, which stays under it.
+
+test('a mistake in the JSON is marked as it is typed, with its line and column, and goes when it is put right', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/')
+  const state = page.locator('#source-state')
+  await expect(state).toHaveText('')
+  await fillSource(page, '{\n  "type": "H5P.Blanks"\n  "title": "Rivers"\n}')
+  // Said in words, with where, in the line under the source and in the editor itself.
+  await expect(state).toContainText('Not valid JSON at line 3, column 3: A comma is missing here')
+  await expect(page.locator('.source-editor .cm-lintRange-error')).toHaveCount(1)
+  // The button goes where the mistake is.
+  await state.getByRole('button', { name: 'Show where' }).click()
+  await expect(page.locator('.source-editor .cm-activeLine')).toContainText('"title": "Rivers"')
+  // Put right, it goes.
+  await fillSource(page, JSON.stringify(RIVERS))
+  await expect(state).toHaveText('')
+  await expect(page.locator('.source-editor .cm-lintRange-error')).toHaveCount(0)
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('Format lays the source out, and takes it out of the code fence a chat put it in', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/')
+  await fillSource(page, '```json\n' + JSON.stringify(RIVERS) + '\n```')
+  await page.locator('#format').click()
+  await expect(page.locator('#source')).toHaveValue(JSON.stringify(RIVERS, null, 2))
+  await expect(page.locator('#source-state')).toHaveText('Laid out.')
+  await expect(page.locator('.source-editor .cm-line').first()).toHaveText('{')
+  // Text that is not JSON is left as it is, and the line under the source says where.
+  await fillSource(page, '{ "type": ')
+  await page.locator('#format').click()
+  await expect(page.locator('#source')).toHaveValue('{ "type": ')
+  await expect(page.locator('#source-state')).toContainText('The text ends before the JSON is complete')
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('a problem the build finds is marked where it is in the source, and its name goes there', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/')
+  const { title: _title, ...untitled } = RIVERS
+  await fillSource(page, JSON.stringify({ ...untitled, colour: 'blue' }, null, 2))
+  await page.locator('#build').click()
+  await expect(page.locator('#status')).toHaveAttribute('data-state', 'error')
+  // The field that is not a field of a source, name and value; the one that is missing, in the object it is missing from.
+  const marks = page.locator('.source-editor .cm-lintRange-error')
+  await expect(marks).toHaveCount(2)
+  await expect(marks.filter({ hasText: '"colour": "blue"' })).toHaveCount(1)
+  // Each problem's name goes to its place.
+  await page.locator('#problems button.jump', { hasText: /^colour$/ }).click()
+  await expect(page.locator('.source-editor .cm-activeLine')).toContainText('"colour": "blue"')
+  await page.locator('#problems button.jump', { hasText: /^title$/ }).click()
+  await expect(page.locator('.source-editor .cm-activeLine')).toHaveText('{')
+  // The marks are of the text as it was built: a change to it clears them.
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.type(' ')
+  await expect(marks).toHaveCount(0)
+  // Text that is not JSON is a problem at a place of its own.
+  await fillSource(page, '{ "type": "H5P.Blanks" "title": 1 }')
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li')).toContainText('is not valid JSON at line 1, column 24: A comma is missing here')
+  await page.locator('#problems button.jump').click()
+  await expect(page.locator('.source-editor .cm-activeLine')).toContainText('"title": 1')
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('the editor has a name, its label goes to it, and Tab leaves it', async ({ page }) => {
+  await page.goto('/h5p/build/')
+  const editor = page.getByRole('textbox', { name: 'The source, as JSON' })
+  await expect(editor).toBeVisible()
+  await page.getByText('The source, as JSON', { exact: true }).click()
+  await expect(editor).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.locator('#format')).toBeFocused()
+})
+
+test('text typed over a selection is the editor’s own, so a bracket wraps it and the policy is not asked', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/')
+  await fillSource(page, JSON.stringify(RIVERS, null, 2))
+  await page.locator('.source-editor .cm-content').click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type('[')
+  await expect(page.locator('#source')).toHaveValue(`[${JSON.stringify(RIVERS, null, 2)}]`)
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type('x')
+  await expect(page.locator('#source')).toHaveValue('x')
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(page.locator('#source')).toHaveValue(`[${JSON.stringify(RIVERS, null, 2)}]`)
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('where the editor cannot load, the source is the textarea, and the page works', async ({ page, baseURL }) => {
+  const { elsewhere } = watch(page, baseURL)
+  await page.route('**/h5p/assets/editor-*.js', (route) => route.abort())
+  await page.goto('/h5p/build/')
+  const field = page.locator('#source')
+  await expect(field).toBeVisible()
+  await field.fill(JSON.stringify({ ...RIVERS, authors: [] }))
+  await page.locator('#build').click()
+  await expect(page.locator('#problems li code')).toHaveText('authors')
+  // Its name selects where it is, in the textarea.
+  await page.locator('#problems button.jump').click()
+  expect(await field.evaluate((area: HTMLTextAreaElement) => area.value.slice(area.selectionStart, area.selectionEnd))).toBe('"authors":[')
+  await expect(page.locator('.source-editor')).toHaveCount(0)
+  expect(elsewhere).toEqual([])
 })
