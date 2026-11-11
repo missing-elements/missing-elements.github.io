@@ -25,6 +25,9 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --radius: 6px;
   --preview-width: clamp(360px, 42vw, 760px);
+  /* The pages of one wide column, the org home and the H5P build page. Their prose keeps --measure. */
+  --page-width: 72rem;
+  --measure: 60ch;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -535,22 +538,48 @@ tbody th a:hover code { text-decoration: underline; }
 }
 
 /* Org home */
-.home { max-width: 44rem; margin: 0 auto; padding: 4rem 1rem; }
+.home { max-width: var(--page-width); margin: 0 auto; padding: 4rem clamp(1rem, 4vw, 3rem); }
 .home h1 { margin: 0 0 0.5rem; font-size: 2rem; }
 .brand-title { display: flex; align-items: center; gap: 0.75rem; }
 .brand-title img { width: 3rem; height: 3rem; }
-.home .lead { margin-bottom: 2rem; }
-.elements { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
-.elements li { margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.elements h2 { margin: 0 0 0.25rem; padding: 0; border: 0; font-size: 1.125rem; }
+.home .lead { max-width: var(--measure); margin-bottom: 2rem; }
+/* A group of cards under its title, the size of a docs page's section title, without its rule. */
+.home section + section { margin-top: 3rem; }
+.home section > h2 { margin: 0 0 0.75rem; padding: 0; border: 0; font-size: 1.5rem; }
+.home section > p { max-width: var(--measure); margin: 0 0 1.25rem; color: var(--muted); }
+/* The cards two to a row where two fit, each as tall as its row, with its links at its foot. Every
+   section has the same two columns, so a section of one card keeps it the width of the others. */
+.home section { container-type: inline-size; }
+.elements {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@container (width > 36rem) {
+  .elements { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.elements li { display: flex; flex-direction: column; margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.elements h3 { margin: 0 0 0.25rem; font-size: 1.125rem; }
 .elements p { margin: 0 0 0.5rem; color: var(--muted); }
-.elements .links { display: flex; gap: 1rem; font-size: 0.875rem; }
+.elements .links { display: flex; gap: 1rem; margin-top: auto; font-size: 0.875rem; }
+/* The home page's footer: where else the elements are, in columns of links. */
+.site-footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.875rem; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem 4rem; }
+.footer-links h2 { margin: 0 0 0.5rem; padding: 0; border: 0; font-size: 0.875rem; }
+.footer-links ul { margin: 0; padding: 0; list-style: none; }
+.footer-links li + li { margin-top: 0.35rem; }
+.footer-links a { color: var(--muted); text-decoration: none; }
+.footer-links a:hover { color: var(--text); text-decoration: underline; }
 
 /* The h5p-author skill's files, /h5p/skill/: whole addresses, which give way on a phone. */
 .skill-files a { overflow-wrap: anywhere; }
 
 /* H5P build page, /h5p/build/ */
 .build {
+  max-width: var(--page-width);
   --ok: var(--live);
   --bad: var(--t-tag);
   /* Masked, like the preview pane's icons, so they take a color like text does. */
@@ -560,6 +589,8 @@ tbody th a:hover code { text-decoration: underline; }
 .build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
 /* A longer heading than the docs' package names, so it gives way on a phone. */
 .build .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
+/* Prose keeps a line a reader can follow; the source, the lists and what plays take the whole width. */
+.build p:not(.status) { max-width: var(--measure); }
 
 /* The steps are a timeline: a marker for each, on a rail that runs on to the next. A step the page
    hides, as the files of a source that names none, is not on it, and the rail ends at the last shown. */

@@ -6,7 +6,7 @@ The site of the [missing-elements](https://github.com/missing-elements) web comp
 
 | Path | What it is | Source, and the detail |
 | --- | --- | --- |
-| `/` | The project list | [src/index.njk](src/index.njk); the projects are in [src/_data/site.js](src/_data/site.js) |
+| `/` | The project list, the tools (the build page, which links the skill's page), and a footer of links | [src/index.njk](src/index.njk); the lists are in [src/_data/site.js](src/_data/site.js) |
 | `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/); [docs/pdfjs-viewer.md](docs/pdfjs-viewer.md) |
 | `/h5p/skill/` | The skill's files, and a page that lists each at its full address | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); [docs/h5p-skill.md](docs/h5p-skill.md) |
 | `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm | written by [vite.config.ts](vite.config.ts); [docs/h5p-bundles.md](docs/h5p-bundles.md) |
