@@ -9,13 +9,26 @@ Nothing leaves the browser. A link can carry the source in its fragment, which n
 | [src/h5p/build/index.njk](../src/h5p/build/index.njk) | The page's markup, in the site's layout, and its Content-Security-Policy: GitHub Pages sends no headers, so a `<meta>` tag is the only policy it gets |
 | [src/h5p/build/build-page.ts](../src/h5p/build/build-page.ts) | The page's wiring: the build, the player, the download, a link's source |
 | [src/h5p/build/build-source.ts](../src/h5p/build/build-source.ts) | What it does with a source with no DOM: the link's fragment, the files a source names, the content types it is written in, the text for the chat |
+| [src/h5p/build/editor.ts](../src/h5p/build/editor.ts) | The source's editor, CodeMirror 6, mounted in a shadow root and loaded apart from the page: see [The source editor](#the-source-editor) |
+| [src/h5p/build/json-scan.ts](../src/h5p/build/json-scan.ts) | What it reads of JSON text with no DOM: where a text stops being JSON and what is wrong there, and where a problem's path points |
 | [src/assets/site.css](../src/assets/site.css) | Its styles, under *H5P build page* |
 | [vite.config.ts](../vite.config.ts) | The page's script, `/h5p/build/build-page.js`, with the player, its runtime, the pack and their licence files in `/h5p/assets/`, and the type files in `/h5p/build/types/` |
-| [e2e/](../e2e/), [playwright.config.ts](../playwright.config.ts) | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder; `/h5p/skill/` serves the skill's files as the package carries them, and writes out every address |
+| [e2e/](../e2e/), [playwright.config.ts](../playwright.config.ts) | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; the source's editor marks a mistake and the problems the build finds, and `json-scan.spec.ts` tests the reading of JSON with no browser; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder; `/h5p/skill/` serves the skill's files as the package carries them, and writes out every address |
 
 The player's Service Worker is in `/h5p/assets/` too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it. The address names who runs the page, as H5P Group's trademark policy asks of a name with "H5P" in it, and the page uses the word descriptively.
 
 The page and the bundles were embed-my.github.io's `/build` and `/bundles/` until 2026-11-10. Its `/build` is now a page that sends a visit here with its fragment, so the links chats wrote before still build ([embed-my/embed-my.github.io#18](https://github.com/embed-my/embed-my.github.io/pull/18)).
+
+## The source editor
+
+A person who gets a source from a chat is a teacher, not a developer, and a missing comma or quote is invisible in a textarea until Build says the source cannot be read. So the source is edited in an editor. `editor.ts` is CodeMirror 6, and `build-page.ts` loads it apart from the page (`import('./editor')`, a chunk of its own in `/h5p/assets/`). Where it cannot load, the textarea stays as the source and the page works. The textarea stays under the editor, hidden, holding the same text, so the rest of the page reads the source as it always did.
+
+- **JSON in colours**, with line numbers, matching brackets and undo. The colours are the site's token colours, custom properties that reach into the editor, so light and dark need no code.
+- **A mistake in the JSON is marked as it is typed**, and said under the source with its line and column, in words for someone who does not write JSON ("A comma is missing here"), with a button that goes there. `JSON.parse` still decides whether text is JSON. `json-scan.ts` says where, because `JSON.parse` says it differently in each browser and Safari does not say at all. `parseSource` uses it too, so the copy for the chat carries the line and the column.
+- **The problems the build finds are marked where they are**, and the name of a problem in the list is a button that goes there. A problem's path, `params.chapters[0].metadata.title`, is looked up in the text by `locate`: a name and its value, and for what the source is missing, the object it is missing from. The marks are of the text as it was built, so a change to the text clears them.
+- **Format** lays the source out, and takes it out of the code fence a chat may have put it in.
+
+The editor has to fit the page's policy, which has no `style-src 'unsafe-inline'`: an editor that adds a `<style>` to the page is refused. In a shadow root CodeMirror adopts its styles as a constructed stylesheet instead, which the policy does not govern. Chrome's own editing also gives text typed over a selection of coloured text a `style` attribute, which the policy refuses and reports; `contenteditable="plaintext-only"` does not stop it. So the editor takes that typing itself (`typeOverSelection`), through its input handlers, and a bracket or a quote typed over a selection still wraps it. Tab is not the editor's: it leaves it, so the keyboard is never trapped. The browser tests that watch the page fail on any policy report.
 
 ## The type files
 
