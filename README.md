@@ -1,116 +1,55 @@
 # missing-elements.github.io
 
-Docs and tools for the [missing-elements](https://github.com/missing-elements) web components, published at <https://missing-elements.github.io>.
+The site of the [missing-elements](https://github.com/missing-elements) web components, at <https://missing-elements.github.io>: the docs of the PDF viewer, and the pages an AI chat uses to build H5P content with the [h5p-author skill](https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author).
 
-| Path | Source |
-| --- | --- |
-| `/` | [src/index.njk](src/index.njk), project list in [src/_data/site.js](src/_data/site.js) |
-| `/pdfjs-viewer/` | [src/pdfjs-viewer/index.md](src/pdfjs-viewer/index.md) |
-| `/h5p/build/` | The H5P build page, [src/h5p/build/](src/h5p/build/): see [The H5P build page](#the-h5p-build-page) |
-| `/h5p/build/types/` | The h5p-author skill's type files, which the build page copies for the chat, written by [vite.config.ts](vite.config.ts): see [The type files](#the-type-files) |
-| `/h5p/bundles/` | The build tool and a library bundle per content type, written by [vite.config.ts](vite.config.ts): see [The bundles](#the-bundles) |
-| `/h5p/skill/` | The h5p-author skill's files and a page of their addresses, [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js): see [The skill](#the-skill) |
+## What it serves
 
-Built with [Eleventy](https://www.11ty.dev/). The pages ship no framework: the only client-side JavaScript is the theme toggle, code-block buttons, the live preview and the build page, which [Vite](https://vite.dev/) bundles with the H5P player.
+| Path | What it is | Source, and the detail |
+| --- | --- | --- |
+| `/` | The project list | [src/index.njk](src/index.njk); the projects are in [src/_data/site.js](src/_data/site.js) |
+| `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/); [docs/pdfjs-viewer.md](docs/pdfjs-viewer.md) |
+| `/h5p/skill/` | The skill's files, and a page that lists each at its full address | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); [docs/h5p-skill.md](docs/h5p-skill.md) |
+| `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm | written by [vite.config.ts](vite.config.ts); [docs/h5p-bundles.md](docs/h5p-bundles.md) |
+| `/h5p/build/` | The build page: turns the source a chat wrote into a `.h5p` in the visitor's browser | [src/h5p/build/](src/h5p/build/); [docs/h5p-build-page.md](docs/h5p-build-page.md) |
+| `/h5p/build/types/` | The skill's type files, which the build page copies for the chat | written by [vite.config.ts](vite.config.ts); [docs/h5p-build-page.md](docs/h5p-build-page.md#the-type-files) |
+
+The three `/h5p/` pages serve one skill to a chat that cannot install it, by what the chat can do. It is given `/h5p/skill/`, which lists every address. If it can run Node and fetch a file, it builds from the tool and a bundle in `/h5p/bundles/`. If it cannot, it gives the user a link to `/h5p/build/`, which builds in their browser.
 
 ## Develop
 
-Needs Node 22.12 or later.
+Needs Node 22.12 or later and pnpm.
 
 ```bash
 pnpm install
-pnpm dev       # http://localhost:8080
-pnpm build     # type-checks, then writes _site/: the pages with Eleventy, then /h5p/ with Vite
-pnpm preview   # serves _site/ as GitHub Pages does, http://localhost:4173
-pnpm e2e       # the build page, the bundles and the skill, against _site/: build first, and once
-               # per machine: pnpm exec playwright install chromium
+pnpm dev        # Eleventy's server, http://localhost:8080
+pnpm build      # type-checks, then Eleventy writes _site/, then Vite writes /h5p/ into it
+pnpm preview    # serves _site/ as GitHub Pages does, http://localhost:4173
+pnpm typecheck
+pnpm e2e        # the browser tests, against _site/: build first, and once per machine:
+                # pnpm exec playwright install chromium
 ```
 
-`pnpm dev` serves the pages as Eleventy writes them; the build page's script is there only after a `pnpm build`. The bundles test unzips a bundle with `unzip`, as the h5p-author skill's steps do: macOS and Linux have it, and so does CI's Ubuntu runner; on Windows, run the tests under WSL.
+`pnpm dev` shows the pages as Eleventy writes them: the build page's script is there only after a `pnpm build`. The bundles test unzips a bundle with `unzip`, as the skill's steps do: macOS and Linux have it, and so does CI's Ubuntu runner. On Windows, run the tests under WSL.
 
-Pushes to `main` deploy through [.github/workflows/pages.yml](.github/workflows/pages.yml). Pull requests get a build check from [.github/workflows/build.yml](.github/workflows/build.yml), which runs the browser tests too.
+## How it is built and deployed
 
-## Editing the pdfjs-viewer docs
+- **Eleventy** writes the pages from `src/` into `_site/`. They ship no framework. Their scripts are the theme toggle and the code-block buttons ([src/assets/site.js](src/assets/site.js)), the pdfjs-viewer live preview ([src/pdfjs-viewer/docs.js](src/pdfjs-viewer/docs.js)) and the build page.
+- **Vite** then writes `/h5p/` into the same `_site/`: the build page's script, bundled with the H5P player, its runtime and the library pack; the type files; and the bundles. That is build output: git holds none of it, and the bundles alone are over 100 MB.
+- A push to `main` deploys through [pages.yml](.github/workflows/pages.yml). A pull request is built and tested by [build.yml](.github/workflows/build.yml): the build, then the browser tests.
 
-- **Prose:** [src/pdfjs-viewer/index.md](src/pdfjs-viewer/index.md). Headings `##` and `###` make up the table of contents.
-- **Attribute tables and playground controls:** [src/_data/pdfjsAttributes.js](src/_data/pdfjsAttributes.js).
-- **Version numbers:** read at build time from the installed `@missing-elements/pdfjs-viewer`. The docs serve that package's `dist/` as the live preview, so bumping the dependency updates both.
+## What the site pins
 
-### Try buttons
+The pages run published releases, pinned exactly in [package.json](package.json), and a release moves what the site serves:
 
-Add `try` after the language of a code fence to give it a **▶ Try** button that applies the snippet to the preview:
-
-````md
-```html try
-<pdfjs-viewer-element src="/file.pdf" zoom="page-width"></pdfjs-viewer-element>
-```
-````
-
-- **HTML snippets** copy the attributes of their `<pdfjs-viewer-element>` onto the preview. `style`, `id`, `class` and the placeholder `src="/file.pdf"` are skipped.
-- **JavaScript snippets** run exactly as written. `document.querySelector('pdfjs-viewer-element')` returns the preview element.
-- Every Try button comes with a **Reset** button that puts the preview back to its defaults.
-- **`try=fresh`** replaces the preview with a new element first. Use it for settings that only apply when the viewer is built, such as `setViewerOptions` and the "before connect" attributes.
-
-## The H5P build page
-
-`/h5p/build/` is for an AI chat that wrote a source with the [h5p-author skill](https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author) but cannot build it. ChatGPT's sandbox reaches npm only through OpenAI's own mirror, which was reported refusing every install from July 2026, so `npx @missing-elements/h5p-author` does not run there, and the skill hands over the source and this page's address instead. The page builds with `@missing-elements/h5p-author/browser`, the same build as the command's, and lists every problem at once by its path, ready to copy back into the chat with [the type files](#the-type-files) that chat lacked. Its libraries are `@missing-elements/h5p-libraries/install`'s pack, one part per library, so a build fetches only the parts its package needs and carries the editor libraries an H5P site's upload check asks for. The package then plays in the player on the page, and downloads from it.
-
-Nothing leaves the browser. A link can carry the source in its fragment, which no server sees: `/h5p/build/#source=<base64url>`, the bytes being the source's JSON as UTF-8, or that JSON compressed with raw deflate (Node's `zlib.deflateRawSync`, Python's `zlib.compressobj(wbits=-15)`) to keep the link short. A linked source is built at once, unless it names files of its own, which only the person can choose. A source that names a picture by web address gets it only where that host allows CORS.
-
-| File | What it holds |
+| Package | What it moves |
 | --- | --- |
-| `src/h5p/build/index.njk` | The page's markup, in the site's layout, and its Content-Security-Policy: GitHub Pages sends no headers, so a `<meta>` tag is the only policy it gets |
-| `src/h5p/build/build-page.ts` | The page's wiring: the build, the player, the download, a link's source |
-| `src/h5p/build/build-source.ts` | What it does with a source with no DOM: the link's fragment, the files a source names, the content types it is written in, the text for the chat |
-| `src/assets/site.css` | Its styles, under *H5P build page* |
-| `vite.config.ts` | The page's script, `/h5p/build/build-page.js`, with the player, its runtime, the pack and their licence files in `/h5p/assets/`, and the type files in `/h5p/build/types/` |
-| `e2e/`, `playwright.config.ts` | The browser tests: a pasted source, one from a link and one with a file of its own build, play and download; a source's problems are listed, and copied for the chat with the type files; `/h5p/bundles/` serves every bundle and part, and its tool and a bundle build a quiz in an empty folder; `/h5p/skill/` serves the skill's files as the package carries them, and writes out every address |
+| `@missing-elements/pdfjs-viewer` | The docs' version numbers, and the viewer in the live preview |
+| `@missing-elements/h5p-author` | The build the build page runs, the type files, the skill's files at `/h5p/skill/`, and the tool in `/h5p/bundles/` |
+| `@missing-elements/h5p-libraries` | The library pack: the build page's libraries, and the bundles |
+| `@missing-elements/h5p-offline-player`, `@missing-elements/h5p-runtime` | The player on the build page, and its runtime |
 
-The player's Service Worker is in `/h5p/assets/` too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it. The address names who runs the page, as H5P Group's trademark policy asks of a name with "H5P" in it, and the page uses the word descriptively.
+To move a pin, change its version in `package.json`, run `pnpm install`, then `pnpm build` and `pnpm e2e`, and commit the lockfile with it. Dependabot opens the pull requests for the pins as their own, apart from its group for everything else, and takes a new `@missing-elements` release the day it comes out where it holds other packages back for three days: [.github/dependabot.yml](.github/dependabot.yml) and [pnpm-workspace.yaml](pnpm-workspace.yaml) say why.
 
-The page and the bundles were embed-my.github.io's `/build` and `/bundles/` until 2026-11-10. Its `/build` becomes a redirect here that keeps the fragment, so the links chats wrote before still build: [embed-my/embed-my.github.io#18](https://github.com/embed-my/embed-my.github.io/pull/18), a step of its own, deployed once this page is live.
+## Where the rest is written
 
-### The type files
-
-A chat in a browser, such as Gemini in Chrome, has the skill's text and none of its files, and can run nothing. It guesses how a content type is written, and each round of problems tells it the names of one level. So **Copy the problems for the chat** copies more than the list: after the problems come the skill's type files of the source's own content type and of the libraries named below it, each a type's notes, an example and its fields. The source's own type is the one the build takes it to be, h5p-author's `sourceType` (since 0.8.0): its `type` as written or as it is spoken of, `"interactive-book"`, or with none the one under `contentType` or `library`, as a chat with no skill text writes it. Below it, a library counts by its machine name, under any key: a slide's element `{ "type": "text" }` is no H5P.Text.
-
-```
-The build page found 2 problems in the source. Fix them all and write the whole source again:
-- params.chapters[0]: is the params of sub-content, without the sub-content around them: write params.chapters[0] as { "library": "H5P.Column", "params": { "content": … } }
-- params.chapters[0].metadata.title: is required: the chapter's name in the table of contents
-
-How these content types are written, from the h5p-author skill's type files:
-
-# Interactive Book (H5P.InteractiveBook)
-…
-```
-
-`vite.config.ts` writes them to `/h5p/build/types/<Type>.md` from the pinned `@missing-elements/h5p-author`, which carries them since 0.7.0, with `index.json`, the author's version and the types there is a file for. They are that release's, so they describe the fields of the build the page runs, and a Dependabot update of the package moves both. The page fetches them when it lists a source's problems, so the copy is written within the button's press; where they cannot be fetched, the problems are copied alone.
-
-Measured in [h5p-offline-player#172](https://github.com/missing-elements/h5p-offline-player/issues/172) on the weakest Claude model, Haiku 5.5, in that position: with the files beside the first problems, 42 of 46 sources of 23 content types were right by its second reply, and 29 without them. And in [#174](https://github.com/missing-elements/h5p-offline-player/issues/174), with no skill text at all, the position of a chat given only a link to the skill: with h5p-author 0.7.1 and the file of a type named as it is spoken of, 10 of 12 sources were right by the second reply and all 12 by the third; with 0.7.0 and the page's rule before, 3 and 8 by the fourth, four never.
-
-The page copies that text byte for byte. The 14 rounds that failed in the second test were built again on this page, and each copied what the model had been given. Of the 39 sources that failed their first build in the first, 36 did; the other three carry the same type files, and their problems read better since: a Game Map (0.7.0), and two books whose chapters had a title beside them, 13 problems now 7 (0.7.1).
-
-## The bundles
-
-`/h5p/bundles/` is for a chat that runs Node and can fetch a file but reaches no npm registry, as ChatGPT's sandbox can: its download tool takes a file the browsing tool has opened. There the h5p-author skill fetches two files, the build tool and the bundle of the source's content type, unzips the bundle and builds with `node h5p-author.mjs build source.json course.h5p --libraries parts`. The chat then sees every problem itself, fixes its source and hands over the package; the build page stays for a chat that can fetch nothing.
-
-| Path | What it holds |
-| --- | --- |
-| `/h5p/bundles/<type>.zip` | One per content type in the pack, `H5P.QuestionSet.zip`: `parts/`, the pack's whole index with the parts a build of that type can read, and `libraries.txt`. Written by `h5p-author bundle --all` |
-| `/h5p/bundles/parts/<part>.h5p` | Every part of the pack under its own name, and `parts/index.json`. No bundle holds an addon: a source whose text calls for one, H5P.MathDisplay for math, stops the build, which names the part to fetch from here |
-| `/h5p/bundles/h5p-author.mjs` | The author package's command line as one file, everything it imports bundled in, so it runs with nothing installed. It needs `--libraries`, and has no `--version`: the npm package's own files are not with it |
-| `/h5p/bundles/index.json` | The author package's and the pack's versions, and each bundle's file, size and number of parts |
-| `/h5p/bundles/libraries.txt` | The pack's licence list, which asks to travel with its libraries |
-
-`vite.config.ts` writes them at build from the packages the lockfile pins, so a Dependabot update of `@missing-elements/h5p-author` or `@missing-elements/h5p-libraries` moves them, and they live in `_site/` only, not in git: 113 MB with pack 1.1.0, well within GitHub Pages' 1 GB. A question type's bundle is about 1 MB, a Question Set's 2.6 MB, a container's up to 8.4 MB. embed-my.github.io keeps serving its own `/bundles/` until the next pack release, for copies of the skill installed before the move.
-
-## The skill
-
-`/h5p/skill/` serves the h5p-author skill as the pinned `@missing-elements/h5p-author` carries it since 0.9.0: `SKILL.md`, its licence and `references/`, the brief and a file per content type, copied as they are by `eleventy.config.js`. It is for a chat that cannot install the skill and reads it from a web address. From GitHub that can fail: GitHub limits anonymous reads per address, chat apps fetch from addresses they share, and the Claude app answered "I couldn't access the GitHub SKILL.md file due to rate limiting". GitHub Pages serves this site with no such limit.
-
-Give a chat the page's address, `https://missing-elements.github.io/h5p/skill/`, not `SKILL.md`'s. The page, `src/h5p/skill/index.njk`, writes out the full address of every file, each as its link's text, because a chat's fetch tool may open only addresses it has seen whole: Claude's web fetch is documented to fetch only addresses given in the conversation or found in an earlier search or fetch, and `SKILL.md`'s relative links (`./references/authoring.md`) and the `<Type>` in a type file's address are not whole. `/h5p/skill/index.json` lists the author's version and the files, from `src/_data/skill.js`, which stops the build if the pinned package carries no `SKILL.md`.
-
-The addresses carry no version. The site builds from one pinned release, the one the build page runs, so a versioned folder would hold only that one, and an address with the previous version, given to a chat before, would stop working at the next update. The page and `index.json` say which release it is, and a Dependabot update of the package moves the files with the build page.
-
-GitHub Pages serves `LICENSE`, which has no extension, as `application/octet-stream`; a chat never needs to read it. `pnpm preview` and the browser tests answer a missing file with a 404, as GitHub Pages does (`appType: 'mpa'` in `vite.config.ts`), so a test that a file is served fails when it is not.
+The detail of each part is in [docs/](docs/). The rules behind the H5P pages, and what was measured to reach them, are in [design/author.md](https://github.com/missing-elements/h5p-offline-player/blob/main/design/author.md) of h5p-offline-player, where the skill and its packages live.
