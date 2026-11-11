@@ -35,14 +35,13 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
       <label for="source" id="source-label">The source, as JSON</label>
       <textarea id="source" rows="12" spellcheck="false" autocomplete="off" placeholder='{ "type": "H5P.Blanks", "title": "Rivers", "language": "en", "license": "CC BY", "authors": [{ "name": "Ann Author", "role": "Author" }], "params": { "questions": ["The *Danube* flows into the Black Sea."] } }'></textarea>
     </div>
-    <p class="source-tools">
-      <button type="button" class="button" id="format">Format</button>
-      <span class="hint" id="source-state" role="status" aria-live="polite"></span>
-    </p>
+    <p class="hint" id="source-state" role="status" aria-live="polite"></p>
     <p class="hint">
-      You can change the source here before you build it. A mistake in the JSON is marked as you
-      type, and each problem the build finds is marked where it is: choose its name in the list
-      to go there.
+      You can change the source here before you build it. A source you paste whole or open is laid
+      out for you. A mistake in the JSON is marked as you type, and each problem the build finds is
+      marked where it is: choose its name in the list to go there. If this page was opened from a
+      link that carried the source, its address follows your changes, so you can copy it to send
+      the source on.
     </p>
     <p>
       <label for="source-file" class="inline-label">Or open a file</label>

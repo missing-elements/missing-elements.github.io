@@ -316,6 +316,16 @@ export function jsonProblem(text: string): { message: string; at?: number } | nu
   }
 }
 
+/**
+ * The source laid out, two spaces and one field to a line, and out of the code fence a chat may have
+ * put it in: the same JSON, as it is shown when it arrives. `null` for text that is not JSON, and
+ * for none, which is left as it is.
+ */
+export function formatSource(text: string): string | null {
+  if (!text.trim() || jsonProblem(text)) return null
+  return JSON.stringify(JSON.parse(unfence(text).text), null, 2)
+}
+
 /** Where to take the person to in a source: an offset, or what a problem's path points at. */
 export type Target = { at: number } | { path: string }
 

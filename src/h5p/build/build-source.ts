@@ -63,6 +63,43 @@ function isJson(text: string): boolean {
   }
 }
 
+/** Whether a fragment has a `source=` at all, whatever it carries: a link of this page's kind. */
+export const linksSource = (hash: string): boolean => new URLSearchParams(hash.replace(/^#/, '')).has('source')
+
+/**
+ * The source as a link carries it, with its layout taken out: the JSON of an object, out of the code
+ * fence a chat may have put it in, on one line; `''` for no text. `null` for text a link cannot
+ * carry, which is not JSON or not an object. Two texts that are one source have one of these, so it
+ * tells a change of the source from a change of its layout.
+ */
+export function compactSource(text: string): string | null {
+  if (!text.trim()) return ''
+  const json = unfence(text).text
+  return isJson(json) ? JSON.stringify(JSON.parse(json)) : null
+}
+
+/**
+ * The fragment that carries a source, the other way from `sourceFromFragment`: `#source=` and the
+ * source's JSON, as UTF-8 or compressed with raw deflate, whichever is shorter, and the JSON as it
+ * is where the browser has no `CompressionStream`. Takes what `compactSource` gives; no source is a
+ * `#source=` with nothing after it, which `sourceFromFragment` reads as none.
+ */
+export async function fragmentFromSource(compact: string): Promise<string> {
+  let bytes: Uint8Array<ArrayBuffer> = new TextEncoder().encode(compact)
+  if (bytes.length) {
+    try {
+      const deflated = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+      const smaller = new Uint8Array(await new Response(deflated).arrayBuffer())
+      if (smaller.length < bytes.length) bytes = smaller
+    } catch {
+      // Nothing here compresses: the JSON as it is.
+    }
+  }
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return `#source=${btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`
+}
+
 /**
  * Reads the text as a source, or says where it is not JSON, as a problem the chat can fix.
  */
@@ -72,15 +109,6 @@ export function parseSource(text: string): { source: unknown } | { problem: Prob
   if (problem) return { problem: { path: 'source', message: `is not valid JSON ${problem.message}`, at: problem.at } }
   // A chat often hands the source inside a Markdown code fence; take what is inside it.
   return { source: JSON.parse(unfence(text).text) }
-}
-
-/**
- * The source laid out, one field to a line, and out of the code fence a chat may have put it in:
- * the same JSON, as the text of an editor that tidies it, or `null` where it is not JSON.
- */
-export function formatSource(text: string): string | null {
-  if (!text.trim() || jsonProblem(text)) return null
-  return JSON.stringify(JSON.parse(unfence(text).text), null, 2)
 }
 
 /** Whether a file's `path` is a web address, which the build fetches itself, rather than a file to choose. */

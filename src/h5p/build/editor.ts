@@ -6,11 +6,12 @@ import { type Diagnostic, linter, lintGutter, setDiagnostics } from '@codemirror
 import { EditorState } from '@codemirror/state'
 import { drawSelection, EditorView, highlightActiveLine, highlightActiveLineGutter, keymap, lineNumbers, placeholder } from '@codemirror/view'
 import { tags } from '@lezer/highlight'
-import { jsonProblem, place, type Target } from './json-scan'
+import { formatSource, jsonProblem, place, type Target } from './json-scan'
 
 /**
  * The editor of the build page's source, `/h5p/build/`, in place of its textarea: JSON in colours,
- * a mistake in it marked as it is typed, and the problems the build finds marked where they are.
+ * a mistake in it marked as it is typed, the problems the build finds marked where they are, and a
+ * source pasted whole laid out as it goes in.
  * It is CodeMirror 6, loaded apart from the page, so that where it cannot load the textarea stays
  * as it is and the page works. The textarea stays beside it, hidden, holding the text, so that the
  * rest of the page reads the source as it always did.
@@ -88,6 +89,23 @@ const typeOverSelection = EditorView.domEventHandlers({
   }
 })
 
+/**
+ * A source pasted whole, into an empty editor or over all of its text, goes in laid out, and out of
+ * the code fence a chat put it in, so that the page needs no button for it. A paste into the text,
+ * or of text that is not JSON, goes in as it is.
+ */
+const pasteLaidOut = EditorView.domEventHandlers({
+  paste(event, view) {
+    const { from, to } = view.state.selection.main
+    const text = event.clipboardData?.getData('text/plain')
+    const laidOut = text && from === 0 && to === view.state.doc.length ? formatSource(text) : null
+    if (laidOut === null) return false
+    event.preventDefault()
+    view.dispatch({ changes: { from, to, insert: laidOut }, selection: { anchor: 0 }, userEvent: 'input.paste', scrollIntoView: true })
+    return true
+  }
+})
+
 /** The mistake in the text, as the editor marks it while the text is typed. */
 const mistakes = linter((view): Diagnostic[] => {
   const text = view.state.doc.toString()
@@ -137,6 +155,7 @@ export function mountEditor(textarea: HTMLTextAreaElement, onChange: (text: stri
           autocorrect: 'off'
         }),
         typeOverSelection,
+        pasteLaidOut,
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) return
           const text = update.state.doc.toString()

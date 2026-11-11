@@ -2,9 +2,9 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { forTheChat, formatSource, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
+import { compactSource, forTheChat, fragmentFromSource, linksSource, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
 import type { SourceEditor } from './editor'
-import { jsonProblem, place, type Target } from './json-scan'
+import { formatSource, jsonProblem, place, type Target } from './json-scan'
 
 /**
  * The build page, `/h5p/build/`: a source an AI chat wrote with the h5p-author skill becomes a
@@ -14,11 +14,12 @@ import { jsonProblem, place, type Target } from './json-scan'
  * `@missing-elements/h5p-libraries/install`'s pack, which Vite emits into `/h5p/assets/` one part
  * per library, the build fetching only the parts a package needs. The package then plays in the
  * player on this page and downloads from it. Nothing leaves the browser: a link that carries a
- * source carries it in its fragment, `#source=`, which no server sees. A source with problems gets
- * them listed, and copied for the chat with the skill's type files, which this site serves beside
- * the page (`TYPES`). The source is edited in an editor (`editor.ts`), loaded apart, in place of the
- * textarea, which stays under it as the field this page reads. The page's markup is `index.njk`
- * beside this file, and its styles are the site's own, in `site.css`.
+ * source carries it in its fragment, `#source=`, which no server sees, and the page keeps that
+ * fragment in step with the source as the person changes it. A source with problems gets them
+ * listed, and copied for the chat with the skill's type files, which this site serves beside the
+ * page (`TYPES`). The source is edited in an editor (`editor.ts`), loaded apart, in place of the
+ * textarea, which stays under it as the field this page reads, and it arrives laid out. The page's
+ * markup is `index.njk` beside this file, and its styles are the site's own, in `site.css`.
  */
 
 type Opened = Awaited<ReturnType<typeof openPack>>
@@ -32,7 +33,6 @@ const $ = <T extends HTMLElement>(id: string): T => {
 const sourceField = $<HTMLTextAreaElement>('source')
 const sourceLabel = $('source-label')
 const sourceState = $('source-state')
-const formatButton = $<HTMLButtonElement>('format')
 const sourceFile = $<HTMLInputElement>('source-file')
 const filesStep = $('files-step')
 const fileList = $<HTMLUListElement>('file-list')
@@ -76,6 +76,12 @@ let shows = 0
 let packageUrl: string | null = null
 /** Counts builds, so that one overtaken by a newer one shows nothing. */
 let builds = 0
+/** Whether the address carries a source, which it then keeps in step with the source as it changes. */
+let linked = false
+/** The source the address carries, as `compactSource` has it: `''` for none, or none that can be read. */
+let carried = ''
+/** Counts the writes of the address, so that one overtaken by a newer change writes nothing. */
+let linkWrites = 0
 
 function setStatus(text: string, state: 'idle' | 'building' | 'ready' | 'error'): void {
   status.textContent = text
@@ -291,7 +297,36 @@ function checkSource(): void {
   sourceState.replaceChildren(...nodes)
 }
 
+/**
+ * Where the address carries a source, it carries the one that is here: written once the source is
+ * JSON and is another source than the address has, not for a change of layout, and not while the
+ * text is not JSON, when the address keeps the last that was. It is replaced, not added to the
+ * history, and the page does not read it again: only a visit to another address does.
+ */
+async function followInAddress(): Promise<void> {
+  if (!linked) return
+  const write = ++linkWrites
+  const now = compactSource(sourceField.value)
+  if (now === null || now === carried) return
+  const fragment = await fragmentFromSource(now)
+  if (write !== linkWrites) return
+  try {
+    const url = new URL(location.href)
+    url.hash = fragment
+    history.replaceState(history.state, '', url)
+    carried = now
+  } catch {
+    // Safari allows a hundred of these in thirty seconds: the next change to the source writes it.
+  }
+}
+
 let typing: ReturnType<typeof setTimeout> | undefined
+let following: ReturnType<typeof setTimeout> | undefined
+/** The address follows the source once its changes pause, which spares the browser a write for each key. */
+function followLater(): void {
+  clearTimeout(following)
+  following = setTimeout(() => void followInAddress(), 600)
+}
 /** The source changed, by typing or by the editor: what it says is looked at once the typing pauses. */
 function sourceChanged(): void {
   clearTimeout(typing)
@@ -299,35 +334,35 @@ function sourceChanged(): void {
     checkSource()
     updateFiles()
   }, 300)
+  followLater()
 }
 sourceField.addEventListener('input', sourceChanged)
 
-/** The source replaced, as by a file or a link: in the editor if it is there, and always in the textarea. */
+/** The source replaced, as by a file or a link: laid out, in the editor if it is there, and always in the textarea. */
 function setSource(text: string): void {
-  sourceField.value = text
-  editor?.set(text)
+  const arrived = formatSource(text) ?? text
+  sourceField.value = arrived
+  editor?.set(arrived)
   checkSource()
   updateFiles()
+  followLater()
 }
+
+// Where the editor has not loaded, a source pasted whole is laid out here, as the editor does it.
+sourceField.addEventListener('paste', (event) => {
+  const text = event.clipboardData?.getData('text/plain')
+  const laidOut = text && sourceField.selectionStart === 0 && sourceField.selectionEnd === sourceField.value.length ? formatSource(text) : null
+  if (laidOut === null) return
+  event.preventDefault()
+  sourceField.value = laidOut
+  sourceField.setSelectionRange(0, 0)
+  sourceChanged()
+})
 
 sourceFile.addEventListener('change', async () => {
   const file = sourceFile.files?.[0]
   if (!file) return
   setSource(await file.text())
-})
-
-formatButton.addEventListener('click', () => {
-  const formatted = formatSource(sourceField.value)
-  if (formatted === null) {
-    // Nothing to lay out, or not JSON yet: the line under the source says where, and the source shows it.
-    checkSource()
-    const problem = jsonProblem(sourceField.value)
-    if (problem?.at !== undefined) goTo({ at: problem.at })
-    else if (!sourceField.value.trim()) sourceState.textContent = 'There is nothing to lay out yet.'
-    return
-  }
-  setSource(formatted)
-  sourceState.textContent = 'Laid out.'
 })
 
 // The label is for the textarea, which the editor hides: a click on it goes to the editor.
@@ -354,6 +389,9 @@ copyProblems.addEventListener('click', async () => {
 
 /** A link's source is built at once, unless it names files, which only the person can choose. */
 async function fromLink(): Promise<void> {
+  // A link of this kind is kept in step with the source from here on, whether or not it can be read.
+  linked = linksSource(location.hash)
+  carried = ''
   let text: string | null
   try {
     text = await sourceFromFragment(location.hash)
@@ -362,6 +400,7 @@ async function fromLink(): Promise<void> {
     return
   }
   if (text === null) return
+  carried = compactSource(text) ?? ''
   setSource(text)
   const paths = updateFiles()
   if (paths.length) setStatus('The source names files: choose them, then Build.', 'idle')
