@@ -78,6 +78,14 @@ async function expectPlays(page: Page): Promise<void> {
   await expect(page.frameLocator('h5p-player iframe').first().locator('.h5p-content, .h5p-container').first()).toBeVisible()
 }
 
+/** What a step's marker shows, as site.css draws it from what the step says of itself: its number, a check or a warning. */
+const marker = (page: Page, heading: string) => page.locator(`.step[aria-labelledby="${heading}"]`).evaluate((step) => {
+  const style = getComputedStyle(step)
+  const icon = style.getPropertyValue('--step-icon')
+  if (!icon) return 'number'
+  return icon === style.getPropertyValue('--icon-check') ? 'check' : icon === style.getPropertyValue('--icon-alert') ? 'warning' : icon
+})
+
 test('a pasted source builds, plays and downloads', async ({ page, baseURL }) => {
   const { problems, elsewhere } = watch(page, baseURL)
   await page.goto('/h5p/build/')
@@ -343,14 +351,39 @@ test('a source that names a file waits for it, then builds with it', async ({ pa
   await expect(page.locator('#build-number')).toHaveText('3')
   await expect(page.locator('#file-list li')).toHaveAttribute('data-chosen', 'false')
   await expect(page.locator('#status')).toHaveText('The source names files: choose them, then Build.')
+  expect(await marker(page, 'files-heading')).toBe('number')
 
   await page.locator('#files').setInputFiles({ name: 'delta.png', mimeType: 'image/png', buffer: PNG })
   await expect(page.locator('#file-list li')).toHaveAttribute('data-chosen', 'true')
+  // Every file it names is chosen: the step is done.
+  expect(await marker(page, 'files-heading')).toBe('check')
   await page.locator('#build').click()
   await expectPlays(page)
   await expect(page.locator('#status')).toContainText('1 media file')
   // The picture reaches the content and decodes: 2×2, as chosen.
   await expect.poll(() => page.frameLocator('h5p-player iframe').first().locator('img').first().evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(2)
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('each step’s marker says how the step stands: its number, a check once it is done, a warning where it went wrong', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/')
+  expect(await marker(page, 'source-heading')).toBe('number')
+  expect(await marker(page, 'build-heading')).toBe('number')
+  // The source is done once it is JSON, and wrong while it is not.
+  await fillSource(page, '{ "type": ')
+  await expect.poll(() => marker(page, 'source-heading')).toBe('warning')
+  const { title: _title, ...untitled } = RIVERS
+  await fillSource(page, JSON.stringify(untitled))
+  await expect.poll(() => marker(page, 'source-heading')).toBe('check')
+  // A build with problems went wrong; one that plays is done, and the play is the step at hand.
+  await page.locator('#build').click()
+  await expect.poll(() => marker(page, 'build-heading')).toBe('warning')
+  await fillSource(page, JSON.stringify(RIVERS))
+  await page.locator('#build').click()
+  await expectPlays(page)
+  expect(await marker(page, 'build-heading')).toBe('check')
+  expect(await marker(page, 'play-heading')).toBe('number')
   expect(problems, problems.join('\n')).toEqual([])
 })
 

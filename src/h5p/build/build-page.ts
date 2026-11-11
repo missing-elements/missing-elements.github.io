@@ -276,10 +276,14 @@ player.addEventListener('error', (event) => {
   setStatus(`It was built, but does not play: ${message}`, 'error')
 })
 
-/** Says where the source stops being JSON, if it does, as it is typed, and what it names. */
+/**
+ * Says where the source stops being JSON, if it does, as it is typed. Its state is `error` then,
+ * `ok` for text that is JSON and none for no text, which is what the step's marker is drawn from.
+ */
 function checkSource(): void {
-  const problem = jsonProblem(sourceField.value)
-  sourceState.dataset.state = problem ? 'error' : ''
+  const text = sourceField.value
+  const problem = jsonProblem(text)
+  sourceState.dataset.state = problem ? 'error' : text.trim() ? 'ok' : ''
   if (!problem) {
     sourceState.replaceChildren()
     return

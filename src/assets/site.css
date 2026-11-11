@@ -550,23 +550,121 @@ tbody th a:hover code { text-decoration: underline; }
 .skill-files a { overflow-wrap: anywhere; }
 
 /* H5P build page, /h5p/build/ */
-.build { --ok: var(--live); --bad: var(--t-tag); }
+.build {
+  --ok: var(--live);
+  --bad: var(--t-tag);
+  /* Masked, like the preview pane's icons, so they take a color like text does. */
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  --icon-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 5v8.5M12 18.5v.01'/%3E%3C/svg%3E");
+}
 .build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
 /* A longer heading than the docs' package names, so it gives way on a phone. */
 .build .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
-.build .step h2 { display: flex; align-items: center; gap: 0.6rem; margin: 2.5rem 0 1rem; }
-.build h3 { margin: 1.5rem 0 0.25rem; font-size: 1rem; }
-.step-number {
-  display: inline-grid;
-  place-items: center;
-  flex: none;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--bg);
-  font-size: 0.9375rem;
+
+/* The steps are a timeline: a marker for each, on a rail that runs on to the next. A step the page
+   hides, as the files of a source that names none, is not on it, and the rail ends at the last shown. */
+.build .step {
+  --marker: 2rem;
+  --indent: calc(var(--marker) + 1rem);
+  /* How the step stands, which the rules under these set from what the page says of it. */
+  --step-color: var(--accent);
+  --step-fill: var(--bg);
+  --step-rail: var(--border);
+  --step-marked: 0;
+  position: relative;
+  padding: 0 0 1.5rem var(--indent);
 }
+.build .docs-header + .step { margin-top: 2.5rem; }
+/* The source is JSON, every file it names is chosen, the build is ready: the step is done. */
+.build .step:is(
+  :has(#source-state[data-state="ok"]),
+  :has(.file-list > li):not(:has(.file-list > [data-chosen="false"])),
+  :has(.status[data-state="ready"])
+) {
+  --step-fill: var(--accent);
+  --step-rail: var(--accent);
+  --step-marked: 1;
+  --step-icon: var(--icon-check);
+}
+/* The text is not JSON, or nothing was built. */
+.build .step:has(#source-state[data-state="error"], .status[data-state="error"]) {
+  --step-color: var(--bad);
+  --step-fill: var(--bad);
+  --step-marked: 1;
+  --step-icon: var(--icon-alert);
+}
+
+/* The rail, from under a step's marker to the next one's. It is a border, which forced colors keep. */
+.build .step::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--marker) + 0.5rem);
+  bottom: 0.5rem;
+  left: calc(var(--marker) / 2 - 1px);
+  border-left: 2px solid var(--step-rail);
+  transform-origin: top;
+  transition: border-color 0.2s, opacity 0.3s, scale 0.3s ease-out;
+}
+/* None from the last step shown: it is drawn down to a step as that one joins. */
+.build .step:not(:has(~ .step:not([hidden])))::before { opacity: 0; }
+/* A step that joins the others, the files or the play, comes in. */
+#files-step, #play-step { transition: opacity 0.3s ease-out, translate 0.3s ease-out; }
+@starting-style {
+  #files-step, #play-step { opacity: 0; }
+}
+
+.build .step h2 {
+  display: flex;
+  align-items: center;
+  min-height: var(--marker);
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  font-size: 1.25rem;
+}
+.build h3 { margin: 1.5rem 0 0.5rem; font-size: 1rem; }
+.step-marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: var(--marker);
+  height: var(--marker);
+  border: 2px solid var(--step-color);
+  border-radius: 50%;
+  background: var(--step-fill);
+  color: var(--step-color);
+  font-size: 0.875rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+/* A check or a warning takes the number's place. The number stays in the heading's name. */
+.step-number { opacity: calc(1 - var(--step-marked)); transition: opacity 0.2s; }
+.step-marker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  mask: var(--step-icon, none) center / 1.125rem no-repeat;
+  opacity: var(--step-marked);
+  transition: opacity 0.2s;
+}
+/* While it builds, and until what was built plays, a ring around the marker, which turns. */
+.step-marker::before {
+  content: "";
+  position: absolute;
+  inset: -0.3125rem;
+  border: 2px solid var(--tint);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.build .step:has(.status[data-state="building"]) .step-marker::before { opacity: 1; }
+@keyframes turn { to { rotate: 1turn; } }
+
 .build label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
 .build label.inline-label { display: inline; margin-right: 0.5rem; }
 .build textarea {
@@ -584,7 +682,7 @@ tbody th a:hover code { text-decoration: underline; }
 .build textarea:hover { border-color: var(--text); }
 /* The source's editor hides its textarea, which stays under it as the field the page reads. */
 .build textarea[hidden] { display: none; }
-.build .field { margin: 1rem 0 0.5rem; }
+.build .field { margin: 0 0 0.5rem; }
 .source-editor { display: block; }
 /* A line of its own, kept when it is empty, so that what is under it does not move as a mistake comes and goes:
    two lines where the column is narrow enough for a message to wrap. */
@@ -608,7 +706,10 @@ tbody th a:hover code { text-decoration: underline; }
 }
 .build input[type="file"]::file-selector-button:hover { background: var(--tint); }
 .build a.button { text-decoration: none; }
-.button-large { padding: 0.45rem 1rem; font-size: 0.9375rem; }
+.button-large { padding: 0.55rem 1.1rem; font-size: 0.9375rem; }
+/* The page's two main actions, Build and Download, filled where the site's other buttons are outlined. */
+.button-solid, .button-solid:hover { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 600; }
+.button-solid:hover:not(:disabled) { border-color: transparent; background: color-mix(in oklab, var(--accent) 85%, var(--text)); }
 .build .button:disabled { opacity: 0.6; cursor: progress; }
 .build .status {
   padding: 0.6rem 0.85rem;
@@ -620,11 +721,70 @@ tbody th a:hover code { text-decoration: underline; }
 .build .status[data-state="building"] { border-left-color: var(--focus); background: var(--tint); }
 .build .status[data-state="ready"] { border-left-color: var(--ok); }
 .build .status[data-state="error"] { border-left-color: var(--bad); }
-.build .messages, .build .file-list { padding-left: 1.2rem; }
-.build .problems li::marker { color: var(--bad); }
-.build .file-list li[data-chosen="true"]::marker { color: var(--ok); }
+/* The problems, the notes and the files, a row each. */
+.build .messages, .build .file-list {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--raised);
+  list-style: none;
+}
+.build .messages li, .build .file-list li { margin: 0; padding: 0.55rem 0.85rem; overflow-wrap: anywhere; }
+.build .messages li + li, .build .file-list li + li { border-top: 1px solid var(--border); }
+/* A file's name, then whether it is chosen: at the row's end where both fit on a line, under the name where they do not. */
+.build .file-list li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 0.6rem;
+  padding-left: 2.45rem;
+  white-space: nowrap;
+}
+.build .file-list code { white-space: normal; }
+/* Beside the name's first line: a ring to fill, then a check. */
+.build .file-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  width: 1rem;
+  height: 1rem;
+  border: 2px dotted var(--control);
+  border-radius: 50%;
+}
+.build .file-list li[data-chosen="true"]::before { border: 0; border-radius: 0; background: var(--accent); mask: var(--icon-check) center / contain no-repeat; }
 .build .file-list li[data-chosen="false"] { color: var(--muted); }
 .build .hint { color: var(--muted); font-size: 0.875rem; }
 /* H5P content draws on white, whatever the page's theme. */
 .player-box { margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #ffffff; }
 .player-box h5p-player { display: block; }
+
+@media (max-width: 480px) {
+  .build .step { --marker: 1.75rem; --indent: calc(var(--marker) + 0.75rem); }
+  .step-marker { font-size: 0.8125rem; }
+  /* The last step has no rail beside it, so on a phone what plays takes the column's whole width. */
+  .player-box { margin-left: calc(-1 * var(--indent)); }
+}
+
+/* A finger's target. */
+@media (pointer: coarse) {
+  .button-large { min-height: 2.75rem; }
+  .build input[type="file"]::file-selector-button { padding-block: 0.6rem; }
+}
+
+/* What moves, only where motion is not asked to be reduced: the rail drawn down, a step coming up, the ring turning. */
+@media (prefers-reduced-motion: no-preference) {
+  .build .step:not(:has(~ .step:not([hidden])))::before { scale: 1 0; }
+  @starting-style {
+    #files-step, #play-step { translate: 0 0.5rem; }
+  }
+  .build .step:has(.status[data-state="building"]) .step-marker::before { animation: turn 0.9s linear infinite; }
+}
+
+@media (forced-colors: active) {
+  /* Masked icons paint with their background, which forced colors would turn into Canvas. */
+  .step-marker::after, .build .file-list li[data-chosen="true"]::before { forced-color-adjust: none; background: CanvasText; }
+  .step-marker::before { border-color: GrayText; border-top-color: Highlight; }
+}
