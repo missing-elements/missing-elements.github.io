@@ -586,9 +586,10 @@ tbody th a:hover code { text-decoration: underline; }
 .build textarea[hidden] { display: none; }
 .build .field { margin: 1rem 0 0.5rem; }
 .source-editor { display: block; }
-.build .source-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; margin: 0.6rem 0 0.4rem; }
-.build .source-tools .button { font-size: 0.875rem; padding: 0.25rem 0.8rem; }
-.build #source-state { margin: 0; }
+/* A line of its own, kept when it is empty, so that what is under it does not move as a mistake comes and goes:
+   two lines where the column is narrow enough for a message to wrap. */
+.build #source-state { margin: 0.5rem 0 0.25rem; min-height: 1.5em; }
+@media (max-width: 700px) { .build #source-state { min-height: 3em; } }
 .build #source-state[data-state="error"] { color: var(--bad); }
 .build .link-button, .build .problems .jump {
   padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer;

@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises'
-import { deflateRawSync } from 'node:zlib'
+import { deflateRawSync, inflateRawSync } from 'node:zlib'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 /*
@@ -62,6 +62,12 @@ async function fillSource(page: Page, text: string): Promise<void> {
   await page.keyboard.press('ControlOrMeta+a')
   await page.keyboard.insertText(text)
   await expect(page.locator('#source')).toHaveValue(text)
+}
+
+/** Pastes text through the clipboard into what has the focus, as a person does: the browser's own paste. */
+async function paste(page: Page, text: string): Promise<void> {
+  await page.evaluate((value) => navigator.clipboard.writeText(value), text)
+  await page.keyboard.press('ControlOrMeta+v')
 }
 
 const playerState = (page: Page) => page.locator('h5p-player').evaluate((element: HTMLElement & { state?: string }) => element.state)
@@ -282,7 +288,8 @@ test('a link carrying the source builds it at once, deflated or not', async ({ p
   const deflated = deflateRawSync(Buffer.from(JSON.stringify(RIVERS))).toString('base64url')
   await page.goto(`/h5p/build/#source=${deflated}`)
   await expectPlays(page)
-  await expect(page.locator('#source')).toHaveValue(JSON.stringify(RIVERS))
+  // It arrives laid out, a field to a line, where the link carried it on one.
+  await expect(page.locator('#source')).toHaveValue(JSON.stringify(RIVERS, null, 2))
 
   // Plain base64url, with umlauts and ß: the bytes are UTF-8, and the file name keeps the letters.
   const plain = Buffer.from(JSON.stringify({ ...RIVERS, language: 'de', title: 'Größte Flüsse' })).toString('base64url')
@@ -368,19 +375,154 @@ test('a mistake in the JSON is marked as it is typed, with its line and column, 
   expect(problems, problems.join('\n')).toEqual([])
 })
 
-test('Format lays the source out, and takes it out of the code fence a chat put it in', async ({ page, baseURL }) => {
+test('a source pasted whole arrives laid out, out of its code fence; any other paste goes in as it is', async ({ page, context, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.goto('/h5p/build/')
+  const field = page.locator('#source')
+  const lakes = { ...RIVERS, title: 'Lakes' }
+  await page.locator('.source-editor .cm-content').click()
+  // Into the empty editor, on one line in a code fence, as a chat may hand it over.
+  await paste(page, '```json\n' + JSON.stringify(RIVERS) + '\n```')
+  await expect(field).toHaveValue(JSON.stringify(RIVERS, null, 2))
+  await expect(page.locator('.source-editor .cm-line').first()).toHaveText('{')
+  // Over all of the text, too.
+  await page.keyboard.press('ControlOrMeta+a')
+  await paste(page, JSON.stringify(lakes))
+  await expect(field).toHaveValue(JSON.stringify(lakes, null, 2))
+  // Into the text it is the person's own to lay out: it goes in as it is.
+  await page.keyboard.press('ControlOrMeta+End')
+  await paste(page, '{"a":1}')
+  await expect(field).toHaveValue(JSON.stringify(lakes, null, 2) + '{"a":1}')
+  // Text that is not JSON is left as it is, and the line under the source says where.
+  await page.keyboard.press('ControlOrMeta+a')
+  await paste(page, '{ "type": ')
+  await expect(field).toHaveValue('{ "type": ')
+  await expect(page.locator('#source-state')).toContainText('The text ends before the JSON is complete')
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('a source opened from a file arrives laid out, and there is no button to lay it out', async ({ page, baseURL }) => {
   const { problems } = watch(page, baseURL)
   await page.goto('/h5p/build/')
-  await fillSource(page, '```json\n' + JSON.stringify(RIVERS) + '\n```')
-  await page.locator('#format').click()
+  await expect(page.getByRole('button', { name: 'Format' })).toHaveCount(0)
+  await page.locator('#source-file').setInputFiles({ name: 'rivers.json', mimeType: 'application/json', buffer: Buffer.from('```json\n' + JSON.stringify(RIVERS) + '\n```') })
   await expect(page.locator('#source')).toHaveValue(JSON.stringify(RIVERS, null, 2))
-  await expect(page.locator('#source-state')).toHaveText('Laid out.')
   await expect(page.locator('.source-editor .cm-line').first()).toHaveText('{')
-  // Text that is not JSON is left as it is, and the line under the source says where.
-  await fillSource(page, '{ "type": ')
-  await page.locator('#format').click()
+  // A file that is not JSON is as it is, with the mistake marked.
+  await page.locator('#source-file').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('{ "type": ') })
   await expect(page.locator('#source')).toHaveValue('{ "type": ')
   await expect(page.locator('#source-state')).toContainText('The text ends before the JSON is complete')
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+/** The source an address carries, as the text of its bytes, plain or deflated: `''` for an empty one, `null` for none or for bytes that are neither. */
+function carriedBy(page: Page): string | null {
+  const value = new URLSearchParams(new URL(page.url()).hash.slice(1)).get('source')
+  if (value === null) return null
+  const bytes = Buffer.from(value, 'base64url')
+  if (!bytes.length) return ''
+  const text = bytes.toString('utf8')
+  try {
+    JSON.parse(text)
+    return text
+  } catch {
+    try {
+      return inflateRawSync(bytes).toString('utf8')
+    } catch {
+      return null
+    }
+  }
+}
+
+/** Counts the page's writes to its address, from before the page's own scripts run. */
+const countAddressWrites = (page: Page) => page.addInitScript(() => {
+  const counter = window as unknown as { addressWrites: number }
+  counter.addressWrites = 0
+  const replaceState = history.replaceState.bind(history)
+  history.replaceState = (...args: Parameters<History['replaceState']>) => {
+    counter.addressWrites++
+    return replaceState(...args)
+  }
+})
+const addressWrites = (page: Page) => page.evaluate(() => (window as unknown as { addressWrites: number }).addressWrites)
+
+test('a link that carried the source follows it as it is changed', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await countAddressWrites(page)
+  await page.goto(`/h5p/build/#source=${deflateRawSync(Buffer.from(JSON.stringify(RIVERS))).toString('base64url')}`)
+  await expectPlays(page)
+  // Arriving writes nothing: the address already carries the source that is shown.
+  await page.waitForTimeout(900)
+  expect(await addressWrites(page)).toBe(0)
+  const entries = await page.evaluate(() => history.length)
+
+  // Another source: the address carries it, on one line, and the history has no new entry.
+  const lakes = { ...RIVERS, title: 'Lakes' }
+  await fillSource(page, JSON.stringify(lakes, null, 2))
+  await expect.poll(() => carriedBy(page)).toBe(JSON.stringify(lakes))
+  expect(await addressWrites(page)).toBe(1)
+  expect(await page.evaluate(() => history.length), 'replaced, not added').toBe(entries)
+
+  // A change of layout is not a change of the source, and text that is not JSON leaves the address as it was.
+  await page.keyboard.press('ControlOrMeta+End')
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(900)
+  expect(await addressWrites(page)).toBe(1)
+  await page.keyboard.type('x')
+  await expect(page.locator('#source-state')).toContainText('Not valid JSON')
+  await page.waitForTimeout(900)
+  expect(await addressWrites(page)).toBe(1)
+  expect(carriedBy(page)).toBe(JSON.stringify(lakes))
+  await page.keyboard.press('Backspace')
+
+  // A reload builds what the address carries now.
+  await page.reload()
+  await expectPlays(page)
+  await expect(page.locator('#source')).toHaveValue(JSON.stringify(lakes, null, 2))
+  await expect(page.locator('#status')).toContainText('Built “Lakes”')
+
+  // Emptied, it carries none, and the address is still the link of a page that follows: the next source is written.
+  await page.locator('.source-editor .cm-content').click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.press('Delete')
+  await expect.poll(() => carriedBy(page)).toBe('')
+  const seas = { ...RIVERS, title: 'Seas' }
+  await fillSource(page, JSON.stringify(seas))
+  await expect.poll(() => carriedBy(page)).toBe(JSON.stringify(seas))
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('a page opened with no source in its address leaves the address alone', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await countAddressWrites(page)
+  await page.goto('/h5p/build/')
+  await fillSource(page, JSON.stringify(RIVERS))
+  await page.waitForTimeout(900)
+  expect(await addressWrites(page)).toBe(0)
+  expect(new URL(page.url()).hash).toBe('')
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('a link that cannot be read gives way to the source the person writes', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.goto('/h5p/build/#source=not-a-source')
+  await expect(page.locator('#status')).toContainText('neither JSON nor deflated JSON')
+  await fillSource(page, JSON.stringify(RIVERS))
+  await expect.poll(() => carriedBy(page)).toBe(JSON.stringify(RIVERS))
+  expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('where the browser cannot compress, the address carries the JSON as it is', async ({ page, baseURL }) => {
+  const { problems } = watch(page, baseURL)
+  await page.addInitScript(() => { Reflect.deleteProperty(window, 'CompressionStream') })
+  await page.goto(`/h5p/build/#source=${Buffer.from(JSON.stringify(RIVERS)).toString('base64url')}`)
+  await expectPlays(page)
+  const lakes = { ...RIVERS, title: 'Lakes' }
+  await fillSource(page, JSON.stringify(lakes, null, 2))
+  await expect.poll(() => carriedBy(page)).toBe(JSON.stringify(lakes))
+  const value = new URLSearchParams(new URL(page.url()).hash.slice(1)).get('source')!
+  expect(Buffer.from(value, 'base64url').toString('utf8')).toBe(JSON.stringify(lakes))
   expect(problems, problems.join('\n')).toEqual([])
 })
 
@@ -420,7 +562,7 @@ test('the editor has a name, its label goes to it, and Tab leaves it', async ({ 
   await page.getByText('The source, as JSON', { exact: true }).click()
   await expect(editor).toBeFocused()
   await page.keyboard.press('Tab')
-  await expect(page.locator('#format')).toBeFocused()
+  await expect(page.locator('#source-file')).toBeFocused()
 })
 
 test('text typed over a selection is the editor’s own, so a bracket wraps it and the policy is not asked', async ({ page, baseURL }) => {
@@ -437,6 +579,27 @@ test('text typed over a selection is the editor’s own, so a bracket wraps it a
   await page.keyboard.press('ControlOrMeta+z')
   await expect(page.locator('#source')).toHaveValue(`[${JSON.stringify(RIVERS, null, 2)}]`)
   expect(problems, problems.join('\n')).toEqual([])
+})
+
+test('where the editor cannot load, the textarea lays a whole paste out too, and the address follows it', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await page.route('**/h5p/assets/editor-*.js', (route) => route.abort())
+  await page.goto('/h5p/build/')
+  const field = page.locator('#source')
+  await field.click()
+  await paste(page, '```json\n' + JSON.stringify(RIVERS) + '\n```')
+  await expect(field).toHaveValue(JSON.stringify(RIVERS, null, 2))
+  // Into the text, as it is.
+  await field.evaluate((area: HTMLTextAreaElement) => area.setSelectionRange(area.value.length, area.value.length))
+  await paste(page, '{"a":1}')
+  await expect(field).toHaveValue(JSON.stringify(RIVERS, null, 2) + '{"a":1}')
+  // A link that carried the source follows the textarea as it does the editor.
+  await page.goto(`/h5p/build/#source=${Buffer.from(JSON.stringify(RIVERS)).toString('base64url')}`)
+  await expectPlays(page)
+  await expect(field).toHaveValue(JSON.stringify(RIVERS, null, 2))
+  const lakes = { ...RIVERS, title: 'Lakes' }
+  await field.fill(JSON.stringify(lakes))
+  await expect.poll(() => carriedBy(page)).toBe(JSON.stringify(lakes))
 })
 
 test('where the editor cannot load, the source is the textarea, and the page works', async ({ page, baseURL }) => {
