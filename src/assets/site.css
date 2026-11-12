@@ -343,8 +343,6 @@ tbody th a:hover code { text-decoration: underline; }
 .brand { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; text-decoration: none; }
 .brand img { width: 1.5rem; height: 1.5rem; }
 .brand:hover { text-decoration: underline; }
-.toc-home { margin-bottom: 1.25rem; }
-.docs-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
 .toc ol, .toc-inline ol { margin: 0; padding: 0; list-style: none; }
 .toc li + li, .toc-inline li + li { margin-top: 0; }
 .toc ol a, .toc-inline a {
@@ -368,7 +366,6 @@ tbody th a:hover code { text-decoration: underline; }
 
 .docs-header { margin-bottom: 2rem; }
 .docs-header h1 { margin: 0; font-size: 2.25rem; letter-spacing: -0.01em; }
-.docs-header-row { display: flex; align-items: center; gap: 1rem; justify-content: space-between; }
 .lead { margin: 0.5rem 0 0.75rem; font-size: 1.125rem; color: var(--muted); }
 .meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0 0 1rem; padding: 0; list-style: none; font-size: 0.875rem; color: var(--muted); }
 .meta li + li { margin-top: 0; }
@@ -377,7 +374,6 @@ tbody th a:hover code { text-decoration: underline; }
 .toc-inline summary { padding: 0.5rem 0.75rem; cursor: pointer; font-weight: 600; }
 .toc-inline ol { padding: 0 0.5rem 0.5rem; }
 
-.docs-footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; color: var(--muted); }
 
 /* Theme switch: the knob sits on the sun when light and on the moon when dark. */
 .theme-switch {
@@ -485,7 +481,20 @@ tbody th a:hover code { text-decoration: underline; }
 @media (min-width: 1280px) {
   .docs { grid-template-columns: 15rem minmax(0, 1fr) var(--preview-width); }
   .toc { display: block; }
-  .toc-inline, .docs-brand { display: none; }
+  .toc-inline { display: none; }
+}
+
+/* The docs' three columns take the window's width, so its top bar and footer do too, their
+   contents at the gutter, and at the contents' edge where they are beside it. Where the panes stay
+   in view beside the text, the bar stays above them, and they fill the window under it. */
+.docs-page .wrap { inline-size: auto; margin-inline: var(--gutter); }
+@media (min-width: 1000px) {
+  :root:has(.docs-page) { scroll-padding-top: var(--topbar-size); }
+  .docs-page .topbar { position: sticky; top: 0; z-index: 30; background: var(--bg); }
+  .docs-page :is(.toc, .preview) { top: var(--topbar-size); height: calc(100dvh - var(--topbar-size)); }
+}
+@media (min-width: 1280px) {
+  .docs-page .wrap { margin-inline: 1.5rem; }
 }
 
 /* Below 1000px the preview becomes a full-screen panel opened from a floating button. */
@@ -537,8 +546,11 @@ tbody th a:hover code { text-decoration: underline; }
   .flash { animation: none; }
 }
 
+/* The pages of one column, the org home, the skill page and the guide: in the build page's
+   container, under its top bar. */
+:is(.home, .skill, .guide) { padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) clamp(3.5rem, 2rem + 5vw, 6rem); }
+
 /* Org home */
-.home { max-width: var(--page-width); margin: 0 auto; padding: 4rem clamp(1rem, 4vw, 3rem); }
 .home h1 { margin: 0 0 0.5rem; font-size: 2rem; }
 .brand-title { display: flex; align-items: center; gap: 0.75rem; }
 .brand-title img { width: 3rem; height: 3rem; }
@@ -563,24 +575,45 @@ tbody th a:hover code { text-decoration: underline; }
 .cards p { margin: 0 0 0.5rem; color: var(--muted); }
 .cards .links { display: flex; gap: 1rem; margin-top: auto; font-size: 0.875rem; }
 /* The home page's footer: where else the elements are, in columns of links. */
-.site-footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.875rem; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem 4rem; }
-.footer-links h2 { margin: 0 0 0.5rem; padding: 0; border: 0; font-size: 0.875rem; }
+.footer-links h2 { margin: 0 0 0.5rem; padding: 0; border: 0; color: var(--text); font-size: 0.875rem; }
 .footer-links ul { margin: 0; padding: 0; list-style: none; }
 .footer-links li + li { margin-top: 0.35rem; }
 .footer-links a { color: var(--muted); text-decoration: none; }
 .footer-links a:hover { color: var(--text); text-decoration: underline; }
 
 /* The skill page: one wide column, its prose at --measure, and its sections as steps. */
-.skill { max-width: var(--page-width); }
-.build-brand { margin-bottom: 1.25rem; font-size: 0.9375rem; }
+.skill > * { max-inline-size: var(--page-width); }
 /* A longer heading than the docs' package names, so it gives way on a phone. */
-.skill .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
+:is(.skill, .guide) .docs-header h1 { font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem); }
 /* Prose keeps a line a reader can follow; the source, the lists and what plays take the whole width. */
-:is(.build, .skill) p:not(.status, .sample-note) { max-width: var(--measure); }
+:is(.build, .skill, .guide) p:not(.status, .sample-note) { max-width: var(--measure); }
 
 /* The skill page's note for a person who opened it, no wider than its prose and the note's padding. */
 .for-person { max-width: calc(var(--measure) + 2rem); }
+
+/* The guide, /h5p/create-with-ai/: an article on the container's left edge, as the build page's
+   steps are, its steps on the skill page's timeline, its prompts in code blocks to copy, and the
+   types it lists by name and use. */
+.guide > * { max-inline-size: 48rem; }
+.guide a.button { text-decoration: none; }
+.guide h3 + .code { margin-top: 0.75rem; }
+/* A row each, the name beside its use where the list is wide enough for both, over it where not. */
+.type-list {
+  margin: 0 0 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--raised);
+  container-type: inline-size;
+}
+.type-list > div { padding: 0.6rem 0.85rem; }
+.type-list > div + div { border-top: 1px solid var(--border); }
+.type-list dt { font-weight: 600; }
+.type-list dd { margin: 0; color: var(--muted); }
+.type-media { color: var(--text); }
+@container (width >= 30rem) {
+  .type-list > div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 1rem; }
+}
 
 /* The build page, /h5p/build/: a landing page for a visitor who came with no source, and the build
    at once for one a chat sent with the source in the link. What is said to one alone is not shown
@@ -592,6 +625,8 @@ tbody th a:hover code { text-decoration: underline; }
   --wide: 85rem;
   --gutter: clamp(1rem, 4vw, 3rem);
   --band-space: clamp(3.5rem, 2rem + 6vw, 7rem);
+  /* The top bar's height, a row and its rule, for what sits under it where it stays (the docs). */
+  --topbar-size: calc(4rem + 1px);
 }
 .wrap { inline-size: min(100% - 2 * var(--gutter), var(--wide)); margin-inline: auto; }
 .band { padding-block: var(--band-space); }

@@ -3,8 +3,10 @@ layout: base.njk
 title: Missing Elements
 description: Standalone, self-hostable web components for viewing documents and content in the browser.
 ---
+{% include "topbar.njk" %}
+
 {#- The cards and links are lists drawn without bullets, and Safari then reads one as a list only if it is told. -#}
-<main class="home" id="main">
+<main class="home wrap" id="main">
   <h1 class="brand-title"><img src="/assets/logo.svg" alt="" width="48" height="48">Missing Elements</h1>
   <p class="lead">Standalone, self-hostable web components for viewing documents and content in the browser.</p>
 
@@ -34,15 +36,21 @@ description: Standalone, self-hostable web components for viewing documents and 
         <p>{{ tool.description }}</p>
         <div class="links">
           <a href="{{ tool.page }}">Open</a>
+          {%- if tool.guide %}
+          <a href="{{ tool.guide }}">How-to</a>
+          {%- endif %}
           <a href="{{ tool.repo }}">GitHub</a>
         </div>
       </li>
       {%- endfor %}
     </ul>
   </section>
+</main>
 
-  {#- Each element's name twice, under npm and under Issues: the hidden words say which, in a list of the page's links. -#}
-  <footer class="site-footer">
+{#- The home page's footer: where else the elements are, in columns of links. Each element's name
+    twice, under npm and under Issues: the hidden words say which, in a list of the page's links. -#}
+<footer class="site-foot">
+  <div class="wrap">
     <nav class="footer-links" aria-label="Useful links">
       <div>
         <h2>npm</h2>
@@ -68,5 +76,5 @@ description: Standalone, self-hostable web components for viewing documents and 
         </ul>
       </div>
     </nav>
-  </footer>
-</main>
+  </div>
+</footer>

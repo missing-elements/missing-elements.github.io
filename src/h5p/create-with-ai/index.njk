@@ -1,0 +1,243 @@
+---
+layout: base.njk
+# The how-to for what people search: "create H5P with ChatGPT" and the like, where the build page is
+# the tool. The description counts the types as the page does, in the release the site runs.
+title: "How to create H5P content with ChatGPT, Claude or Grok"
+eleventyComputed:
+  description: "Step by step: ask ChatGPT, Claude or Grok for an H5P quiz, flash cards or any of {{ skill.offered.length }} H5P types, build the .h5p file free, and add it to Moodle."
+socialImage:
+  src: /assets/og-h5p-build.png
+  width: 1200
+  height: 630
+  alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
+# The top bar's links to the page's own sections (topbar.njk).
+topbarLinks:
+  - { href: "#prompts", text: "Prompts" }
+  - { href: "#types", text: "Types" }
+  - { href: "#open-source", text: "Open source" }
+  - { href: "#help", text: "Help" }
+# No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
+# is added to script-src by its hash at build (eleventy.config.js).
+csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
+---
+{#- The prompts are code blocks, which site.js gives a Copy button, named by data-copy-name for a
+    screen reader, which hears the page's many alike otherwise. Each carries the skill's page at its
+    whole address, which a chat's fetch tool needs. -#}
+{%- set skillPage = site.url + "/h5p/skill/" -%}
+{% include "topbar.njk" %}
+
+<main class="guide wrap" id="main">
+  <header class="docs-header">
+    <h1>Create H5P content with ChatGPT, Claude or Grok</h1>
+    <p class="lead">
+      An AI chat can write a whole H5P activity, not only its questions: a quiz, flash cards, a
+      course presentation or any of <a href="#types">{{ skill.offered.length }} H5P types</a>. Here
+      is how, from the prompt to the <code>.h5p</code> file in your Moodle.
+    </p>
+    <p>
+      The prompt sends the chat to the h5p-author skill, the instructions that tell it how to write
+      H5P. It writes the activity, and <a href="/h5p/build/">the build page</a> makes it a
+      <code>.h5p</code> file for Moodle or any other H5P site. Both are free and
+      <a href="#open-source">open source</a>, with no account and nothing to install: you need only a
+      chat that can open a web page.
+    </p>
+    <p><a class="button button-solid button-large" href="/h5p/build/">Open the build page</a></p>
+  </header>
+
+  {#- The steps are drawn as the skill page's timeline (site.css). -#}
+  <section class="step" aria-labelledby="ask-heading">
+    <h2 id="ask-heading"><span class="step-marker"><span class="step-number">1</span></span> Ask your chat</h2>
+    <p>
+      Open ChatGPT, Claude, Grok or another AI chat that can open a web page, and paste this prompt
+      with your own subject:
+    </p>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the prompt">Read {{ skillPage }} and follow it to make an H5P activity on [your subject] for [your students].</pre>
+    <p>
+      Name the type if you know it, such as "an H5P Question Set of ten questions": the
+      <a href="#types">types</a> and <a href="#prompts">prompts to start from</a> are below. For
+      another language, say so, such as "in French": the activity's buttons come in it too, where
+      H5P has a translation.
+    </p>
+  </section>
+
+  <section class="step" aria-labelledby="answer-heading">
+    <h2 id="answer-heading"><span class="step-marker"><span class="step-number">2</span></span> Answer its questions</h2>
+    <p>
+      If the prompt names no type, the chat proposes one or two that fit your material, and you
+      choose. Then it asks whose name and which licence go on the activity, which you may skip, and
+      writes it.
+    </p>
+  </section>
+
+  <section class="step" aria-labelledby="file-heading">
+    <h2 id="file-heading"><span class="step-marker"><span class="step-number">3</span></span> Get the .h5p file</h2>
+    <p>What the chat hands you depends on what it can run:</p>
+    <ul>
+      <li>a link that opens the activity on the build page;</li>
+      <li>its source, a block of JSON: paste it under <a href="/h5p/build/#build-it">Build it</a> on the build page and choose Build;</li>
+      <li>or the <code>.h5p</code> file itself, from a chat that runs code.</li>
+    </ul>
+    <p>
+      From a link or a source, the build page builds it in your browser, plays it, and saves the
+      file with Download the .h5p.
+    </p>
+  </section>
+
+  <section class="step" aria-labelledby="check-heading">
+    <h2 id="check-heading"><span class="step-marker"><span class="step-number">4</span></span> Play it and check it</h2>
+    <p>
+      Work through all of it, wrong answers included, and check the answers and feedback against
+      your material: the build checks the structure, not whether the content is right.
+    </p>
+    <p>
+      If the build lists problems, choose Copy the problems for the chat and paste them into the
+      chat that wrote the source. It fixes them all and writes the source again.
+    </p>
+  </section>
+
+  <section class="step" aria-labelledby="course-heading">
+    <h2 id="course-heading"><span class="step-marker"><span class="step-number">5</span></span> Add it to your course</h2>
+    <p>
+      In Moodle, switch Edit mode on in your course, choose Add an activity or resource, then H5P,
+      and upload the file under Package file. The file carries the H5P libraries it needs, but by
+      default Moodle installs those it lacks only for a manager or an administrator: if it says a
+      library is missing, see <a href="#moodle-libraries">below</a>.
+    </p>
+    <p>
+      Any other H5P site takes it where it adds H5P content, H5P.com too, and Lumi opens it on your
+      computer. With no H5P site, h5p-offline-player plays it
+      <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">on a site of your own</a>
+      or <a href="https://h5p-offline-player.vercel.app/app/">offline, in its app</a>.
+    </p>
+  </section>
+
+  <section aria-labelledby="prompts">
+    <h2 id="prompts">Prompts to start from</h2>
+    <p>
+      Each names its type, so the chat asks only whose name and licence go on it. Change the subject
+      and the numbers to yours.
+    </p>
+
+    <h3>A course presentation</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the course presentation prompt">Read {{ skillPage }} and follow it to make an H5P Course Presentation of six slides on writing learning objectives with Bloom's taxonomy, with a question on each slide.</pre>
+    <p>
+      Claude Haiku made the sample on the build page from this prompt:
+      <a href="/h5p/build/">play it there</a>, or <a href="/h5p/build/sample.h5p" download>download it</a>.
+    </p>
+
+    <h3>A quiz</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the quiz prompt">Read {{ skillPage }} and follow it to make an H5P Question Set of ten multiple-choice questions on the water cycle for 11-year-olds, with feedback that explains each answer.</pre>
+
+    <h3>Flash cards</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the flash cards prompt">Read {{ skillPage }} and follow it to make H5P Dialog Cards for twenty common Spanish verbs: the verb on the front, and its meaning and an example sentence on the back.</pre>
+
+    <h3>Fill in the blanks, from your text</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the fill in the blanks prompt">Read {{ skillPage }} and follow it to make an H5P Fill in the Blanks from the text below, with its key terms as the blanks.
+
+[Paste your text here]</pre>
+
+    <h3>An interactive book, from your notes</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the interactive book prompt">Read {{ skillPage }} and follow it to make an H5P Interactive Book from my lesson notes below: a chapter for each topic, each ending with two questions.
+
+[Paste your notes here]</pre>
+
+    <h3>A branching scenario</h3>
+    <pre class="language-text prompt" data-label="Prompt" data-copy-name="the branching scenario prompt">Read {{ skillPage }} and follow it to make an H5P Branching Scenario in which a new team lead deals with a project running late: three decisions, each with a better and a worse choice, and feedback at every end.</pre>
+  </section>
+
+  {#- The types the skill's table offers, in the release the site runs, by their names in H5P's
+      editor (src/_data/skill.js): those the chat writes whole, then those that play the user's
+      media. -#}
+  <section aria-labelledby="types">
+    <h2 id="types">The {{ skill.offered.length }} H5P content types it offers</h2>
+    <p>
+      The chat offers these, from the h5p-author skill's list. Name one in your prompt, or say what
+      you want and let it propose one.
+    </p>
+
+    <h3>From text alone</h3>
+    <dl class="type-list">
+      {%- for type in skill.offered | rejectattr("media") %}
+      <div>
+        <dt>{{ type.title }}</dt>
+        <dd>{{ type.use }}.</dd>
+      </div>
+      {%- endfor %}
+    </dl>
+
+    <h3>With your pictures, video or recordings</h3>
+    <p>
+      Attach your files to the chat, or tell it their names, and it writes the activity around
+      them. The build page then asks you to choose them from your computer.
+    </p>
+    <dl class="type-list">
+      {%- for type in skill.offered | selectattr("media") %}
+      <div>
+        <dt>{{ type.title }}</dt>
+        <dd>{{ type.use }}. <span class="type-media">You add {{ type.media }}.</span></dd>
+      </div>
+      {%- endfor %}
+    </dl>
+  </section>
+
+  {#- What most people ask first, which the header answers in a word and this section in full. -#}
+  <section aria-labelledby="open-source">
+    <h2 id="open-source">Free and open source</h2>
+    <p>
+      The build page and the h5p-author skill are free, need no account, and are open source under
+      the MIT licence. The build page's code is in
+      <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">this site's repository</a>,
+      and the skill and the player are in
+      <a href="https://github.com/missing-elements/h5p-offline-player">h5p-offline-player</a>. The H5P
+      runtime the player loads is <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>, and the H5P
+      libraries in a file are each under their own licence, most MIT, as
+      <a href="/h5p/assets/libraries-LICENSES.txt">the pack's licence list</a> says.
+    </p>
+    <p>
+      Nothing you make is sent to this site: the build page builds and plays it in your browser.
+      Your AI chat sees what you send it.
+    </p>
+  </section>
+
+  <section aria-labelledby="help">
+    <h2 id="help">If something goes wrong</h2>
+
+    <h3>The chat can't open the address</h3>
+    <p>
+      Turn on its web search or browsing, if it has one, and send the prompt again. The address has
+      to be whole, <code>https://</code> and all, as in the prompts here.
+    </p>
+
+    <h3>The build lists problems</h3>
+    <p>
+      Choose Copy the problems for the chat, and paste them into the chat that wrote the source. It
+      fixes them all and writes the source again: paste that in place of the old one, and build
+      again.
+    </p>
+
+    <h3>The chat's link builds nothing</h3>
+    <p>
+      Ask the chat for the source as JSON instead, and paste it under Build it. A link is made by
+      running code, and one a chat wrote out itself breaks.
+    </p>
+
+    <h3 id="moodle-libraries">Moodle says a library is missing</h3>
+    <p>
+      The file carries every library it needs, but by default Moodle lets only managers and
+      administrators install new ones. Ask one to upload the file in Site administration, under
+      Manage H5P content types: after that, files with the same types work for you too.
+    </p>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p>
+      The h5p-author skill is MIT, from
+      <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">h5p-offline-player</a>.
+      Not affiliated with H5P Group; H5P is a registered trademark of H5P Group AS.
+    </p>
+    <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="https://github.com/missing-elements/h5p-offline-player/issues">open an issue</a>.</p>
+  </div>
+</footer>

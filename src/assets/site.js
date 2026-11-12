@@ -1,5 +1,9 @@
-// Screen reader announcements through a polite status region.
+// Screen reader announcements through a polite status region. VoiceOver skips a message the same as
+// the last, even with the region emptied between, so a repeat ends in a no-break space, not read.
+let lastAnnounced = ''
 export function announce(message, region = document.querySelector('[data-status="page"]')) {
+  if (message === lastAnnounced) message += ' '
+  lastAnnounced = message
   region.textContent = ''
   // Cleared first so that repeating the same message is announced again.
   setTimeout(() => (region.textContent = message), 50)
@@ -80,17 +84,27 @@ for (const pre of document.querySelectorAll('pre[class*="language-"]')) {
     const copy = document.createElement('button')
     copy.type = 'button'
     copy.className = 'button'
-    copy.textContent = 'Copy'
+    // What it says, and for a screen reader what it copies, where the block says (data-copy-name):
+    // a page of several bare Copy buttons cannot be told apart by ear.
+    const state = document.createElement('span')
+    state.textContent = 'Copy'
+    copy.append(state)
+    if (pre.dataset.copyName) {
+      const name = document.createElement('span')
+      name.className = 'visually-hidden'
+      name.textContent = ` ${pre.dataset.copyName}`
+      copy.append(name)
+    }
     copy.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(pre.textContent)
-        copy.textContent = 'Copied'
+        state.textContent = 'Copied'
         announce('Copied to clipboard')
       } catch {
-        copy.textContent = 'Copy failed'
+        state.textContent = 'Copy failed'
         announce('Copy failed')
       }
-      setTimeout(() => (copy.textContent = 'Copy'), 1500)
+      setTimeout(() => (state.textContent = 'Copy'), 1500)
     })
     bar.append(copy)
   }

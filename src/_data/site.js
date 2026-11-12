@@ -48,6 +48,7 @@ export default {
       name: "Build an H5P activity with AI",
       description: "Describe a lesson to an AI chat and get an H5P activity, from a quiz to a branching scenario: play it, and download a .h5p file for Moodle or any other H5P site. Free, and nothing is uploaded.",
       page: "/h5p/build/",
+      guide: "/h5p/create-with-ai/",
       repo: "https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build",
     },
   ],

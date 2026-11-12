@@ -22,7 +22,7 @@ const playground = document.querySelector('[data-playground]')
 const schemeMeta = document.querySelector('meta[name="color-scheme"]')
 const narrow = matchMedia('(max-width: 999px)')
 // Everything behind the full-screen preview on phones.
-const background = document.querySelectorAll('.skip-link, .toc, .content, [data-preview-open]')
+const background = document.querySelectorAll('.skip-link, .topbar, .toc, .content, .site-foot, [data-preview-open]')
 
 let viewer = null
 let viewerReady = null

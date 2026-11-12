@@ -12,6 +12,12 @@ socialImage:
   width: 1200
   height: 630
   alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
+# The top bar's links to the page's own sections (topbar.njk), for a visitor who came with no source.
+topbarLinks:
+  - { href: "#make", text: "Make your own" }
+  - { href: "#build-it", text: "Build" }
+  - { href: "#cost", text: "Build cost" }
+topbarLinksClass: when-unlinked
 # The page's only policy: GitHub Pages sends no headers. base.njk writes it first in <head>, and the
 # page's inline scripts, the site's color-scheme script and the one below, are added to script-src
 # by their hashes at build (eleventy.config.js).
@@ -26,19 +32,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     when-unlinked, and site.css shows it by the class this line puts on <html> before the page
     paints; build-page.ts keeps the class in step with the address from then on. -#}
 <script>if (new URLSearchParams(location.hash.slice(1)).has("source")) document.documentElement.classList.add("linked")</script>
-<header class="topbar">
-  <div class="wrap topbar-row">
-    <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="24" height="24">{{ site.name }}</a>
-    <div class="topbar-end">
-      <nav class="topbar-links when-unlinked" aria-label="On this page">
-        <a href="#make">Make your own</a>
-        <a href="#build-it">Build</a>
-        <a href="#cost">Build cost</a>
-      </nav>
-      {% include "theme-switch.njk" %}
-    </div>
-  </div>
-</header>
+{% include "topbar.njk" %}
 
 {#- The markup build-page.ts wires up, built into /h5p/build/build-page.js by Vite (vite.config.ts). -#}
 <main class="build" id="main">
@@ -47,11 +41,11 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
       <div class="hero-words">
         <h1 id="page-title">Build an H5P activity with AI</h1>
         {#- The types are those the skill's table offers to choose from, in the release the page runs:
-            counted from it (src/_data/skill.js), and linked at its tag. -#}
+            counted from it (src/_data/skill.js), and listed by their names in the guide. -#}
         <p class="lead when-unlinked">
           Describe a lesson to an AI chat, and get an interactive activity for your students: a
           quiz, flash cards, a branching scenario, an interactive book, or any of
-          <a href="https://github.com/missing-elements/h5p-offline-player/blob/author-v{{ skill.version }}/skills/h5p-author/SKILL.md#1-choose-the-content-type-then-the-author-and-licence-with-the-user">{{ skill.offered.length }} H5P types</a>.
+          <a href="/h5p/create-with-ai/#types">{{ skill.offered.length }} H5P types</a>.
         </p>
         <div class="hero-actions when-unlinked">
           <a class="button button-solid button-large" href="#make">Make your own</a>
@@ -96,7 +90,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
           <h3>Built in your browser</h3>
-          <p>The page builds and plays the activity on your computer, free and with no account. Nothing you make is sent to this site.</p>
+          <p>The page builds and plays the activity on your computer. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, needs no account, and sends nothing you make to this site.</p>
         </li>
         <li class="feature">
           <span class="feature-icon icon-school" aria-hidden="true"></span>
@@ -141,6 +135,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <p class="hint">
           The address in the prompt is <a href="/h5p/skill/">the h5p-author skill's page</a>: the
           instructions that tell a chat how to write an H5P activity, as text anyone can read.
+        </p>
+        <p>
+          More prompts, every type, and what to do when something goes wrong:
+          <a href="/h5p/create-with-ai/">how to create H5P content with AI, step by step</a>.
         </p>
       </div>
     </div>
