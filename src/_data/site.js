@@ -23,6 +23,8 @@ export default {
   tagline: "Browser-based OSS and tools",
   url: "https://missing-elements.github.io",
   github: "https://github.com/missing-elements",
+  // Where to give to the project's development: the home page's hero button, and the footer.
+  support: "https://donatello.to/OleksandrShevchuk",
   // Google Search Console's code for the site, from the "HTML tag" check of its URL-prefix property,
   // https://missing-elements.github.io/: base.njk writes it on every page while it is set.
   googleSiteVerification: "_z8PPC9AkWc2rKheTsM0kGmM6UA6FLfgMf0aRxDzULU",

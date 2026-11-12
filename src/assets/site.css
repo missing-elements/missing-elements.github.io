@@ -160,14 +160,16 @@ blockquote > :last-child { margin-bottom: 0; }
   cursor: pointer;
 }
 .button:hover { background: var(--tint); }
+/* A link drawn as a button: its words are not underlined as a link's in text are. */
+a.button { text-decoration: none; }
 .button-primary { border-color: var(--focus); color: var(--accent); font-weight: 600; }
 
-/* Code blocks */
+/* Code blocks, on the cards' color: it stands out from the page and from a tinted band alike. */
 .code {
   margin: 1rem 0 1.25rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--raised);
   overflow: hidden;
 }
 /* The preview pane's bar shares these, so it matches the Current markup bar below it. */
@@ -187,7 +189,7 @@ pre[class*="language-"] {
   margin: 0;
   padding: 0.85rem 1rem;
   overflow: auto;
-  background: var(--surface);
+  background: var(--raised);
   font: 0.8125rem/1.6 var(--mono);
   tab-size: 2;
 }
@@ -476,8 +478,8 @@ tbody th a:hover code { text-decoration: underline; }
   --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m16 18 6-6-6-6M8 6l-6 6 6 6'/%3E%3C/svg%3E");
 }
 /* Grows with the markup, so a typical setup shows in full; past a third of the screen it scrolls,
-   leaving the viewer most of the pane. */
-.preview pre.preview-markup { max-height: 35dvh; padding: 0.5rem 0.75rem; background: var(--bg); font-size: 0.75rem; }
+   leaving the viewer most of the pane. On the cards' color, as every code block is. */
+.preview pre.preview-markup { max-height: 35dvh; padding: 0.5rem 0.75rem; font-size: 0.75rem; }
 .preview-markup code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .flash { animation: flash 0.6s ease-out; }
@@ -557,9 +559,24 @@ tbody th a:hover code { text-decoration: underline; }
 
 /* Org home: the build page's bands, its first screen's words no wider than a heading of two lines. */
 .home .hero-words { max-inline-size: 46rem; }
-/* Cards: on the home page, the elements and the tools, as the build page's steps are drawn. Three to
-   a row on a wide screen, two on a tablet, one on a phone; each an <article> as tall as its row,
-   with its links in its <footer>, at its foot. */
+/* Its one action, support for the work: a heart before the words, masked as the site's icons are,
+   in the warm red the code's tags take. */
+.button-support::before {
+  content: "";
+  flex: none;
+  inline-size: 1.125em;
+  block-size: 1.125em;
+  background: var(--t-tag);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s-7.6-4.7-9.6-9.6C1 7.9 3 4 6.9 4c2.2 0 3.9 1.2 5.1 3 1.2-1.8 2.9-3 5.1-3C21 4 23 7.9 21.6 11.4 19.6 16.3 12 21 12 21Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (forced-colors: active) {
+  /* Masked icons paint with their background, which forced colors would turn into Canvas. */
+  .button-support::before { forced-color-adjust: none; background: CanvasText; }
+}
+/* Cards: on the home page, the elements and the tools, and at the build page's foot, where else a
+   package plays and how it went; drawn as the build page's steps are. Three to a row on a wide
+   screen, two on a tablet, one on a phone; each an <article> as tall as its row, its title an h2
+   or an h3 by where it stands, with its links or buttons in its <footer>, at its foot. */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
@@ -570,7 +587,7 @@ tbody th a:hover code { text-decoration: underline; }
 }
 .cards > li { display: grid; margin: 0; }
 .cards article { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); }
-.cards h3 { margin: 0; font-size: 1.125rem; }
+.cards :is(h2, h3) { margin: 0; padding: 0; border: 0; font-size: 1.125rem; }
 .cards p { margin: 0; color: var(--muted); }
 .card-tag code { font-size: 0.8125rem; }
 .cards .links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-top: auto; padding-top: 0.5rem; font-size: 0.875rem; }
@@ -608,7 +625,6 @@ tbody th a:hover code { text-decoration: underline; }
    steps are, its steps on the skill page's timeline, its prompts in code blocks to copy, and the
    types it lists by name and use. */
 .guide > * { max-inline-size: 48rem; }
-.guide a.button { text-decoration: none; }
 .guide h3 + .code { margin-top: 0.75rem; }
 /* A row each, the name beside its use where the list is wide enough for both, over it where not. */
 .type-list {
@@ -796,16 +812,9 @@ tbody th a:hover code { text-decoration: underline; }
 }
 .how h3 { margin: 0 0 0.4rem; font-size: 1.0625rem; }
 .how p { margin: 0; color: var(--muted); }
-/* The prompt, in a code block's frame for its Copy button: prose, so it wraps. It is on the
-   accent's tint, which a code block's color is not: that is a tinted band's own, as on the build
-   page, and next to the page's. Its frame takes the tint once, the text and the bar showing it
-   through; the bar's label then takes the text's color, where the muted one is too faint on the
-   tint in the dark theme (4.4:1). */
+/* The prompt, in a code block's frame for its Copy button: prose, so it wraps. */
 .prompt-box { max-inline-size: 48rem; }
 pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375rem; }
-pre.prompt, .code:has(> pre.prompt) { background: var(--tint); }
-.code > pre.prompt { background: none; }
-.code:has(> pre.prompt) .code-bar { color: var(--text); }
 
 /* Build it: the steps on the same left edge as the rest, no wider than the source's editor reads. */
 .tool .step { max-inline-size: 60rem; }
@@ -824,12 +833,9 @@ pre.prompt, .code:has(> pre.prompt) { background: var(--tint); }
 .stats-note { margin: 0.75rem 0 1.5rem; color: var(--muted); font-size: 0.8125rem; }
 .cost-more { margin: 0; color: var(--muted); }
 
-/* Under it all: where else it plays, and how it went, a card each, side by side where they fit. */
+/* Under it all: where else it plays, and how it went, as cards (.cards); the second's footer holds
+   its two buttons. */
 .linked .closing { padding-block-start: 0; }
-.closing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1.25rem; }
-.closing-grid > section { display: flex; flex-direction: column; gap: 0.75rem; padding: clamp(1.5rem, 3vw, 2.25rem); border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.closing-grid h2 { margin: 0; padding: 0; border: 0; font-size: 1.375rem; }
-.closing-grid p { margin: 0; color: var(--muted); }
 .feedback-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-start: auto; padding-block-start: 0.5rem; }
 
 /* H5P build page, /h5p/build/ */
@@ -987,7 +993,6 @@ pre.prompt, .code:has(> pre.prompt) { background: var(--tint); }
   cursor: pointer;
 }
 .build input[type="file"]::file-selector-button:hover { background: var(--tint); }
-.build a.button { text-decoration: none; }
 .button-large { padding: 0.55rem 1.1rem; font-size: 0.9375rem; }
 /* The page's two main actions, Build and Download, filled where the site's other buttons are outlined. */
 .button-solid, .button-solid:hover { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 600; }

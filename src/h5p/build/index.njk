@@ -14,9 +14,9 @@ socialImage:
   alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
 # The top bar's links to the page's own sections (topbar.njk), for a visitor who came with no source.
 topbarLinks:
-  - { href: "#make", text: "Make your own" }
-  - { href: "#build-it", text: "Build" }
-  - { href: "#cost", text: "Build cost" }
+  - { href: "#make", text: "How it works" }
+  - { href: "#build-it", text: "Try it" }
+  - { href: "#cost", text: "Tokens saved" }
 topbarLinksClass: when-unlinked
 # The page's only policy: GitHub Pages sends no headers. base.njk writes it first in <head>, and the
 # page's inline scripts, the site's color-scheme script and the one below, are added to script-src
@@ -113,7 +113,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   <section class="band band-tint make when-unlinked" id="make" aria-labelledby="make-heading">
     <div class="wrap">
       <header class="band-head">
-        <h2 id="make-heading">Make your own</h2>
+        <h2 id="make-heading">How it works</h2>
         <p>Three steps, with an AI chat that can open a web page.</p>
       </header>
       <ol class="how" role="list">
@@ -127,7 +127,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li>
           <h3>Play it, then download it</h3>
-          <p>It hands over a link that opens the activity here, or its source, a block of JSON to paste under <a href="#build-it">Build it</a>. Some chats build the <code>.h5p</code> file themselves.</p>
+          <p>It hands over a link that opens the activity here, or its source, a block of JSON to <a href="#build-it">paste below</a>. Some chats build the <code>.h5p</code> file themselves.</p>
         </li>
       </ol>
       <div class="prompt-box">
@@ -150,7 +150,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   <section class="band tool" id="build-it" aria-labelledby="build-it-heading">
     <div class="wrap">
       <header class="band-head">
-        <h2 id="build-it-heading">Build it</h2>
+        <h2 id="build-it-heading">Try it</h2>
         <p class="when-unlinked">Paste the JSON your chat wrote, build it, play it, and download the <code>.h5p</code> file.</p>
       </header>
 
@@ -234,7 +234,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   <section class="band band-tint cost when-unlinked" id="cost" aria-labelledby="cost-heading">
     <div class="wrap">
       <header class="band-head">
-        <h2 id="cost-heading">Build cost, in tokens</h2>
+        <h2 id="cost-heading">Tokens saved</h2>
         <p>
           An AI chat counts its work in tokens, about four characters each. Asked plainly for an H5P
           activity, a chat writes it the way H5P stores it, <code>content.json</code> and
@@ -268,31 +268,38 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     </div>
   </section>
 
-  {#- Where else a package plays, with no H5P site, and where to say how it went: by email first, which
-      asks for no account, or a public discussion for someone with a GitHub account. -#}
+  {#- At the foot, cards as the home page's: where else a package plays with no H5P site, each way a
+      link in the card's footer, and where to say how it went, by email first, which asks for no
+      account, or in a public discussion for someone with a GitHub account. -#}
   <div class="band closing">
-    <div class="wrap closing-grid">
-      <section class="plays" aria-labelledby="plays-heading">
-        <h2 id="plays-heading">Play it without an H5P site</h2>
-        <p>
-          Any H5P site takes the file you download. With none, use h5p-offline-player, the player
-          this page plays it in:
-          <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">on a site of your own</a>,
-          or <a href="https://h5p-offline-player.vercel.app/app/">offline, in its app</a>.
-        </p>
-      </section>
-      <section class="feedback" aria-labelledby="feedback-heading">
-        <h2 id="feedback-heading">How did it go?</h2>
-        <p>
-          Say what you made, and what went well or wrong with the chat's source or this page. Write
-          to the author or, with a GitHub account, start a public discussion where the h5p-author
-          skill is made.
-        </p>
-        <div class="feedback-actions">
-          <a class="button button-primary button-large" href="{{ site.buildFeedback.email }}">Email feedback</a>
-          <a class="button button-large" href="{{ site.buildFeedback.github }}">Discuss on GitHub</a>
-        </div>
-      </section>
+    <div class="wrap">
+      <ul class="cards" role="list">
+        <li><article>
+          <h2>Play it without an H5P site</h2>
+          <p>
+            Any H5P site takes the file you download. With none, h5p-offline-player, the player on
+            this page, plays it on your own site, offline, in VS Code, or in an LMS as SCORM.
+          </p>
+          <footer class="links">
+            <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">Set up on your site</a>
+            <a href="https://h5p-offline-player.vercel.app/app/">Offline app</a>
+            <a href="https://marketplace.visualstudio.com/items?itemName=MissingElements.h5p-preview">VS Code extension</a>
+            <a href="https://h5p-offline-player.vercel.app/demo/scorm.html">SCORM for an LMS</a>
+          </footer>
+        </article></li>
+        <li><article>
+          <h2>How did it go?</h2>
+          <p>
+            Say what you made, and what went well or wrong with the chat's source or this page. Write
+            to the author or, with a GitHub account, start a public discussion where the h5p-author
+            skill is made.
+          </p>
+          <footer class="feedback-actions">
+            <a class="button button-primary button-large" href="{{ site.buildFeedback.email }}">Email feedback</a>
+            <a class="button button-large" href="{{ site.buildFeedback.github }}">Discuss on GitHub</a>
+          </footer>
+        </article></li>
+      </ul>
     </div>
   </div>
 </main>
