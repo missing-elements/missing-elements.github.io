@@ -589,7 +589,7 @@ tbody th a:hover code { text-decoration: underline; }
 
 /* A bar at the top, then bands the width of the window, each holding a column of the page's width. */
 :root {
-  --wide: 76rem;
+  --wide: 85rem;
   --gutter: clamp(1rem, 4vw, 3rem);
   --band-space: clamp(3.5rem, 2rem + 6vw, 7rem);
 }

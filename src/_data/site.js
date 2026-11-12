@@ -21,6 +21,9 @@ export default {
   name: "Missing Elements",
   url: "https://missing-elements.github.io",
   github: "https://github.com/missing-elements",
+  // Google Search Console's code for the site, from the "HTML tag" check of its URL-prefix property,
+  // https://missing-elements.github.io/: base.njk writes it on every page while it is set.
+  googleSiteVerification: "_z8PPC9AkWc2rKheTsM0kGmM6UA6FLfgMf0aRxDzULU",
   elements: [
     {
       name: "pdfjs-viewer",
@@ -42,7 +45,7 @@ export default {
   // A tool's GitHub link is its source. The build page links the skill's page itself.
   tools: [
     {
-      name: "Build an H5P activity",
+      name: "Build an H5P activity with AI",
       description: "Describe a lesson to an AI chat and get an H5P activity, from a quiz to a branching scenario: play it, and download a .h5p file for Moodle or any other H5P site. Free, and nothing is uploaded.",
       page: "/h5p/build/",
       repo: "https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build",

@@ -1,7 +1,17 @@
 ---
 layout: base.njk
-title: Build an H5P activity · Missing Elements
-description: Describe a lesson to an AI chat and get an H5P activity to play, a quiz, a branching scenario, an interactive book and more, as a .h5p file for Moodle or any other H5P site. Free, built in your browser, nothing uploaded.
+# The title and description carry what people search for: an AI H5P generator, with ChatGPT and the
+# like. The description counts the types as the hero does, in the release the page runs.
+title: "Free AI H5P generator: make H5P with ChatGPT, Claude or Grok"
+eleventyComputed:
+  description: "Describe a lesson to ChatGPT, Claude or Grok and get an H5P activity: a quiz, a course presentation or any of {{ skill.offered.length }} H5P types. Free, no account, for Moodle."
+# The picture a shared link shows: the page's first screen at 1200×630, light, with the sample
+# settled. It is a screenshot, so take it again when that screen changes.
+socialImage:
+  src: /assets/og-h5p-build.png
+  width: 1200
+  height: 630
+  alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
 # The page's only policy: GitHub Pages sends no headers. base.njk writes it first in <head>, and the
 # page's inline scripts, the site's color-scheme script and the one below, are added to script-src
 # by their hashes at build (eleventy.config.js).
@@ -35,7 +45,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   <section class="hero" aria-labelledby="page-title">
     <div class="wrap hero-grid">
       <div class="hero-words">
-        <h1 id="page-title">Build an H5P activity</h1>
+        <h1 id="page-title">Build an H5P activity with AI</h1>
         {#- The types are those the skill's table offers to choose from, in the release the page runs:
             counted from it (src/_data/skill.js), and linked at its tag. -#}
         <p class="lead when-unlinked">
@@ -301,4 +311,22 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="https://github.com/missing-elements/h5p-offline-player/issues">open an issue</a>.</p>
   </div>
 </footer>
+{#- What the page is, for a search engine: a free web application for teaching, run in the browser.
+    It is data, not a script that runs; the policy's hash for it (eleventy.config.js) is unused. -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI H5P generator",
+  "alternateName": "Build an H5P activity with AI",
+  "url": "{{ site.url }}{{ page.url }}",
+  "description": {{ description | dump | safe }},
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@type": "Organization", "name": "{{ site.name }}", "url": "{{ site.url }}" }
+}
+</script>
 <script type="module" src="/h5p/build/build-page.js"></script>
