@@ -22,8 +22,9 @@ import { formatSource, jsonProblem, place, type Target } from './json-scan'
  * markup is `index.njk` beside this file, and its styles are the site's own, in `site.css`.
  *
  * Both of its visitors are people. One a chat sent, with the source in the link: it is built at
- * once. One came with no source and does not know the page: that one is told what it makes, and
- * shown a sample that plays (`SAMPLE`). The markup says which words are for whom, and the class
+ * once. One came with no source and does not know the page: that one is told what it makes, shown
+ * a sample that plays (`SAMPLE`), and finds the sample's source in the box, which the first paste
+ * replaces whole (`prefillSample`). The markup says which words are for whom, and the class
  * `linked` on `<html>` shows them, set before the page paints by the script in `index.njk` and
  * kept in step with the address here.
  */
@@ -106,6 +107,10 @@ let samplePlays = false
 /** Whether the sample has been asked to measure itself again, and the wait for it to be still. */
 let sampleAsked = false
 let sampleStill: ReturnType<typeof setTimeout> | undefined
+/** The sample's source as the page put it in the box, laid out; `null` before it has. */
+let sampleText: string | null = null
+/** Whether the box holds the sample's source as the page put it there, which a paste then replaces whole. */
+const sampleUntouched = (): boolean => sampleText !== null && sourceField.value === sampleText
 
 function setStatus(text: string, state: 'idle' | 'building' | 'ready' | 'error'): void {
   status.textContent = text
@@ -381,13 +386,17 @@ function setSource(text: string): void {
   followLater()
 }
 
-// Where the editor has not loaded, a source pasted whole is laid out here, as the editor does it.
+// Where the editor has not loaded, a source pasted whole is laid out here, as the editor does it,
+// and a paste over the sample as the page put it replaces it whole.
 sourceField.addEventListener('paste', (event) => {
   const text = event.clipboardData?.getData('text/plain')
-  const laidOut = text && sourceField.selectionStart === 0 && sourceField.selectionEnd === sourceField.value.length ? formatSource(text) : null
-  if (laidOut === null) return
+  if (!text) return
+  const replaced = sampleUntouched()
+  if (!replaced && (sourceField.selectionStart !== 0 || sourceField.selectionEnd !== sourceField.value.length)) return
+  const insert = formatSource(text) ?? (replaced ? text : null)
+  if (insert === null) return
   event.preventDefault()
-  sourceField.value = laidOut
+  sourceField.value = insert
   sourceField.setSelectionRange(0, 0)
   sourceChanged()
 })
@@ -478,13 +487,38 @@ sample.addEventListener('error', (event) => {
   noteSample(`The sample does not play here: ${message}`)
 })
 
-// The sample's source, for a visitor with none who wants to try the steps: it is theirs to build.
+async function fetchSampleSource(): Promise<string> {
+  const response = await fetch(SAMPLE_SOURCE)
+  if (!response.ok) throw new Error(String(response.status))
+  return response.text()
+}
+
+/** The sample's source in the box, as the page puts it there: a paste replaces it whole until it is changed. */
+function putSample(text: string): void {
+  setSource(text)
+  sampleText = sourceField.value
+}
+
+/**
+ * A visitor who came with no source finds the sample's in the box, to build as it is, to change, or
+ * to paste theirs over. It does not go over a source that came meanwhile, by a link or by hand, and
+ * where it cannot be fetched the box stays empty, with its placeholder.
+ */
+async function prefillSample(): Promise<void> {
+  try {
+    const text = await fetchSampleSource()
+    if (linked || sourceField.value.trim()) return
+    putSample(text)
+  } catch {
+    // The box stays empty.
+  }
+}
+
+// The sample's source again, for a visitor who changed or replaced it.
 sampleSource.addEventListener('click', async () => {
   sampleSourceResult.textContent = ''
   try {
-    const response = await fetch(SAMPLE_SOURCE)
-    if (!response.ok) throw new Error(String(response.status))
-    setSource(await response.text())
+    putSample(await fetchSampleSource())
     sampleSourceResult.textContent = 'It is in the box above: change it if you like, then Build.'
   } catch {
     sampleSourceResult.textContent = 'It could not be fetched; load the page again.'
@@ -516,11 +550,13 @@ async function fromLink(): Promise<void> {
 
 updateFiles()
 void fromLink()
+// Once, as the page opens: `fromLink` has said by now whether the address carries a source.
+if (!linked) void prefillSample()
 window.addEventListener('hashchange', () => void fromLink())
 
 // The editor is loaded apart: where it cannot be, the textarea is the source, as it was.
 import('./editor').then(({ mountEditor }) => {
-  editor = mountEditor(sourceField, sourceChanged)
+  editor = mountEditor(sourceField, sourceChanged, sampleUntouched)
 }).catch((error: unknown) => {
   console.warn('The source editor did not load; the source stays a plain text field.', error)
 })

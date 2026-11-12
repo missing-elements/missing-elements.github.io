@@ -92,19 +92,25 @@ const typeOverSelection = EditorView.domEventHandlers({
 /**
  * A source pasted whole, into an empty editor or over all of its text, goes in laid out, and out of
  * the code fence a chat put it in, so that the page needs no button for it. A paste into the text,
- * or of text that is not JSON, goes in as it is.
+ * or of text that is not JSON, goes in as it is. Where the text is one the page put there to be
+ * pasted over (`over`), a paste anywhere in it replaces all of it, laid out where it is JSON.
  */
-const pasteLaidOut = EditorView.domEventHandlers({
-  paste(event, view) {
-    const { from, to } = view.state.selection.main
-    const text = event.clipboardData?.getData('text/plain')
-    const laidOut = text && from === 0 && to === view.state.doc.length ? formatSource(text) : null
-    if (laidOut === null) return false
-    event.preventDefault()
-    view.dispatch({ changes: { from, to, insert: laidOut }, selection: { anchor: 0 }, userEvent: 'input.paste', scrollIntoView: true })
-    return true
-  }
-})
+function pasteLaidOut(over: () => boolean) {
+  return EditorView.domEventHandlers({
+    paste(event, view) {
+      const text = event.clipboardData?.getData('text/plain')
+      if (!text) return false
+      const { from, to } = view.state.selection.main
+      const replaced = over()
+      if (!replaced && (from !== 0 || to !== view.state.doc.length)) return false
+      const insert = formatSource(text) ?? (replaced ? text : null)
+      if (insert === null) return false
+      event.preventDefault()
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert }, selection: { anchor: 0 }, userEvent: 'input.paste', scrollIntoView: true })
+      return true
+    }
+  })
+}
 
 /** The mistake in the text, as the editor marks it while the text is typed. */
 const mistakes = linter((view): Diagnostic[] => {
@@ -117,9 +123,10 @@ const mistakes = linter((view): Diagnostic[] => {
 
 /**
  * Puts the editor where the textarea is, with the textarea's text, and calls `onChange` with the
- * text of every change, which it has already written into the textarea.
+ * text of every change, which it has already written into the textarea. `pastedOver` says whether
+ * the text is one the page put there to be replaced by the next paste, as the build page's sample.
  */
-export function mountEditor(textarea: HTMLTextAreaElement, onChange: (text: string) => void): SourceEditor {
+export function mountEditor(textarea: HTMLTextAreaElement, onChange: (text: string) => void, pastedOver: () => boolean = () => false): SourceEditor {
   const host = document.createElement('div')
   host.className = 'source-editor'
   const shadow = host.attachShadow({ mode: 'open' })
@@ -155,7 +162,7 @@ export function mountEditor(textarea: HTMLTextAreaElement, onChange: (text: stri
           autocorrect: 'off'
         }),
         typeOverSelection,
-        pasteLaidOut,
+        pasteLaidOut(pastedOver),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) return
           const text = update.state.doc.toString()
