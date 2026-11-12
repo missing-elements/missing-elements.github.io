@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { writeBundles } from '@missing-elements/h5p-author'
+import { buildPackage, writeBundles } from '@missing-elements/h5p-author'
 import { build, defineConfig, type Plugin } from 'vite'
 
 /*
@@ -15,6 +15,8 @@ import { build, defineConfig, type Plugin } from 'vite'
  *   there too, so its scope is `/h5p/assets/h5p/`: no other page of the site is under it.
  * - `/h5p/build/types/`, the h5p-author skill's type files, which the page copies for the chat
  *   with a source's problems (see `typeFiles()`).
+ * - `/h5p/build/sample.h5p` and `sample.json`, the sample the page plays where it is opened with no
+ *   source, and its source (see `sample()`).
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
  *
  * `/h5p/skill/`, the h5p-author skill's files and a page of their addresses, is Eleventy's
@@ -96,6 +98,41 @@ function typeFiles(): Plugin {
 }
 
 /**
+ * `/h5p/build/sample.h5p`, the sample the build page plays for a visitor who came with no source,
+ * and `/h5p/build/sample.json`, its source, which the page puts in its editor when asked.
+ *
+ * The source is `src/h5p/build/sample.json`, written as the h5p-author skill has a chat write one.
+ * The package is built from it here by the pinned author package, as the command builds it, so it
+ * is what the page itself would build from that source, with the editor libraries an H5P site's
+ * upload check asks for: a visitor can download it and try it in their own Moodle. A source the
+ * pinned build refuses stops the site's build, with its problems.
+ *
+ * It is built here and not in the visitor's browser because the player reads a package from its
+ * address in ranges: of this one's 4.9 MB it takes the ten libraries that play, where a build in
+ * the page would fetch every part.
+ */
+function sample(): Plugin {
+  const source = new URL('./src/h5p/build/sample.json', import.meta.url)
+  let outDir = ''
+  return {
+    name: 'missing-elements:sample',
+    apply: 'build',
+    configResolved(config) {
+      outDir = resolve(config.root, config.build.outDir)
+    },
+    async writeBundle() {
+      const folder = join(outDir, 'h5p', 'build')
+      const text = await readFile(source, 'utf8')
+      // The build never writes over a file, and `_site/` may hold the last build's.
+      const output = join(folder, 'sample.h5p')
+      await rm(output, { force: true })
+      await buildPackage(JSON.parse(text), output)
+      await writeFile(join(folder, 'sample.json'), text)
+    }
+  }
+}
+
+/**
  * `/h5p/bundles/`, for a chat that runs Node and can fetch a file but reaches no npm registry, as
  * in ChatGPT's sandbox. The h5p-author skill builds there from two files fetched from here: the
  * command line, and the bundle of the source's content type.
@@ -167,10 +204,10 @@ function bundles(): Plugin {
 
 export default defineConfig({
   publicDir: false,
-  // A missing file is a 404, as on GitHub Pages, not the home page: the browser tests read
-  // `vite preview`'s answers, and an SPA's fallback would answer every address with a page.
+  // A missing file is a 404, as on GitHub Pages, not the home page: `pnpm preview` answers as the
+  // site does, where an SPA's fallback would answer every address with a page.
   appType: 'mpa',
-  plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), bundles()],
+  plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), sample(), bundles()],
   build: {
     outDir: '_site',
     emptyOutDir: false,

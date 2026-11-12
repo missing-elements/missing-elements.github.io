@@ -20,6 +20,12 @@ import { formatSource, jsonProblem, place, type Target } from './json-scan'
  * page (`TYPES`). The source is edited in an editor (`editor.ts`), loaded apart, in place of the
  * textarea, which stays under it as the field this page reads, and it arrives laid out. The page's
  * markup is `index.njk` beside this file, and its styles are the site's own, in `site.css`.
+ *
+ * Both of its visitors are people. One a chat sent, with the source in the link: it is built at
+ * once. One came with no source and does not know the page: that one is told what it makes, and
+ * shown a sample that plays (`SAMPLE`). The markup says which words are for whom, and the class
+ * `linked` on `<html>` shows them, set before the page paints by the script in `index.njk` and
+ * kept in step with the address here.
  */
 
 type Opened = Awaited<ReturnType<typeof openPack>>
@@ -51,8 +57,21 @@ const notesList = $<HTMLUListElement>('notes')
 const playStep = $('play-step')
 const download = $<HTMLAnchorElement>('download')
 const player = $('player') as HTMLElementTagNameMap['h5p-player']
+const sample = $('sample') as HTMLElementTagNameMap['h5p-player']
+const sampleFigure = $('sample-figure')
+const sampleNote = $('sample-note')
+const sampleSource = $<HTMLButtonElement>('sample-source')
+const sampleSourceResult = $('sample-source-result')
 
 player.runtime = runtime
+sample.runtime = runtime
+
+/**
+ * The sample a visitor with no source is shown, and its source: `sample.json` beside this file,
+ * which Vite builds into the package and serves beside it (vite.config.ts).
+ */
+const SAMPLE = '/h5p/build/sample.h5p'
+const SAMPLE_SOURCE = '/h5p/build/sample.json'
 
 /** The editor the source is in, once it has loaded; until then, and where it cannot, the textarea. */
 let editor: SourceEditor | null = null
@@ -82,6 +101,11 @@ let linked = false
 let carried = ''
 /** Counts the writes of the address, so that one overtaken by a newer change writes nothing. */
 let linkWrites = 0
+/** Whether the sample's player has been given the sample. */
+let samplePlays = false
+/** Whether the sample has been asked to measure itself again, and the wait for it to be still. */
+let sampleAsked = false
+let sampleStill: ReturnType<typeof setTimeout> | undefined
 
 function setStatus(text: string, state: 'idle' | 'building' | 'ready' | 'error'): void {
   status.textContent = text
@@ -224,6 +248,11 @@ async function build(): Promise<void> {
   const run = ++builds
   showProblems([])
   showNotes([])
+  // No source is not a source with a problem: there is nothing for a chat to fix, so nothing to copy.
+  if (!sourceField.value.trim()) {
+    setStatus('There is no source to build yet: paste the one your chat wrote, or open it from a file.', 'idle')
+    return
+  }
   const parsed = parseSource(sourceField.value)
   if ('problem' in parsed) {
     setStatus('The source cannot be read.', 'error')
@@ -391,10 +420,84 @@ copyProblems.addEventListener('click', async () => {
   }
 })
 
+/**
+ * The sample plays for a visitor who came with no source. A link's visit does not fetch it, and a
+ * page that becomes one, its address changed by hand, lets it go.
+ */
+function playSample(play: boolean): void {
+  if (play === samplePlays) return
+  samplePlays = play
+  clearTimeout(sampleStill)
+  sampleAsked = false
+  delete sampleFigure.dataset.settled
+  if (play) {
+    noteSample('The sample is loading…', true)
+    sample.src = SAMPLE
+  } else {
+    sample.removeAttribute('src')
+    noteSample('')
+  }
+}
+
+/**
+ * The note in the sample's place, while it loads or where it cannot play. While it loads, site.css
+ * draws a ring before it, which turns.
+ */
+function noteSample(text: string, loading = false): void {
+  sampleNote.textContent = text
+  sampleNote.toggleAttribute('data-loading', loading)
+}
+
+/**
+ * The sample's box follows the sample once its first screen is still. A branching scenario draws
+ * its start screen in after the player last measured it, and reports nothing once it has, so the
+ * frame stays some 45px taller than what is in it: a white strip under the sample, on a dark page
+ * most of all. The player passes the window's `resize` on to the content, which then measures
+ * itself again, so the page raises one, once, when the sample has not moved for a moment. Until
+ * then site.css keeps the box at the height of that first screen, so the page under it stays put.
+ */
+function sampleMoved(): void {
+  if (sampleAsked || !samplePlays) return
+  clearTimeout(sampleStill)
+  sampleStill = setTimeout(() => {
+    sampleAsked = true
+    window.dispatchEvent(new Event('resize'))
+    // Its answer comes within a frame or two; with none, it had measured right.
+    sampleStill = setTimeout(() => { sampleFigure.dataset.settled = '' }, 100)
+    // The start screen takes some 300ms to draw in after the player's last measure: a margin on that.
+  }, 600)
+}
+sample.addEventListener('resize', sampleMoved)
+sample.addEventListener('ready', () => {
+  noteSample('')
+  sampleMoved()
+})
+sample.addEventListener('error', (event) => {
+  if (sample.state === 'ready') return // the content runs on; the frame logs it
+  const { message } = (event as unknown as CustomEvent<{ message: string }>).detail
+  noteSample(`The sample does not play here: ${message}`)
+})
+
+// The sample's source, for a visitor with none who wants to try the steps: it is theirs to build.
+sampleSource.addEventListener('click', async () => {
+  sampleSourceResult.textContent = ''
+  try {
+    const response = await fetch(SAMPLE_SOURCE)
+    if (!response.ok) throw new Error(String(response.status))
+    setSource(await response.text())
+    sampleSourceResult.textContent = 'It is in the box above: change it if you like, then Build.'
+  } catch {
+    sampleSourceResult.textContent = 'It could not be fetched; load the page again.'
+  }
+})
+
 /** A link's source is built at once, unless it names files, which only the person can choose. */
 async function fromLink(): Promise<void> {
   // A link of this kind is kept in step with the source from here on, whether or not it can be read.
   linked = linksSource(location.hash)
+  // Which visitor the page speaks to, as the script in index.njk set it before the page painted.
+  document.documentElement.classList.toggle('linked', linked)
+  playSample(!linked)
   carried = ''
   let text: string | null
   try {

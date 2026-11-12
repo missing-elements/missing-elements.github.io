@@ -15,6 +15,11 @@ const references = readdirSync(`${author}/references`, { recursive: true, withFi
   .sort();
 const types = references.filter((path) => path.startsWith("references/types/"));
 
+// The content types SKILL.md's table offers the user to choose from (its step 1), which the build
+// page counts and links to.
+const offered = [...readFileSync(`${author}/SKILL.md`, "utf8").matchAll(/^\| (H5P\.\w+) \|/gm)].map(([, type]) => type);
+if (!offered.length) throw new Error(`@missing-elements/h5p-author ${version}: SKILL.md has no table of content types`);
+
 // What a build where npm cannot be reached fetches (SKILL.md's step 3), which vite.config.ts
 // writes to /h5p/bundles/ after this page: the command line, and a bundle per content type, named
 // by the author package's own list of them, the one its `writeBundles` writes from.
@@ -31,7 +36,8 @@ export default {
   // What SKILL.md names and the type files, apart, as the page lists them; `files` is every one.
   named: [...references.filter((path) => !types.includes(path)), "LICENSE"],
   types,
-  files: ["SKILL.md", ...references.filter((path) => !types.includes(path)), "LICENSE", ...types],
+  offered,
+  files:["SKILL.md", ...references.filter((path) => !types.includes(path)), "LICENSE", ...types],
   // In /h5p/bundles/, the tool first.
   bundles: ["h5p-author.mjs", ...bundles],
 };

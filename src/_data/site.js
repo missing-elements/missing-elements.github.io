@@ -39,13 +39,13 @@ export default {
     },
   ],
   // The tools on the home page, under the elements: pages built on them that run in the browser.
-  // A tool's GitHub link is where it is explained. The build page links the skill's page itself.
+  // A tool's GitHub link is its source. The build page links the skill's page itself.
   tools: [
     {
       name: "Build an H5P activity",
-      description: "Make H5P activities with an AI chat and the h5p-author skill: paste the source it wrote, play it, and download a .h5p file for any H5P site. Nothing is uploaded.",
+      description: "Describe a lesson to an AI chat and get an H5P activity, from a quiz to a branching scenario: play it, and download a .h5p file for Moodle or any other H5P site. Free, and nothing is uploaded.",
       page: "/h5p/build/",
-      repo: "https://github.com/missing-elements/missing-elements.github.io/blob/main/docs/h5p-build-page.md",
+      repo: "https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build",
     },
   ],
   buildFeedback,

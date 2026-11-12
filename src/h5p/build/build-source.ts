@@ -1,7 +1,7 @@
 /**
  * What the build page does with a source before and after `@missing-elements/h5p-author` sees it,
  * with no DOM: the source a link carries, the files a source names, the content types it is
- * written in, and the text a chat is given back. The browser tests reach it through the page.
+ * written in, and the text a chat is given back.
  */
 
 import { sourceType } from '@missing-elements/h5p-author/browser'

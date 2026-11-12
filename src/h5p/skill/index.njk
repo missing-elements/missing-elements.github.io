@@ -21,6 +21,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       Its files and those its build fetches, each at its full address, for an AI chat that cannot
       install the skill.
     </p>
+    {#- A person opens this address too, to see what a prompt sends their chat to: they are told
+        what it is, that none of it is theirs to open or install, and where the page for them is. -#}
+    <blockquote class="for-person">
+      <p>
+        <strong>For a person reading this:</strong> the page is written for an AI chat. It lists
+        the instructions that tell a chat how to write an H5P activity, as text files anyone can
+        read, and a person has nothing here to open or install. The page that makes an activity is
+        <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a>.
+      </p>
+    </blockquote>
     <p>
       Read <code>SKILL.md</code> first and follow its steps. A file it names, such as
       <code>references/authoring.md</code> or a content type's <code>references/types/&lt;Type&gt;.md</code>,

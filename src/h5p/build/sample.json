@@ -1,0 +1,109 @@
+{
+  "type": "H5P.CoursePresentation",
+  "title": "Writing learning objectives with Bloom's taxonomy",
+  "language": "en",
+  "license": "U",
+  "authors": [{ "name": "Missing Elements", "role": "Author" }],
+  "params": {
+    "presentation": {
+      "slides": [
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>What is a learning objective?</h2><p>A learning objective says what the learner will be able to do after the lesson, in words you can observe.</p><p>Bloom's revised taxonomy (2001) sorts thinking into six levels, from simplest to most complex: Remember, Understand, Apply, Analyze, Evaluate, Create.</p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "Which statement is a learning objective?",
+              "answers": [
+                { "text": "Learners will be able to list the six levels of Bloom's taxonomy.", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: it names what the learner will do, and the result can be observed." } },
+                { "text": "The lesson is about Bloom's taxonomy.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "This describes the topic, not what the learner will be able to do." } },
+                { "text": "Learners will enjoy the lesson.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Enjoyment cannot be observed or tested, so it is not an objective." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Learning objectives" }]
+        },
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>Remember and Understand</h2><p><strong>Remember</strong> means recalling facts. Verbs: define, list, name, identify.</p><p><strong>Understand</strong> means explaining ideas in your own words. Verbs: summarise, classify, explain, describe.</p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "Which verb belongs to the Understand level?",
+              "answers": [
+                { "text": "List", "correct": false, "tipsAndFeedback": { "chosenFeedback": "List is a Remember verb: it asks for recall, not explanation." } },
+                { "text": "Summarise", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: a summary shows the learner has grasped the idea in their own words." } },
+                { "text": "Name", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Name is a Remember verb: it asks for recall of a fact." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Remember and Understand" }]
+        },
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>Apply and Analyze</h2><p><strong>Apply</strong> means using knowledge in a new situation. Verbs: use, solve, calculate, demonstrate.</p><p><strong>Analyze</strong> means breaking something into parts and seeing how they relate. Verbs: compare, differentiate, organise, examine.</p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "A learner must calculate the total cost of an order using a price list. Which level is this?",
+              "answers": [
+                { "text": "Remember", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Remember would be recalling the price list, not using it to work something out." } },
+                { "text": "Apply", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: the learner uses known information to solve a new problem." } },
+                { "text": "Create", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Create would mean building something new, such as a price list of their own." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Apply and Analyze" }]
+        },
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>Evaluate and Create</h2><p><strong>Evaluate</strong> means judging something against criteria. Verbs: justify, assess, critique, recommend.</p><p><strong>Create</strong> means putting parts together into a new whole. Verbs: design, plan, compose, produce.</p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "Which verb belongs to the Evaluate level?",
+              "answers": [
+                { "text": "Define", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Define is a Remember verb." } },
+                { "text": "Justify", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: to justify, the learner judges a choice against stated criteria." } },
+                { "text": "Design", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Design is a Create verb: it makes something new rather than judging it." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Evaluate and Create" }]
+        },
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>Writing a good objective</h2><p>A good objective names the learner, one observable verb, the content, and the standard expected.</p><p><em>Example: Learners will be able to classify five sample questions by Bloom level, with at least four correct.</em></p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "Which objective is written best?",
+              "answers": [
+                { "text": "Students will understand Bloom's taxonomy.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Understand cannot be seen directly, so there is no way to check it. Pick an observable verb." } },
+                { "text": "Students will be able to classify five sample questions by Bloom level, with at least four correct.", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: an observable verb, a clear task and a standard to meet." } },
+                { "text": "Students will learn about verbs.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Learn names no task and no standard, so it cannot be checked." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Writing a good objective" }]
+        },
+        {
+          "elements": [
+            { "action": { "library": "H5P.AdvancedText", "params": { "text": "<h2>Common mistakes</h2><p>Avoid vague verbs such as <em>know</em>, <em>understand</em> and <em>learn</em>. Keep one main verb per objective, and match the level to the assessment you plan.</p>" } } },
+            { "action": { "library": "H5P.MultiChoice", "params": {
+              "question": "The objective says: Learners will know the six levels. What is the main problem?",
+              "answers": [
+                { "text": "It is too long.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "Length is not the problem here; the verb is." } },
+                { "text": "Know cannot be observed directly, so it is hard to assess.", "correct": true, "tipsAndFeedback": { "chosenFeedback": "Right: change it to an observable verb such as list or classify." } },
+                { "text": "It names no topic.", "correct": false, "tipsAndFeedback": { "chosenFeedback": "It does name a topic, the six levels; the verb is what needs changing." } }
+              ],
+              "behaviour": { "type": "single", "randomAnswers": true, "passPercentage": 100 },
+              "overallFeedback": [{ "from": 0, "to": 100, "feedback": "" }]
+            } } }
+          ],
+          "keywords": [{ "main": "Common mistakes" }]
+        }
+      ]
+    }
+  }
+}
