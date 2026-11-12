@@ -4,7 +4,10 @@
     one), and the theme switch. -#}
 <header class="topbar">
   <div class="wrap topbar-row">
-    <a class="brand" href="/"{% if page.url == "/" %} aria-current="page"{% endif %}><img src="/assets/logo.svg" alt="" width="24" height="24">{{ site.name }}</a>
+    <a class="brand" href="/"{% if page.url == "/" %} aria-current="page"{% endif %}>
+      <img src="/assets/logo.svg" alt="" width="32" height="32">
+      <span class="brand-text"><span class="brand-name">{{ site.name }}</span> <span class="brand-tagline">{{ site.tagline }}</span></span>
+    </a>
     <div class="topbar-end">
       {%- if topbarLinks %}
       <nav class="topbar-links{% if topbarLinksClass %} {{ topbarLinksClass }}{% endif %}" aria-label="On this page">

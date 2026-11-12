@@ -297,17 +297,15 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   </div>
 </main>
 
-<footer class="site-foot">
-  <div class="wrap">
-    <p>
-      Built with <a href="https://github.com/missing-elements/h5p-offline-player">h5p-offline-player</a>
-      and <code>@missing-elements/h5p-author</code>, MIT. The H5P runtime the player loads is
-      <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>. Not affiliated with H5P Group; H5P is a
-      registered trademark of H5P Group AS.
-    </p>
-    <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="https://github.com/missing-elements/h5p-offline-player/issues">open an issue</a>.</p>
-  </div>
-</footer>
+{%- set footIssues = site.github ~ "/h5p-offline-player/issues" %}
+{%- set footNote %}
+<p>
+  Built with <a href="https://github.com/missing-elements/h5p-offline-player">h5p-offline-player</a>
+  and <code>@missing-elements/h5p-author</code>, MIT. The H5P runtime the player loads is
+  <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>.
+</p>
+{%- endset %}
+{% include "site-foot.njk" %}
 {#- What the page is, for a search engine: a free web application for teaching, run in the browser.
     It is data, not a script that runs; the policy's hash for it (eleventy.config.js) is unused. -#}
 <script type="application/ld+json">

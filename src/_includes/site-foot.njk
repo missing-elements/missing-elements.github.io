@@ -1,0 +1,59 @@
+{#- The foot of every page: what the site is, beside where else to go, in columns: the elements and
+    the tools (site.js), the guides, and where the source is. Under them what the page says of
+    itself where it says something (`footNote`, captured before the include with
+    {% set footNote %}…{% endset %}), the notice the H5P tools' names need, and where to fix the
+    page: its source here, and the issues of what it is about (`footIssues`, else this site's). -#}
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-main">
+      <div class="foot-about">
+        <a class="brand" href="/">
+          <img src="/assets/logo.svg" alt="" width="32" height="32">
+          <span class="brand-text"><span class="brand-name">{{ site.name }}</span> <span class="brand-tagline">{{ site.tagline }}</span></span>
+        </a>
+        <p>Free and open source: the elements and the tools are MIT. No sign-up, and no server of ours between you and your files.</p>
+      </div>
+      <nav class="footer-links" aria-label="Site">
+        <div>
+          <h2>Web components</h2>
+          <ul role="list">
+            {%- for element in site.elements %}
+            <li><a href="{{ element.docs }}">{{ element.name }}</a></li>
+            {%- endfor %}
+          </ul>
+        </div>
+        <div>
+          <h2>Tools</h2>
+          <ul role="list">
+            {%- for tool in site.tools %}
+            <li><a href="{{ tool.links[0].href }}">{{ tool.name }}</a></li>
+            {%- endfor %}
+          </ul>
+        </div>
+        <div>
+          <h2>Guides</h2>
+          <ul role="list">
+            <li><a href="/h5p/create-with-ai/">Create H5P content with AI</a></li>
+            <li><a href="/h5p/skill/">The h5p-author skill, for a chat</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Open source</h2>
+          <ul role="list">
+            <li><a href="{{ site.github }}">GitHub</a></li>
+            <li><a href="https://www.npmjs.com/org/missing-elements">npm</a></li>
+            <li><a href="{{ site.github }}/missing-elements.github.io">This site's source</a></li>
+            <li><a href="https://donatello.to/OleksandrShevchuk">Support the project</a></li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="foot-base">
+      {%- if footNote %}
+      {{ footNote | safe }}
+      {%- endif %}
+      <p>Not affiliated with H5P Group; H5P is a registered trademark of H5P Group AS.</p>
+      <p>Found a mistake? <a href="{{ site.github }}/missing-elements.github.io/edit/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="{{ footIssues or (site.github ~ '/missing-elements.github.io/issues') }}">open an issue</a>.</p>
+    </div>
+  </div>
+</footer>

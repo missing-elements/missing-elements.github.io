@@ -340,9 +340,14 @@ tbody th a:hover code { text-decoration: underline; }
   font-size: 0.875rem;
   scroll-target-group: auto;
 }
-.brand { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; text-decoration: none; }
-.brand img { width: 1.5rem; height: 1.5rem; }
-.brand:hover { text-decoration: underline; }
+/* The top bar's brand: the logo, then the name over what the organization makes. A hover underlines
+   the name alone, which a line on the link itself would not let the subline out of. */
+.brand { display: inline-flex; align-items: center; gap: 0.625rem; min-inline-size: 0; color: var(--text); text-decoration: none; }
+.brand img { flex: none; width: 2rem; height: 2rem; }
+.brand-text { display: grid; min-inline-size: 0; line-height: 1.25; }
+.brand-name { font-weight: 600; }
+.brand-tagline { color: var(--muted); font-size: 0.8125rem; text-wrap: balance; }
+.brand:hover .brand-name { text-decoration: underline; }
 .toc ol, .toc-inline ol { margin: 0; padding: 0; list-style: none; }
 .toc li + li, .toc-inline li + li { margin-top: 0; }
 .toc ol a, .toc-inline a {
@@ -546,41 +551,48 @@ tbody th a:hover code { text-decoration: underline; }
   .flash { animation: none; }
 }
 
-/* The pages of one column, the org home, the skill page and the guide: in the build page's
-   container, under its top bar. */
-:is(.home, .skill, .guide) { padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) clamp(3.5rem, 2rem + 5vw, 6rem); }
+/* The pages of one column, the skill page and the guide: in the build page's container, under its
+   top bar. */
+:is(.skill, .guide) { padding-block: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) clamp(3.5rem, 2rem + 5vw, 6rem); }
 
-/* Org home */
-.home h1 { margin: 0 0 0.5rem; font-size: 2rem; }
-.brand-title { display: flex; align-items: center; gap: 0.75rem; }
-.brand-title img { width: 3rem; height: 3rem; }
-.home .lead { max-width: var(--measure); margin-bottom: 2rem; }
-/* A group of cards under its title, the size of a docs page's section title, without its rule. */
-.home section + section { margin-top: 3rem; }
-.home section > h2 { margin: 0 0 0.75rem; padding: 0; border: 0; font-size: 1.5rem; }
-.home section > p { max-width: var(--measure); margin: 0 0 1.25rem; color: var(--muted); }
-/* Cards: on the home page, the elements and the tools. Two to a row where two fit and never more,
-   so one alone keeps the width of the others. Each is as tall as its row, with its links at its
-   foot. */
+/* Org home: the build page's bands, its first screen's words no wider than a heading of two lines. */
+.home .hero-words { max-inline-size: 46rem; }
+/* Cards: on the home page, the elements and the tools, as the build page's steps are drawn. Three to
+   a row on a wide screen, two on a tablet, one on a phone; each an <article> as tall as its row,
+   with its links in its <footer>, at its foot. */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, max(18rem, calc((100% - 1rem) / 2))), 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+  gap: 1.25rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.cards > li { display: flex; flex-direction: column; margin: 0; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.cards :is(h3, h4) { margin: 0 0 0.25rem; font-size: 1.125rem; }
-.cards p { margin: 0 0 0.5rem; color: var(--muted); }
-.cards .links { display: flex; gap: 1rem; margin-top: auto; font-size: 0.875rem; }
-/* The home page's footer: where else the elements are, in columns of links. */
-.footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem 4rem; }
-.footer-links h2 { margin: 0 0 0.5rem; padding: 0; border: 0; color: var(--text); font-size: 0.875rem; }
+.cards > li { display: grid; margin: 0; }
+.cards article { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--raised); }
+.cards h3 { margin: 0; font-size: 1.125rem; }
+.cards p { margin: 0; color: var(--muted); }
+.card-tag code { font-size: 0.8125rem; }
+.cards .links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-top: auto; padding-top: 0.5rem; font-size: 0.875rem; }
+/* The foot of every page (site-foot.njk): what the site is, then where else to go in four columns,
+   two to a row on a phone, and beside it where both fit; under a rule, what the page says of
+   itself and where to fix it. A count, not as many as fit, so a column is never left alone. */
+.site-foot { padding-block: clamp(2.5rem, 2rem + 2vw, 4rem) 2.5rem; border-block-start: 1px solid var(--border); color: var(--muted); font-size: 0.875rem; }
+.site-foot p { max-inline-size: var(--measure); margin: 0 0 0.5rem; }
+.foot-main { display: grid; gap: 2rem 4rem; }
+@media (width >= 72rem) { .foot-main { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); } }
+.foot-about .brand { font-size: 1rem; }
+.foot-about p { margin-block-start: 1rem; }
+.footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1.5rem; }
+@media (width >= 48rem) { .footer-links { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.footer-links h2 { margin: 0 0 0.75rem; padding: 0; border: 0; color: var(--text); font-size: 0.875rem; }
 .footer-links ul { margin: 0; padding: 0; list-style: none; }
-.footer-links li + li { margin-top: 0.35rem; }
+.footer-links li { text-wrap: balance; }
+.footer-links li + li { margin-top: 0.5rem; }
 .footer-links a { color: var(--muted); text-decoration: none; }
 .footer-links a:hover { color: var(--text); text-decoration: underline; }
+.foot-base { margin-block-start: clamp(2rem, 1.5rem + 2vw, 3rem); padding-block-start: 1.5rem; border-block-start: 1px solid var(--border); }
+.foot-base > :last-child { margin-block-end: 0; }
 
 /* The skill page: one wide column, its prose at --measure, and its sections as steps. */
 .skill > * { max-inline-size: var(--page-width); }
@@ -647,7 +659,12 @@ tbody th a:hover code { text-decoration: underline; }
 .topbar-links { display: flex; gap: 1.75rem; font-size: 0.9375rem; }
 .topbar-links a { color: var(--muted); text-decoration: none; }
 .topbar-links a:hover { color: var(--text); text-decoration: underline; }
-@media (width < 48rem) { .topbar-links { display: none; } }
+/* Narrower than the brand and the longest section links need side by side, the guide's, the brand
+   and the switch alone, on one row: the subline wraps before the switch would. */
+@media (width < 52rem) {
+  .topbar-links { display: none; }
+  .topbar-row { flex-wrap: nowrap; }
+}
 
 /* The first screen: the title, what the page makes and two ways on, and the sample, which plays,
    beside them where there is room for both and under them where there is not. The sample takes
@@ -779,9 +796,16 @@ tbody th a:hover code { text-decoration: underline; }
 }
 .how h3 { margin: 0 0 0.4rem; font-size: 1.0625rem; }
 .how p { margin: 0; color: var(--muted); }
-/* The prompt, in a code block's frame for its Copy button: prose, so it wraps. */
+/* The prompt, in a code block's frame for its Copy button: prose, so it wraps. It is on the
+   accent's tint, which a code block's color is not: that is a tinted band's own, as on the build
+   page, and next to the page's. Its frame takes the tint once, the text and the bar showing it
+   through; the bar's label then takes the text's color, where the muted one is too faint on the
+   tint in the dark theme (4.4:1). */
 .prompt-box { max-inline-size: 48rem; }
 pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375rem; }
+pre.prompt, .code:has(> pre.prompt) { background: var(--tint); }
+.code > pre.prompt { background: none; }
+.code:has(> pre.prompt) .code-bar { color: var(--text); }
 
 /* Build it: the steps on the same left edge as the rest, no wider than the source's editor reads. */
 .tool .step { max-inline-size: 60rem; }
@@ -807,9 +831,6 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
 .closing-grid h2 { margin: 0; padding: 0; border: 0; font-size: 1.375rem; }
 .closing-grid p { margin: 0; color: var(--muted); }
 .feedback-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block-start: auto; padding-block-start: 0.5rem; }
-
-.site-foot { padding-block: 2.5rem 3rem; border-block-start: 1px solid var(--border); color: var(--muted); font-size: 0.875rem; }
-.site-foot p { max-inline-size: var(--measure); }
 
 /* H5P build page, /h5p/build/ */
 .build {

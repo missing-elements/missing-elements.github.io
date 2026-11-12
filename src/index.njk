@@ -1,80 +1,72 @@
 ---
 layout: base.njk
 title: Missing Elements
-description: Standalone, self-hostable web components for viewing documents and content in the browser.
+description: Elements the web platform is missing, as web components you host yourself, and tools built on them that run in your browser, your editor and your AI agent.
 ---
 {% include "topbar.njk" %}
 
-{#- The cards and links are lists drawn without bullets, and Safari then reads one as a list only if it is told. -#}
-<main class="home wrap" id="main">
-  <h1 class="brand-title"><img src="/assets/logo.svg" alt="" width="48" height="48">Missing Elements</h1>
-  <p class="lead">Standalone, self-hostable web components for viewing documents and content in the browser.</p>
-
-  <section aria-labelledby="elements-heading">
-    <h2 id="elements-heading">Web components</h2>
-    <ul class="cards" role="list">
-      {%- for element in site.elements %}
-      <li>
-        <h3><a href="{{ element.docs }}">{{ element.name }}</a></h3>
-        <p>{{ element.description }}</p>
-        <div class="links">
-          <a href="{{ element.docs }}">Docs</a>
-          <a href="{{ element.repo }}">GitHub</a>
-        </div>
-      </li>
-      {%- endfor %}
-    </ul>
+{#- The build page's bands: a first screen that says what the organization makes, then the elements
+    and the tools as cards. The cards and links are lists drawn without bullets, and Safari then
+    reads one as a list only if it is told. A card's links say whose they are to a screen reader,
+    which may list them apart from the card: "Open, H5P to SCORM". -#}
+<main class="home" id="main">
+  <section class="hero" aria-labelledby="page-title">
+    <div class="wrap">
+      <div class="hero-words">
+        <h1 id="page-title">Elements the web platform is missing, and tools built on them</h1>
+        <p class="lead">
+          Web components you host yourself, in any framework or none, and tools that run in your
+          browser, your editor and your AI agent. Free and open source, with no server of ours
+          between you and your files.
+        </p>
+      </div>
+    </div>
   </section>
 
-  <section aria-labelledby="tools-heading">
-    <h2 id="tools-heading">Tools</h2>
-    <p>Apps built on the elements, which run in your browser.</p>
-    <ul class="cards" role="list">
-      {%- for tool in site.tools %}
-      <li>
-        <h3><a href="{{ tool.page }}">{{ tool.name }}</a></h3>
-        <p>{{ tool.description }}</p>
-        <div class="links">
-          <a href="{{ tool.page }}">Open</a>
-          {%- if tool.guide %}
-          <a href="{{ tool.guide }}">How-to</a>
-          {%- endif %}
-          <a href="{{ tool.repo }}">GitHub</a>
-        </div>
-      </li>
-      {%- endfor %}
-    </ul>
+  <section class="band" aria-labelledby="elements-heading">
+    <div class="wrap">
+      <header class="band-head">
+        <h2 id="elements-heading">Web components</h2>
+        <p>Custom elements for any framework or none, which you serve from your own host, under a strict Content Security Policy.</p>
+      </header>
+      <ul class="cards" role="list">
+        {%- for element in site.elements %}
+        <li><article>
+          <h3><a href="{{ element.docs }}">{{ element.name }}</a></h3>
+          <p class="card-tag"><code>&lt;{{ element.tag }}&gt;</code></p>
+          <p>{{ element.description }}</p>
+          <footer class="links">
+            <a href="{{ element.docs }}">{{ element.docsText }}<span class="visually-hidden">, {{ element.name }}</span></a>
+            <a href="https://www.npmjs.com/package/{{ element.package }}">npm<span class="visually-hidden">, {{ element.name }}</span></a>
+            <a href="{{ element.repo }}">GitHub<span class="visually-hidden">, {{ element.name }}</span></a>
+          </footer>
+        </article></li>
+        {%- endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band band-tint" aria-labelledby="tools-heading">
+    <div class="wrap">
+      <header class="band-head">
+        <h2 id="tools-heading">Tools</h2>
+        <p>Built on the elements, for making and playing H5P: in your browser, your editor and your AI agent.</p>
+      </header>
+      <ul class="cards" role="list">
+        {%- for tool in site.tools %}
+        <li><article>
+          <h3><a href="{{ tool.links[0].href }}">{{ tool.name }}</a></h3>
+          <p>{{ tool.description }}</p>
+          <footer class="links">
+            {%- for link in tool.links %}
+            <a href="{{ link.href }}">{{ link.text }}<span class="visually-hidden">, {{ tool.name }}</span></a>
+            {%- endfor %}
+          </footer>
+        </article></li>
+        {%- endfor %}
+      </ul>
+    </div>
   </section>
 </main>
 
-{#- The home page's footer: where else the elements are, in columns of links. Each element's name
-    twice, under npm and under Issues: the hidden words say which, in a list of the page's links. -#}
-<footer class="site-foot">
-  <div class="wrap">
-    <nav class="footer-links" aria-label="Useful links">
-      <div>
-        <h2>npm</h2>
-        <ul role="list">
-          {%- for element in site.elements %}
-          <li><a href="https://www.npmjs.com/package/{{ element.package }}">{{ element.name }}<span class="visually-hidden"> on npm</span></a></li>
-          {%- endfor %}
-        </ul>
-      </div>
-      <div>
-        <h2>GitHub</h2>
-        <ul role="list">
-          <li><a href="{{ site.github }}">The organization</a></li>
-          <li><a href="{{ site.github }}/missing-elements.github.io">This site's source</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Issues</h2>
-        <ul role="list">
-          {%- for element in site.elements %}
-          <li><a href="{{ element.repo }}/issues">{{ element.name }}<span class="visually-hidden"> issues</span></a></li>
-          {%- endfor %}
-        </ul>
-      </div>
-    </nav>
-  </div>
-</footer>
+{% include "site-foot.njk" %}

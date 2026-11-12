@@ -231,13 +231,11 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 
 </main>
 
-<footer class="site-foot">
-  <div class="wrap">
-    <p>
-      The h5p-author skill is MIT, from
-      <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">h5p-offline-player</a>.
-      Not affiliated with H5P Group; H5P is a registered trademark of H5P Group AS.
-    </p>
-    <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="https://github.com/missing-elements/h5p-offline-player/issues">open an issue</a>.</p>
-  </div>
-</footer>
+{%- set footIssues = site.github ~ "/h5p-offline-player/issues" %}
+{%- set footNote %}
+<p>
+  The h5p-author skill is MIT, from
+  <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">h5p-offline-player</a>.
+</p>
+{%- endset %}
+{% include "site-foot.njk" %}

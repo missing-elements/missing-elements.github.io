@@ -50,9 +50,6 @@ bodyClass: docs-page
   <button type="button" class="button preview-open" data-preview-open aria-controls="preview" aria-expanded="false" hidden>Preview</button>
 </div>
 
-<footer class="site-foot">
-  <div class="wrap">
-    <p>Found a mistake? <a href="https://github.com/missing-elements/missing-elements.github.io/blob/main/{{ page.inputPath | replace('./', '') }}">Edit this page</a> or <a href="{{ pdfjsViewer.repo }}/issues">open an issue</a>.</p>
-  </div>
-</footer>
+{%- set footIssues = pdfjsViewer.repo ~ "/issues" %}
+{% include "site-foot.njk" %}
 <script type="module" src="/pdfjs-viewer/docs.js"></script>
