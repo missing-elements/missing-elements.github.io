@@ -30,7 +30,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     (#source=), gets the build at once. One who came with none gets a landing page: what it makes,
     a sample that plays, how to make their own. What is said to one alone is marked when-linked or
     when-unlinked, and site.css shows it by the class this line puts on <html> before the page
-    paints; build-page.ts keeps the class in step with the address from then on. -#}
+    paints; build-page.ts keeps the class in step with the address from then on. A link whose
+    source cannot be read is a third case, which build-page.ts finds once it has tried: it puts
+    `unread` on <html>, and what is said of a source the link carried is marked when-read, what is
+    said in its place when-unread. -#}
 <script>if (new URLSearchParams(location.hash.slice(1)).has("source")) document.documentElement.classList.add("linked")</script>
 {% include "topbar.njk" %}
 
@@ -51,10 +54,19 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
           <a class="button button-solid button-large" href="#make">Make your own</a>
           <a class="button button-large" href="#build-it">Paste your chat's JSON</a>
         </div>
-        <p class="lead when-linked">The link you opened carries an activity an AI chat wrote.</p>
-        <p class="when-linked">
+        <p class="lead when-linked when-read">The link you opened carries an activity an AI chat wrote.</p>
+        <p class="when-linked when-read">
           This page builds it in your browser, where you play it and download a
           <code>.h5p</code> file that Moodle or any other H5P site takes. Nothing is uploaded.
+        </p>
+        {#- A link whose source cannot be read: a chat writes the link out itself, and one wrong
+            character leaves nothing of a compressed source. The page says so here, first, in place
+            of saying the link carried an activity, and what to do above the source's box. These
+            two stay for the visit, so they say what stays true once the source has come another way. -#}
+        <p class="lead when-unread">The link you opened arrived damaged, so the activity in it cannot be read.</p>
+        <p class="when-unread">
+          This page builds an activity in your browser from its source, which
+          <a href="#source-heading">step 1</a> says how to bring here. Nothing is uploaded.
         </p>
       </div>
       {#- The sample is /h5p/build/sample.h5p, which Vite builds from sample.json beside this file.
@@ -157,7 +169,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
       <section class="step" aria-labelledby="source-heading">
         <h3 id="source-heading"><span class="step-marker"><span class="step-number">1</span></span> Source</h3>
         <p class="when-unlinked">The source is your activity as the chat wrote it. The sample's is here to start with: paste yours over it, or open it from a file.</p>
-        <p class="when-linked">The source is your activity as the chat wrote it. The link carried it here.</p>
+        <p class="when-linked">The source is your activity as the chat wrote it. <span class="when-read">The link carried it here.</span></p>
+        {#- Shown by build-page.ts for a link whose source cannot be read, until a source is here: above
+            the box, where a person who opened the link looks, with each way to bring the source. -#}
+        <p class="status" id="link-state" role="status" hidden>
+          The source this link carried cannot be read: a chat can get characters wrong when it
+          writes out a long link. Ask it to give the link again. If it gave you a
+          <code>.source.json</code> file,
+          <button type="button" class="link-button" id="open-source">open that file here</button>
+          and choose Build below. Or ask it for the source as JSON and paste it into the box.
+        </p>
         <div class="field">
           <label for="source" id="source-label">The source, as JSON</label>
           <textarea id="source" rows="12" spellcheck="false" autocomplete="off" placeholder="The source your chat wrote goes here. It starts with { and ends with }."></textarea>
