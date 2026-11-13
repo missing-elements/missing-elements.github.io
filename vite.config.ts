@@ -3,6 +3,7 @@ import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildPackage, writeBundles } from '@missing-elements/h5p-author'
+import { Uint8ArrayReader, Uint8ArrayWriter, ZipWriter } from '@zip.js/zip.js'
 import { build, defineConfig, type Plugin } from 'vite'
 
 /*
@@ -202,12 +203,99 @@ function bundles(): Plugin {
   }
 }
 
+/** One date for every entry, as `h5p-author bundle` writes its zips: the same pin writes the same bytes. */
+const ZIP_DATE = new Date(2000, 0, 1, 2)
+
+/**
+ * The h5p-author skill as zips to install, beside the files `/h5p/skill/` serves, from the same
+ * pinned author package:
+ *
+ * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
+ *   app takes under Customize, Skills (as does Open WebUI's import).
+ * - `h5p-author-chatgpt.zip`: the same files as a plugin, under `skills/h5p-author/`, with its
+ *   `plugin.json` at the root, which ChatGPT's Plugins take. A zip with the folder at its root is
+ *   refused there ("Plugin archive must contain … `skills/*\/SKILL.md`"). The manifest is the Agent
+ *   Plugins one, which allows no field but its own ten, with ChatGPT's name for the plugin under
+ *   `extensions`; a name that leads with "H5P" says who made it.
+ *
+ * Both were uploaded as they are written here, by the owner on 2026-11-13. ChatGPT's code cannot
+ * read a plugin's files, so neither carries the build tool: where a chat cannot install it, the
+ * build page builds.
+ */
+function skillZips(): Plugin {
+  const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
+  const guide = 'https://missing-elements.github.io/h5p/create-with-ai/'
+  let outDir = ''
+  return {
+    name: 'missing-elements:skill-zips',
+    apply: 'build',
+    configResolved(config) {
+      outDir = resolve(config.root, config.build.outDir)
+    },
+    async writeBundle() {
+      const { version } = JSON.parse(await readFile(new URL('package.json', author), 'utf8')) as { version: string }
+      // The files eleventy.config.js copies to /h5p/skill/: SKILL.md, the licence and references/.
+      const references = readdirSync(new URL('references/', author), { recursive: true, withFileTypes: true })
+        .filter((entry) => entry.isFile())
+        .map((entry) => join(entry.parentPath, entry.name).slice(fileURLToPath(author).length).split('\\').join('/'))
+      const files = ['SKILL.md', 'LICENSE', ...references].sort()
+      const skill = await Promise.all(files.map(async (path) => [path, await readFile(new URL(path, author))] as const))
+      const manifest = {
+        $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+        name: 'h5p-author',
+        version,
+        description: 'Create H5P content from a prompt, a lesson or supplied material, as a playable .h5p: quizzes, flash cards, presentations, interactive books and more.',
+        author: { name: 'Missing Elements', url: 'https://github.com/missing-elements' },
+        homepage: guide,
+        repository: 'https://github.com/missing-elements/h5p-offline-player',
+        license: 'MIT',
+        keywords: ['h5p', 'quiz', 'e-learning', 'authoring'],
+        extensions: {
+          'com.openai': {
+            interface: {
+              displayName: 'H5P Author by Missing Elements',
+              shortDescription: 'Make a playable H5P activity from a prompt or your material',
+              developerName: 'Missing Elements',
+              websiteURL: guide
+            }
+          }
+        }
+      }
+      const folder = join(outDir, 'h5p', 'skill')
+      await mkdir(folder, { recursive: true })
+      await writeFile(join(folder, 'h5p-author.zip'), await zipOf('h5p-author/', skill))
+      await writeFile(join(folder, 'h5p-author-chatgpt.zip'), await zipOf('skills/h5p-author/', skill, [['plugin.json', new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`)]]))
+    }
+  }
+}
+
+/**
+ * A zip of the files under `prefix`, after the files at its root, with an entry for each folder
+ * before what is in it, as `git archive` writes one: the shape of the zips first uploaded.
+ */
+async function zipOf(prefix: string, files: ReadonlyArray<readonly [string, Uint8Array]>, atRoot: ReadonlyArray<readonly [string, Uint8Array]> = []): Promise<Uint8Array> {
+  const writer = new ZipWriter(new Uint8ArrayWriter(), { useWebWorkers: false, lastModDate: ZIP_DATE, extendedTimestamp: false })
+  for (const [path, bytes] of atRoot) await writer.add(path, new Uint8ArrayReader(bytes))
+  const folders = new Set<string>()
+  for (const [path, bytes] of files) {
+    const parts = `${prefix}${path}`.split('/')
+    for (let depth = 1; depth < parts.length; depth++) {
+      const name = `${parts.slice(0, depth).join('/')}/`
+      if (folders.has(name)) continue
+      folders.add(name)
+      await writer.add(name, undefined, { directory: true })
+    }
+    await writer.add(`${prefix}${path}`, new Uint8ArrayReader(bytes))
+  }
+  return writer.close()
+}
+
 export default defineConfig({
   publicDir: false,
   // A missing file is a 404, as on GitHub Pages, not the home page: `pnpm preview` answers as the
   // site does, where an SPA's fallback would answer every address with a page.
   appType: 'mpa',
-  plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), sample(), bundles()],
+  plugins: [emptyOwnFolders(), licenceFiles(), typeFiles(), sample(), bundles(), skillZips()],
   build: {
     outDir: '_site',
     emptyOutDir: false,

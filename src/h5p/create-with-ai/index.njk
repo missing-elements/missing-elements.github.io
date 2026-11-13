@@ -12,6 +12,7 @@ socialImage:
   alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
 # The top bar's links to the page's own sections (topbar.njk).
 topbarLinks:
+  - { href: "#install", text: "Install" }
   - { href: "#prompts", text: "Prompts" }
   - { href: "#types", text: "Types" }
   - { href: "#open-source", text: "Open source" }
@@ -39,7 +40,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       H5P. It writes the activity, and <a href="/h5p/build/">the build page</a> makes it a
       <code>.h5p</code> file for Moodle or any other H5P site. Both are free and
       <a href="#open-source">open source</a>, with no account and nothing to install: you need only a
-      chat that can open a web page.
+      chat that can open a web page. In Claude or ChatGPT you can also
+      <a href="#install">install the skill once</a>.
     </p>
     <p><a class="button button-solid button-large" href="/h5p/build/">Open the build page</a></p>
   </header>
@@ -109,6 +111,40 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">on a site of your own</a>
       or <a href="https://h5p-offline-player.vercel.app/app/">offline, in its app</a>.
     </p>
+  </section>
+
+  {#- The zips are written by vite.config.ts from the release the site pins, so each holds the skill
+      the prompt above sends a chat to. Each was uploaded as it is, by the owner, on 2026-11-13. -#}
+  <section aria-labelledby="install">
+    <h2 id="install">Or install the skill once</h2>
+    <p>
+      Installed, the skill stays in your chat: ask for an activity with no address to paste, such as
+      "Use the h5p-author skill to make a quiz of five questions on the rivers of Europe".
+    </p>
+    <ul>
+      <li>
+        <strong>Claude</strong>, on claude.ai or in its apps: download
+        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a> and upload it under Customize,
+        then Skills, with code execution on. Claude builds the <code>.h5p</code> file in the chat.
+      </li>
+      <li>
+        <strong>ChatGPT</strong>: download
+        <a href="/h5p/skill/h5p-author-chatgpt.zip" download>h5p-author-chatgpt.zip</a> and upload it
+        under Plugins. ChatGPT cannot install the build tool, so it hands over a link to the build
+        page. If the page says the link arrived damaged, ask for the link again, or for the source
+        as a file, and open that on the build page.
+      </li>
+      <li>
+        <strong>Open WebUI</strong>: an administrator imports the skill under Import from URL, from
+        its folder on GitHub,
+        <code>https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author</code>.
+      </li>
+      <li>
+        <strong>An agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
+        <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>.
+      </li>
+    </ul>
+    <p>The zips hold h5p-author {{ skill.version }}, the release the build page runs.</p>
   </section>
 
   <section aria-labelledby="prompts">
