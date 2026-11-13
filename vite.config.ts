@@ -134,9 +134,11 @@ function sample(): Plugin {
 }
 
 /**
- * `/h5p/bundles/`, for a chat that runs Node and can fetch a file but reaches no npm registry, as
- * in ChatGPT's sandbox. The h5p-author skill builds there from two files fetched from here: the
- * command line, and the bundle of the source's content type.
+ * `/h5p/bundles/`, for a chat that runs Node and can fetch a file but reaches no npm registry. The
+ * h5p-author skill builds there from two files fetched from here: the command line, and the
+ * bundle of the source's content type. Grok built that way on 2026-11-13, its `npx` having timed
+ * out. In ChatGPT's sandbox, which the bundles were first made for, the skill has not been seen
+ * to fetch either.
  *
  * - `<type>.zip`, one per content type in the pack (`h5p-author bundle --all`): `parts/`, the
  *   pack's whole index with the parts a build of that type can read, and `libraries.txt`.
@@ -211,16 +213,17 @@ const ZIP_DATE = new Date(2000, 0, 1, 2)
  * pinned author package:
  *
  * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
- *   app takes under Customize, Skills (as does Open WebUI's import).
+ *   app takes under Customize, Skills, and Grok's under Skills, Import (as does Open WebUI's
+ *   import).
  * - `h5p-author-chatgpt.zip`: the same files as a plugin, under `skills/h5p-author/`, with its
  *   `plugin.json` at the root, which ChatGPT's Plugins take. A zip with the folder at its root is
  *   refused there ("Plugin archive must contain … `skills/*\/SKILL.md`"). The manifest is the Agent
  *   Plugins one, which allows no field but its own ten, with ChatGPT's name for the plugin under
  *   `extensions`; a name that leads with "H5P" says who made it.
  *
- * Both were uploaded as they are written here, by the owner on 2026-11-13. ChatGPT's code cannot
- * read a plugin's files, so neither carries the build tool: where a chat cannot install it, the
- * build page builds.
+ * Both were uploaded as they are written here, by the owner on 2026-11-13, the first into Claude
+ * and into Grok. ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
+ * where a chat's code cannot reach it, the build page builds.
  */
 function skillZips(): Plugin {
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)

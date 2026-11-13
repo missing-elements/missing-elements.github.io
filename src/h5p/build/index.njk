@@ -97,7 +97,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <li class="feature">
           <span class="feature-icon icon-ai" aria-hidden="true"></span>
           <h3>Works with your AI chat</h3>
-          <p>Claude, ChatGPT and Grok all work. A model you run on your own computer should work too, if it can open a web page.</p>
+          <p>Claude, ChatGPT and Grok take the h5p-author skill as a zip you upload once. An agent with a terminal, such as Claude Code, Codex or Cursor, installs it with one command.</p>
         </li>
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
@@ -118,36 +118,33 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     </div>
   </section>
 
-  {#- The prompt is a code block, which site.js gives a Copy button. It carries the skill's page at its
-      whole address, which a chat's fetch tool needs. It names the content type, so the chat asks
-      only for the author and licence: the sample is what Haiku wrote for it, with the site's name
-      and licence put on it. -#}
+  {#- The prompt is a code block, which site.js gives a Copy button. It names the skill, which the
+      chat has once the first step is done, and the content type, so the chat asks only for the
+      author and licence: the sample is what Haiku wrote for this request, with the site's name and
+      licence put on it. Until 2026-11-13 the prompt sent the chat to read the skill at /h5p/skill/
+      instead, which worked only in chats that now take the skill as a zip. -#}
   <section class="band band-tint make when-unlinked" id="make" aria-labelledby="make-heading">
     <div class="wrap">
       <header class="band-head">
         <h2 id="make-heading">How it works</h2>
-        <p>Three steps, with an AI chat that can open a web page.</p>
+        <p>Three steps, in Claude, ChatGPT or Grok.</p>
       </header>
       <ol class="how" role="list">
         <li>
-          <h3>Ask your chat</h3>
-          <p>Paste the prompt below into the chat, with a subject of your own.</p>
+          <h3>Install the skill, once</h3>
+          <p>The h5p-author skill is the instructions that tell a chat how to write H5P. Download it and upload it to your chat: <a href="/h5p/create-with-ai/#install">where it goes in Claude, ChatGPT and Grok</a>.</p>
         </li>
         <li>
-          <h3>Answer a question</h3>
-          <p>The chat asks whose name and which licence go on it, which you may skip, and which kind of activity you want if the prompt names none. Then it writes the activity.</p>
+          <h3>Ask your chat</h3>
+          <p>Paste the prompt below into a new chat, with a subject of your own. The chat asks whose name and which licence go on the activity, which you may skip, and writes it.</p>
         </li>
         <li>
           <h3>Play it, then download it</h3>
-          <p>It hands over a link that opens the activity here, or its source, a block of JSON to <a href="#build-it">paste below</a>. Some chats build the <code>.h5p</code> file themselves.</p>
+          <p>Claude and Grok build the <code>.h5p</code> file in the chat. ChatGPT hands over a link that opens the activity here, or its source, to <a href="#build-it">open or paste below</a>.</p>
         </li>
       </ol>
       <div class="prompt-box">
-        <pre class="language-text prompt" data-label="Prompt">Read {{ site.url }}/h5p/skill/ and follow it to make an H5P Course Presentation of six slides on writing learning objectives with Bloom's taxonomy, with a question on each slide.</pre>
-        <p class="hint">
-          The address in the prompt is <a href="/h5p/skill/">the h5p-author skill's page</a>: the
-          instructions that tell a chat how to write an H5P activity, as text anyone can read.
-        </p>
+        <pre class="language-text prompt" data-label="Prompt">Use the h5p-author skill to make an H5P Course Presentation of six slides on writing learning objectives with Bloom's taxonomy, with a question on each slide.</pre>
         <p>
           More prompts, every type, and what to do when something goes wrong:
           <a href="/h5p/create-with-ai/">how to create H5P content with AI, step by step</a>.
