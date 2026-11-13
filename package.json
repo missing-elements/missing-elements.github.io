@@ -32,6 +32,7 @@
     "@missing-elements/h5p-libraries": "1.1.0",
     "@missing-elements/h5p-offline-player": "1.6.0",
     "@missing-elements/h5p-runtime": "1.0.1",
-    "@missing-elements/pdfjs-viewer": "4.5.0"
+    "@missing-elements/pdfjs-viewer": "4.5.0",
+    "@zip.js/zip.js": "2.24.0"
   }
 }

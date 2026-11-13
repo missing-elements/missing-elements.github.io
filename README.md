@@ -9,7 +9,7 @@ The site of the [missing-elements](https://github.com/missing-elements) web comp
 | `/` | The project list, the tools (the build page, which links the skill's page), and a footer of links | [src/index.njk](src/index.njk); the lists are in [src/_data/site.js](src/_data/site.js) |
 | `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/) |
 | `/h5p/build/` | The build page, for people: what it makes, a sample that plays, and the build of a chat's source into a `.h5p`, in the visitor's browser | [src/h5p/build/](src/h5p/build/) |
-| `/h5p/skill/` | The skill's files, and a page that lists each at its full address, for a chat | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js) |
+| `/h5p/skill/` | The skill's files, and a page that lists each at its full address, for a chat; and the skill as zips to install: `h5p-author.zip` for Claude, `h5p-author-chatgpt.zip` for ChatGPT's Plugins | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); the zips written by [vite.config.ts](vite.config.ts) |
 | `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm | written by [vite.config.ts](vite.config.ts) |
 | `/h5p/build/types/` | The skill's type files, which the build page copies for the chat | written by [vite.config.ts](vite.config.ts) |
 
