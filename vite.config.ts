@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
@@ -153,7 +154,9 @@ function sample(): Plugin {
  *   so a build whose text calls for one stops and names its part, which the chat fetches from here.
  * - `h5p-author.mjs`: the command line as one file, everything it imports bundled in by Vite, so it
  *   runs with nothing installed. It takes `--libraries`: the npm package's pinned pack is not with
- *   it, nor the package.json `--version` reads, so `index.json` says the versions.
+ *   it. Since 0.9.8 its `--version` prints the versions from copies of the two package.json files
+ *   Vite writes in (h5p-offline-player#198); before, it crashed, finding neither beside it. The
+ *   build runs it and stops where it does not print the versions `index.json` says.
  * - `index.json`: the author's and the pack's versions, and each bundle's file, size and parts.
  * - `libraries.txt`: the pack's licence list, which asks to travel with its libraries.
  *
@@ -196,6 +199,10 @@ function bundles(): Plugin {
         },
         ssr: { noExternal: true, target: 'node' }
       })
+      // The tool says its own versions, as a model checking it first asks: those this site pins.
+      const expected = `@missing-elements/h5p-author ${await version(author)}, library pack ${await version(libraries)}`
+      const printed = execFileSync(process.execPath, [join(folder, 'h5p-author.mjs'), '--version'], { encoding: 'utf8' }).trim()
+      if (printed !== expected) throw new Error(`h5p-author.mjs --version printed "${printed}", not "${expected}"`)
       // The archive lays them out as a build from the bundles does: `tar -xzf`, then `--libraries parts`.
       const archive = tarGz([
         ['h5p-author.mjs', await readFile(join(folder, 'h5p-author.mjs'))],
