@@ -92,7 +92,7 @@ export default {
       description: "Five skills for Claude Code and other agents: H5P from a prompt, a check that it plays, a SCORM zip, H5P on your site, and video that streams.",
       links: [
         { text: "Install", href: "https://skills.sh/missing-elements/h5p-offline-player" },
-        { text: "For a chat", href: "/h5p/skill/" },
+        { text: "For a chat", href: "/h5p/create-with-ai/#install" },
         { text: "GitHub", href: "https://github.com/missing-elements/h5p-offline-player/tree/main/skills" },
       ],
     },

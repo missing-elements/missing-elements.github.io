@@ -6,6 +6,12 @@ description: The h5p-author skill's files and those its build fetches, each at i
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
 ---
+{#- No page of the site links here since 2026-11-13, when its prompts stopped sending a chat to read
+    the skill from this page: the skill is installed, which is the guide's first step. The page
+    stays for what names its address: the copies of the skill already installed, which take the
+    build tool's and the bundles' addresses from it where npm cannot be reached (SKILL.md's step
+    3, as Grok built on 2026-11-13), and the prompts people copied before. The zips are served
+    from this folder too. -#}
 {#- Every address is written out whole, as its link's text too: a chat's fetch tool may open only
     the addresses it has seen in full, and a relative link, or SKILL.md's <Type>, is none. -#}
 {%- set base = site.url + "/h5p/skill/" -%}
@@ -39,7 +45,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       Where skills can be installed, install it instead:
       <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>, or in
-      Claude's or ChatGPT's app from the zips at
+      Claude, ChatGPT or Grok from the zips at
       <a href="{{ site.url }}/h5p/create-with-ai/#install">{{ site.url }}/h5p/create-with-ai/#install</a>.
     </p>
   </header>

@@ -6,14 +6,17 @@ The site of the [missing-elements](https://github.com/missing-elements) web comp
 
 | Path | What it is | Source |
 | --- | --- | --- |
-| `/` | The project list, the tools (the build page, which links the skill's page), and a footer of links | [src/index.njk](src/index.njk); the lists are in [src/_data/site.js](src/_data/site.js) |
+| `/` | The project list, the tools (the build page first, with its how-to), and a footer of links | [src/index.njk](src/index.njk); the lists are in [src/_data/site.js](src/_data/site.js) |
 | `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/) |
 | `/h5p/build/` | The build page, for people: what it makes, a sample that plays, and the build of a chat's source into a `.h5p`, in the visitor's browser | [src/h5p/build/](src/h5p/build/) |
-| `/h5p/skill/` | The skill's files, and a page that lists each at its full address, for a chat; and the skill as zips to install: `h5p-author.zip` for Claude, `h5p-author-chatgpt.zip` for ChatGPT's Plugins | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); the zips written by [vite.config.ts](vite.config.ts) |
+| `/h5p/create-with-ai/` | The how-to, for people: installing the skill, asking a chat, the prompts to start from, the types, and what to do when something goes wrong | [src/h5p/create-with-ai/](src/h5p/create-with-ai/) |
+| `/h5p/skill/` | The skill as zips to install: `h5p-author.zip` for Claude and Grok, `h5p-author-chatgpt.zip` for ChatGPT's Plugins; and its files, with a page that lists each at its full address, which no page links to | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); the zips written by [vite.config.ts](vite.config.ts) |
 | `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm | written by [vite.config.ts](vite.config.ts) |
 | `/h5p/build/types/` | The skill's type files, which the build page copies for the chat | written by [vite.config.ts](vite.config.ts) |
 
-A chat that cannot install the skill is given `/h5p/skill/`, which lists every address. If it can run Node and fetch a file, it builds from the tool and a bundle in `/h5p/bundles/`. If it cannot, it gives the user a link to `/h5p/build/`, which builds in their browser.
+A chat takes the skill installed: from a zip in Claude, ChatGPT and Grok, or with `npx skills add` in an agent with a terminal, as `/h5p/create-with-ai/` says. Where the skill cannot reach npm, it builds from the tool and a bundle in `/h5p/bundles/`, at the addresses `/h5p/skill/` lists, if it can run Node and fetch a file: Grok did, on 2026-11-13. If it cannot, as in ChatGPT, it gives the user a link to `/h5p/build/`, which builds in their browser.
+
+Until 2026-11-13 the site's prompts sent a chat to read the skill at `/h5p/skill/` instead. That worked only in chats that now take the zip, so the prompts name the installed skill, and no page links to `/h5p/skill/`. Its page and files stay: the copies of the skill already installed name that address, and so do the prompts people copied before.
 
 ## Develop
 
