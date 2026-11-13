@@ -1,7 +1,9 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { gzipSync } from 'node:zlib'
 import { buildPackage, writeBundles } from '@missing-elements/h5p-author'
 import { Uint8ArrayReader, Uint8ArrayWriter, ZipWriter } from '@zip.js/zip.js'
 import { build, defineConfig, type Plugin } from 'vite'
@@ -134,19 +136,27 @@ function sample(): Plugin {
 }
 
 /**
- * `/h5p/bundles/`, for a chat that runs Node and can fetch a file but reaches no npm registry. The
- * h5p-author skill builds there from two files fetched from here: the command line, and the
- * bundle of the source's content type. Grok built that way on 2026-11-13, its `npx` having timed
- * out. In ChatGPT's sandbox, which the bundles were first made for, the skill has not been seen
- * to fetch either.
+ * `/h5p/bundles/`, for a chat that runs Node but reaches no npm registry. The h5p-author skill
+ * builds there from what it gets from here:
  *
+ * - `h5p-author-build.tar.gz`: the command line, every part of the pack with its index, and
+ *   `libraries.txt`, which the person downloads once and attaches to a chat whose code can fetch
+ *   nothing. ChatGPT's cannot: its download tool saved none of eleven files tried on 2026-11-13,
+ *   ours or any site's, and an installed plugin's files never reach it. With this attached it
+ *   built, as Claude and Grok did. Every type in one file, since it is downloaded before a type is
+ *   chosen; a `.tar.gz`, since ChatGPT took the same files as a `.zip` for a plugin to install and
+ *   refused it.
  * - `<type>.zip`, one per content type in the pack (`h5p-author bundle --all`): `parts/`, the
- *   pack's whole index with the parts a build of that type can read, and `libraries.txt`.
+ *   pack's whole index with the parts a build of that type can read, and `libraries.txt`. With
+ *   the command line, two files a chat that can fetch takes from here: Grok built that way on
+ *   2026-11-13, its `npx` having timed out.
  * - `parts/`: every part of the pack under its own name, and its index. A bundle holds no addon,
  *   so a build whose text calls for one stops and names its part, which the chat fetches from here.
  * - `h5p-author.mjs`: the command line as one file, everything it imports bundled in by Vite, so it
  *   runs with nothing installed. It takes `--libraries`: the npm package's pinned pack is not with
- *   it, nor the package.json `--version` reads, so `index.json` says the versions.
+ *   it. Since 0.9.8 its `--version` prints the versions from copies of the two package.json files
+ *   Vite writes in (h5p-offline-player#198); before, it crashed, finding neither beside it. The
+ *   build runs it and stops where it does not print the versions `index.json` says.
  * - `index.json`: the author's and the pack's versions, and each bundle's file, size and parts.
  * - `libraries.txt`: the pack's licence list, which asks to travel with its libraries.
  *
@@ -189,12 +199,25 @@ function bundles(): Plugin {
         },
         ssr: { noExternal: true, target: 'node' }
       })
+      // The tool says its own versions, as a model checking it first asks: those this site pins.
+      const expected = `@missing-elements/h5p-author ${await version(author)}, library pack ${await version(libraries)}`
+      const printed = execFileSync(process.execPath, [join(folder, 'h5p-author.mjs'), '--version'], { encoding: 'utf8' }).trim()
+      if (printed !== expected) throw new Error(`h5p-author.mjs --version printed "${printed}", not "${expected}"`)
+      // The archive lays them out as a build from the bundles does: `tar -xzf`, then `--libraries parts`.
+      const archive = tarGz([
+        ['h5p-author.mjs', await readFile(join(folder, 'h5p-author.mjs'))],
+        ['libraries.txt', await readFile(join(folder, 'libraries.txt'))],
+        ['parts/index.json', await readFile(join(parts, 'index.json'))],
+        ...(await Promise.all(index.libraries.map(async ({ folder: part }) => [`parts/${part}.h5p`, await readFile(join(parts, `${part}.h5p`))] as const)))
+      ])
+      await writeFile(join(folder, ARCHIVE), archive)
       const listing = {
         author: await version(author),
         pack: await version(libraries),
         tool: 'h5p-author.mjs',
         parts: 'parts/',
         licences: 'libraries.txt',
+        archive: { file: ARCHIVE, size: archive.length },
         bundles: written.map(({ output, type, parts, size }) => {
           const [machineName, typeVersion] = type.split(' ')
           return { type: machineName, version: typeVersion, file: basename(output), size, parts: parts.length }
@@ -207,6 +230,52 @@ function bundles(): Plugin {
 
 /** One date for every entry, as `h5p-author bundle` writes its zips: the same pin writes the same bytes. */
 const ZIP_DATE = new Date(2000, 0, 1, 2)
+
+/** The archive in `/h5p/bundles/` that a person attaches to a chat (see `bundles()`). */
+const ARCHIVE = 'h5p-author-build.tar.gz'
+
+/**
+ * A gzipped ustar archive of the files, with an entry for each folder before what is in it, every
+ * date `ZIP_DATE`'s day and no owner: the same files write the same bytes on any computer. Node has
+ * gzip and no tar; ustar is a 512-byte header per entry, and every tar since 1988 reads it.
+ */
+function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
+  const date = Date.UTC(2000, 0, 1) / 1000
+  const header = (name: string, size: number, type: '0' | '5') => {
+    if (Buffer.byteLength(name) > 100) throw new Error(`${name}: a ustar name holds 100 bytes`)
+    const block = Buffer.alloc(512)
+    block.write(name, 0, 'utf8')
+    block.write(type === '5' ? '0000755\0' : '0000644\0', 100, 'ascii')
+    block.write('0000000\0', 108, 'ascii')
+    block.write('0000000\0', 116, 'ascii')
+    block.write(`${size.toString(8).padStart(11, '0')}\0`, 124, 'ascii')
+    block.write(`${date.toString(8).padStart(11, '0')}\0`, 136, 'ascii')
+    block.write(' '.repeat(8), 148, 'ascii')
+    block.write(type, 156, 'ascii')
+    block.write('ustar\0', 257, 'ascii')
+    block.write('00', 263, 'ascii')
+    let sum = 0
+    for (const byte of block) sum += byte
+    block.write(`${sum.toString(8).padStart(6, '0')}\0 `, 148, 'ascii')
+    return block
+  }
+  const chunks: Buffer[] = []
+  const folders = new Set<string>()
+  for (const [path, bytes] of files) {
+    const parts = path.split('/')
+    for (let depth = 1; depth < parts.length; depth++) {
+      const name = `${parts.slice(0, depth).join('/')}/`
+      if (folders.has(name)) continue
+      folders.add(name)
+      chunks.push(header(name, 0, '5'))
+    }
+    chunks.push(header(path, bytes.length, '0'), Buffer.from(bytes), Buffer.alloc((512 - (bytes.length % 512)) % 512))
+  }
+  chunks.push(Buffer.alloc(1024))
+  const gz = gzipSync(Buffer.concat(chunks), { level: 9 })
+  gz[9] = 3 // the header's OS byte, Unix, which zlib otherwise takes from the platform it was built on
+  return gz
+}
 
 /**
  * The h5p-author skill as zips to install, beside the files `/h5p/skill/` serves, from the same
@@ -223,7 +292,9 @@ const ZIP_DATE = new Date(2000, 0, 1, 2)
  *
  * Both were uploaded as they are written here, by the owner on 2026-11-13, the first into Claude
  * and into Grok. ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
- * where a chat's code cannot reach it, the build page builds.
+ * where a chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page
+ * builds. The plugin's description leads with what sets it apart, in the owner's words: privacy
+ * first, no MCP server, so nothing a person makes passes through a server of ours.
  */
 function skillZips(): Plugin {
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
@@ -247,7 +318,7 @@ function skillZips(): Plugin {
         $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
         name: 'h5p-author',
         version,
-        description: 'Create H5P content from a prompt, a lesson or supplied material, as a playable .h5p: quizzes, flash cards, presentations, interactive books and more.',
+        description: 'Privacy first, no MCP server: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
         author: { name: 'Missing Elements', url: 'https://github.com/missing-elements' },
         homepage: guide,
         repository: 'https://github.com/missing-elements/h5p-offline-player',
@@ -257,7 +328,7 @@ function skillZips(): Plugin {
           'com.openai': {
             interface: {
               displayName: 'H5P Author by Missing Elements',
-              shortDescription: 'Make a playable H5P activity from a prompt or your material',
+              shortDescription: 'H5P activities from a prompt: privacy first, no MCP server',
               developerName: 'Missing Elements',
               websiteURL: guide
             }

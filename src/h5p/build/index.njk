@@ -1,10 +1,11 @@
 ---
 layout: base.njk
 # The title and description carry what people search for: an AI H5P generator, with ChatGPT and the
-# like. The description counts the types as the hero does, in the release the page runs.
-title: "Free AI H5P generator: make H5P with ChatGPT, Claude or Grok"
+# like, and what sets it apart, in the owner's words: privacy first, no MCP server. The description
+# counts the types as the hero does, in the release the page runs.
+title: "Free AI H5P generator, privacy first: make H5P with ChatGPT, Claude or Grok"
 eleventyComputed:
-  description: "Describe a lesson to ChatGPT, Claude or Grok and get an H5P activity: a quiz, a course presentation or any of {{ skill.offered.length }} H5P types. Free, no account, for Moodle."
+  description: "Describe a lesson to ChatGPT, Claude or Grok and get an H5P activity for Moodle: a quiz, a course presentation or any of {{ skill.offered.length }} H5P types. Free, privacy first: no MCP server, no account."
 # The picture a shared link shows: the page's first screen at 1200×630, light, with the sample
 # settled. It is a screenshot, so take it again when that screen changes.
 socialImage:
@@ -101,8 +102,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
-          <h3>Built in your browser</h3>
-          <p>The page builds and plays the activity on your computer. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, needs no account, and sends nothing you make to this site.</p>
+          <h3>Privacy first, no MCP server</h3>
+          <p>Your chat builds the activity in its own sandbox, or this page builds and plays it on your computer: nothing you make is sent to us. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, and needs no account.</p>
         </li>
         <li class="feature">
           <span class="feature-icon icon-school" aria-hidden="true"></span>
@@ -140,7 +141,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li>
           <h3>Play it, then download it</h3>
-          <p>Claude and Grok build the <code>.h5p</code> file in the chat. ChatGPT hands over a link that opens the activity here, or its source, to <a href="#build-it">open or paste below</a>.</p>
+          <p>Claude and Grok build the <code>.h5p</code> file in the chat, and so does ChatGPT with <a href="/h5p/create-with-ai/#install">the build archive</a> attached. Without it, ChatGPT hands over a link that opens the activity here, or its source, to <a href="#build-it">open or paste below</a>.</p>
         </li>
       </ol>
       <div class="prompt-box">

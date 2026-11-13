@@ -65,9 +65,11 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <li>
         <strong>ChatGPT</strong>: download
         <a href="/h5p/skill/h5p-author-chatgpt.zip" download>h5p-author-chatgpt.zip</a> and upload it
-        under Plugins. ChatGPT's code cannot reach the build tool, so it hands over a link to the
-        build page. If the page says the link arrived damaged, ask for the link again, or for the
-        source as a file, and open that on the build page.
+        under Plugins. ChatGPT's code cannot download the build tool, so download
+        <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too,
+        and attach it to the message where you ask: ChatGPT then builds the <code>.h5p</code> file in
+        the chat. Without it, ChatGPT hands over a link to the build page; if the page says the link
+        arrived damaged, ask for the source as a file and open that on the build page.
       </li>
       <li>
         <strong>Grok</strong>: download
@@ -89,6 +91,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       The zips hold h5p-author {{ skill.version }}, the release the build page runs: text files and
       nothing that runs, which you can read
       <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">on GitHub</a>.
+      The archive holds the same release's build tool, which runs in the chat's own sandbox, and
+      the H5P libraries it puts in the file, each under its own licence.
     </p>
   </section>
 
@@ -115,10 +119,13 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 
   <section class="step" aria-labelledby="file-heading">
     <h2 id="file-heading"><span class="step-marker"><span class="step-number">4</span></span> Get the .h5p file</h2>
-    <p>What the chat hands you depends on what it can run:</p>
+    <p>
+      The build tool is a Node.js program, so what the chat hands you depends on whether its code
+      runs Node.js:
+    </p>
     <ul>
-      <li>the <code>.h5p</code> file itself, from a chat whose code can reach the build tool, as Claude's and Grok's can;</li>
-      <li>a link that opens the activity on the build page, as ChatGPT gives;</li>
+      <li>the <code>.h5p</code> file itself, from a chat whose code runs Node.js and can reach the build tool, as Claude's and Grok's can, and ChatGPT's with the build archive attached;</li>
+      <li>a link that opens the activity on the build page, as ChatGPT gives without it;</li>
       <li>or its source, as a file or a block of JSON: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
     </ul>
     <p>
@@ -238,8 +245,35 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <a href="/h5p/assets/libraries-LICENSES.txt">the pack's licence list</a> says.
     </p>
     <p>
-      Nothing you make is sent to this site: the build page builds and plays it in your browser.
-      Your AI chat sees what you send it.
+      Privacy first: nothing you make is sent to this site, and there is no MCP server or other
+      server of ours in between. The chat builds the file in its own sandbox, or the build page
+      builds and plays it in your browser. Your AI chat sees what you send it, as it sees
+      anything you ask it.
+    </p>
+  </section>
+
+  <section aria-labelledby="local">
+    <h2 id="local">With a local model, or offline</h2>
+    <p>
+      A chat app for local models writes the activity as any chat does, but out of the box its code
+      does not run Node.js:
+    </p>
+    <ul>
+      <li>Open WebUI's code tool runs Python;</li>
+      <li>LM Studio's code plugin runs JavaScript in Deno, not Node.js;</li>
+      <li>Jan has no code tool of its own.</li>
+    </ul>
+    <p>
+      So there the chat hands over a link or the source, and the build page builds the file. Open
+      WebUI with Open Terminal is the exception: its default image has Node.js, which the build
+      needs.
+    </p>
+    <p>
+      With Node.js 22 or later on your own computer, the whole build can stay offline. Install the
+      skill in an agent with a terminal that runs a local model, from Ollama or LM Studio, and download
+      <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once.
+      Then tell the agent where the archive is. It builds the <code>.h5p</code> file on your
+      computer, with no internet and nothing sent anywhere.
     </p>
   </section>
 
@@ -251,6 +285,14 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       Name it in your message, as the prompts here do: "Use the h5p-author skill to…". If the chat
       knows no such skill, check that it is still installed where <a href="#install">step 1</a> put
       it, and ask in a new chat.
+    </p>
+
+    <h3>The chat says it cannot get the build tool</h3>
+    <p>
+      Download <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>
+      and attach it to your next message: a chat whose code runs Node.js builds the file from it,
+      without installing or downloading anything. A chat whose code runs no Node.js gives you a
+      link to the build page instead.
     </p>
 
     <h3>The build lists problems</h3>
