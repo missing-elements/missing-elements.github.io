@@ -647,6 +647,9 @@ tbody th a:hover code { text-decoration: underline; }
    at once for one a chat sent with the source in the link. What is said to one alone is not shown
    to the other; the class is on <html> before the page paints (index.njk). */
 .linked .when-unlinked, :root:not(.linked) .when-linked { display: none; }
+/* A link whose source could not be read: what is said of the source it carried gives way to what
+   is said of the link, from when build-page.ts has tried it. */
+.unread .when-read, :root:not(.unread) .when-unread { display: none; }
 
 /* A bar at the top, then bands the width of the window, each holding a column of the page's width. */
 :root {

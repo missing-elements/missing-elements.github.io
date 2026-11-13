@@ -26,7 +26,8 @@ import { formatSource, jsonProblem, place, type Target } from './json-scan'
  * a sample that plays (`SAMPLE`), and finds the sample's source in the box, which the first paste
  * replaces whole (`prefillSample`). The markup says which words are for whom, and the class
  * `linked` on `<html>` shows them, set before the page paints by the script in `index.njk` and
- * kept in step with the address here.
+ * kept in step with the address here. A link whose source cannot be read is said to be damaged,
+ * with the ways to bring the source (`linkUnread`).
  */
 
 type Opened = Awaited<ReturnType<typeof openPack>>
@@ -41,6 +42,8 @@ const sourceField = $<HTMLTextAreaElement>('source')
 const sourceLabel = $('source-label')
 const sourceState = $('source-state')
 const sourceFile = $<HTMLInputElement>('source-file')
+const linkState = $('link-state')
+const openSource = $<HTMLButtonElement>('open-source')
 const filesStep = $('files-step')
 const fileList = $<HTMLUListElement>('file-list')
 const filesInput = $<HTMLInputElement>('files')
@@ -115,6 +118,28 @@ const sampleUntouched = (): boolean => sampleText !== null && sourceField.value 
 function setStatus(text: string, state: 'idle' | 'building' | 'ready' | 'error'): void {
   status.textContent = text
   status.dataset.state = state
+}
+
+/**
+ * A link whose source cannot be read. A chat writes the link out in its reply, and a compressed
+ * source survives no wrong character: a link ChatGPT gave held 43 characters of its own in place
+ * of 37, near its start, and was the command's output everywhere else. The page then said the link
+ * had carried the source, over an empty box, with the reason under Build, out of sight in a window
+ * 800px high. So it says the link is damaged where a person who opened it looks. The class `unread`
+ * on `<html>` shows what the hero says of such a link in place of what it says of a source the link
+ * carried, for the rest of the visit, since the link carried none whatever comes after. The words
+ * above the box are the ways to bring the source, and stay until one is here (`checkSource`).
+ */
+function linkUnread(unread: boolean): void {
+  document.documentElement.classList.toggle('unread', unread)
+  showLinkState(unread)
+}
+
+/** The words above the box, and with them the step's marker, which site.css draws from their state. */
+function showLinkState(show: boolean): void {
+  linkState.hidden = !show
+  if (show) linkState.dataset.state = 'error'
+  else delete linkState.dataset.state
 }
 
 /** Where a problem is in the source, for the button that goes there: its place in the text, or none. */
@@ -316,6 +341,8 @@ player.addEventListener('error', (event) => {
  */
 function checkSource(): void {
   const text = sourceField.value
+  // A source came after a link that could not be read, from a file or a paste: the ways to bring one go.
+  if (!linkState.hidden && compactSource(text)) showLinkState(false)
   const problem = jsonProblem(text)
   sourceState.dataset.state = problem ? 'error' : text.trim() ? 'ok' : ''
   if (!problem) {
@@ -406,6 +433,8 @@ sourceFile.addEventListener('change', async () => {
   if (!file) return
   setSource(await file.text())
 })
+// The same file field, from the words above the box on a link that could not be read.
+openSource.addEventListener('click', () => sourceFile.click())
 
 // The label is for the textarea, which the editor hides: a click on it goes to the editor.
 sourceLabel.addEventListener('click', () => editor?.focus())
@@ -537,9 +566,12 @@ async function fromLink(): Promise<void> {
   try {
     text = await sourceFromFragment(location.hash)
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : String(error), 'error')
+    // Why it cannot be read is for whoever looks into it; the person is told what to do.
+    console.warn(error instanceof Error ? error.message : String(error))
+    linkUnread(true)
     return
   }
+  linkUnread(false)
   if (text === null) return
   carried = compactSource(text) ?? ''
   setSource(text)
