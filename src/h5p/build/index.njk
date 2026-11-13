@@ -275,7 +275,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     <div class="wrap">
       <ul class="cards" role="list">
         <li><article>
-          <h2>Play it without an H5P site</h2>
+          <h2 id="plays-heading">Play it without an H5P site</h2>
           <p>
             Any H5P site takes the file you download. With none, h5p-offline-player, the player on
             this page, plays it on your own site, offline, in VS Code, or in an LMS as SCORM.
@@ -288,7 +288,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
           </footer>
         </article></li>
         <li><article>
-          <h2>How did it go?</h2>
+          {#- The skill's commands, from h5p-author 0.9.5, print this heading's address: keep its id. -#}
+          <h2 id="feedback-heading">How did it go?</h2>
           <p>
             Say what you made, and what went well or wrong with the chat's source or this page. Write
             to the author or, with a GitHub account, start a public discussion where the h5p-author
