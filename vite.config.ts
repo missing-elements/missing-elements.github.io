@@ -21,10 +21,12 @@ import { build, defineConfig, type Plugin } from 'vite'
  * - `/h5p/build/sample.h5p` and `sample.json`, the sample the page plays where it is opened with no
  *   source, and its source (see `sample()`).
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
+ * - `/h5p/skill/h5p-author.zip` and `h5p-author-chatgpt.zip`, the h5p-author skill to install (see
+ *   `skillZips()`).
  *
- * `/h5p/skill/`, the h5p-author skill's files and a page of their addresses, is Eleventy's
- * (`eleventy.config.js`, `src/h5p/skill/`). The page lists the bundles too, written before them:
- * it names them from the author package's `contentTypes`, the list `writeBundles` writes from.
+ * `/h5p/skill/`'s page, which lists the zips and the bundles' addresses, is Eleventy's
+ * (`src/h5p/skill/`). It is written before the bundles: it names them from the author package's
+ * `contentTypes`, the list `writeBundles` writes from.
  *
  * Moved here from embed-my.github.io's `/build` and `/bundles/` (#7).
  */
@@ -278,8 +280,8 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
 }
 
 /**
- * The h5p-author skill as zips to install, beside the files `/h5p/skill/` serves, from the same
- * pinned author package:
+ * The h5p-author skill as zips to install, in `/h5p/skill/`, from the pinned author package. They
+ * are the only way the site serves the skill's text: every chat it is offered to installs it.
  *
  * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
  *   app takes under Customize, Skills, and Grok's under Skills, Import (as does Open WebUI's
@@ -308,7 +310,7 @@ function skillZips(): Plugin {
     },
     async writeBundle() {
       const { version } = JSON.parse(await readFile(new URL('package.json', author), 'utf8')) as { version: string }
-      // The files eleventy.config.js copies to /h5p/skill/: SKILL.md, the licence and references/.
+      // The skill's files as the package carries them: SKILL.md, the licence and all of references/.
       const references = readdirSync(new URL('references/', author), { recursive: true, withFileTypes: true })
         .filter((entry) => entry.isFile())
         .map((entry) => join(entry.parentPath, entry.name).slice(fileURLToPath(author).length).split('\\').join('/'))

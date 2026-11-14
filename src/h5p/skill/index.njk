@@ -1,19 +1,20 @@
 ---
 layout: base.njk
 title: The h5p-author skill · Missing Elements
-description: The h5p-author skill's files and those its build fetches, each at its full address, for an AI chat that cannot install the skill.
+description: The h5p-author skill's zips to install, and the files its build fetches where npm cannot be reached, each at its full address.
 # No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
 ---
 {#- No page of the site links here since 2026-11-13, when its prompts stopped sending a chat to read
     the skill from this page: the skill is installed, which is the guide's first step. The page
-    stays for what names its address: the copies of the skill already installed, which take the
-    build tool's and the bundles' addresses from it where npm cannot be reached (SKILL.md's step
-    3, as Grok built on 2026-11-13), and the prompts people copied before. The zips are served
-    from this folder too. -#}
+    stays for what names its address: the skill's route 3, and the copies of it already installed,
+    which take the build tool's and the bundles' addresses from it where npm cannot be reached (as
+    Grok built on 2026-11-13). The zips are served from this folder too. Its text files are not:
+    the zips carry them, and a chat with the text alone, which read them here until 0.9.7, is one
+    the skill is no longer offered to (the owner, 2026-11-15). -#}
 {#- Every address is written out whole, as its link's text too: a chat's fetch tool may open only
-    the addresses it has seen in full, and a relative link, or SKILL.md's <Type>, is none. -#}
+    the addresses it has seen in full, and a relative link is none. -#}
 {%- set base = site.url + "/h5p/skill/" -%}
 {%- set bundlesBase = site.url + "/h5p/bundles/" -%}
 {% include "topbar.njk" %}
@@ -22,74 +23,49 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <header class="docs-header">
     <h1>The h5p-author skill</h1>
     <p class="lead">
-      Its files and those its build fetches, each at its full address, for an AI chat that cannot
-      install the skill.
+      Its zips to install, and the files its build fetches where npm cannot be reached, each at its
+      full address.
     </p>
     {#- A person opens this address too, to see what a prompt sends their chat to: they are told
-        what it is, that none of it is theirs to open or install, and where the page for them is. -#}
+        what it is, and where the pages for them are. -#}
     <blockquote class="for-person">
       <p>
-        <strong>For a person reading this:</strong> the page is written for an AI chat. It lists
-        the instructions that tell a chat how to write an H5P activity, as text files anyone can
-        read, and a person has nothing here to open or install. The page that makes an activity is
+        <strong>For a person reading this:</strong> the page is written for an AI chat. To install
+        the skill, follow
+        <a href="{{ site.url }}/h5p/create-with-ai/#install">{{ site.url }}/h5p/create-with-ai/#install</a>.
+        The page that makes an activity is
         <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a>.
       </p>
     </blockquote>
     <p>
-      Read <code>SKILL.md</code> first and follow its steps. A file it names, such as
-      <code>references/authoring.md</code> or a content type's <code>references/types/&lt;Type&gt;.md</code>,
-      is the one listed here under that path, and a bundle its step 3 fetches is listed last. These
-      are the files of h5p-author {{ skill.version }}, the release the build page at
-      <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs.
-    </p>
-    <p>
-      Where skills can be installed, install it instead:
-      <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>, or in
-      Claude, ChatGPT or Grok from the zips at
-      <a href="{{ site.url }}/h5p/create-with-ai/#install">{{ site.url }}/h5p/create-with-ai/#install</a>.
+      These are the files of h5p-author {{ skill.version }}, the release the build page at
+      <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs. The skill's text is in
+      the zips, and on
+      <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">GitHub</a>.
     </p>
   </header>
 
-  {#- The sections are steps, in the order a chat reads them, drawn as the build page's timeline
-      (site.css). The lists are drawn without bullets, and Safari then reads one as a list only if
-      it is told. -#}
-  <section class="step" aria-labelledby="first-heading">
-    <h2 id="first-heading"><span class="step-marker"><span class="step-number">1</span></span> Read first</h2>
-    <ul class="skill-files" role="list">
-      <li><a href="{{ base }}SKILL.md">{{ base }}SKILL.md</a>: the skill's steps</li>
-    </ul>
-  </section>
-
-  <section class="step" aria-labelledby="named-heading">
-    <h2 id="named-heading"><span class="step-marker"><span class="step-number">2</span></span> The files it names</h2>
-    <ul class="skill-files" role="list">
-      {%- for path in skill.named %}
-      <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a>
-        {%- if path == "references/authoring.md" %}: the brief, read once
-        {%- elif path == "LICENSE" %}: the skill's licence, MIT, which goes with it{% endif %}</li>
-      {%- endfor %}
-    </ul>
-  </section>
-
-  <section class="step" aria-labelledby="types-heading">
-    <h2 id="types-heading"><span class="step-marker"><span class="step-number">3</span></span> A content type's file</h2>
+  {#- The sections are drawn as the build page's timeline (site.css). The lists are drawn without
+      bullets, and Safari then reads one as a list only if it is told. -#}
+  <section class="step" aria-labelledby="install-heading">
+    <h2 id="install-heading"><span class="step-marker"><span class="step-number">1</span></span> Install the skill</h2>
     <p>
-      One per content type: its notes, an example and its fields. Read the file of the type the
-      source is written in, and those of the parts it holds, such as H5P.AdvancedText or H5P.Image.
+      In an agent with a terminal:
+      <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>. In a chat
+      app, from a zip:
     </p>
     <ul class="skill-files" role="list">
-      {%- for path in skill.types %}
-      <li><a href="{{ base }}{{ path }}">{{ base }}{{ path }}</a></li>
-      {%- endfor %}
+      <li><a href="{{ base }}h5p-author.zip">{{ base }}h5p-author.zip</a>: for Claude and Grok</li>
+      <li><a href="{{ base }}h5p-author-chatgpt.zip">{{ base }}h5p-author-chatgpt.zip</a>: for ChatGPT's Plugins</li>
     </ul>
   </section>
 
   <section class="step" aria-labelledby="bundles-heading">
-    <h2 id="bundles-heading"><span class="step-marker"><span class="step-number">4</span></span> To build where npm cannot be reached</h2>
+    <h2 id="bundles-heading"><span class="step-marker"><span class="step-number">2</span></span> To build where npm cannot be reached</h2>
     <p>
       The build tool, which runs with Node and nothing installed, and a bundle per content type:
       the libraries a build of that type reads. Fetch the tool and the bundle of the source's own
-      type, as step 3 of <code>SKILL.md</code> says.
+      type, as the skill says.
     </p>
     <ul class="skill-files" role="list">
       {%- for file in skill.bundles %}

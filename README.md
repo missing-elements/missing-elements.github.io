@@ -10,13 +10,13 @@ The site of the [missing-elements](https://github.com/missing-elements) web comp
 | `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/) |
 | `/h5p/build/` | The build page, for people: what it makes, a sample that plays, and the build of a chat's source into a `.h5p`, in the visitor's browser | [src/h5p/build/](src/h5p/build/) |
 | `/h5p/create-with-ai/` | The how-to, for people: installing the skill, asking a chat, the prompts to start from, the types, and what to do when something goes wrong | [src/h5p/create-with-ai/](src/h5p/create-with-ai/) |
-| `/h5p/skill/` | The skill as zips to install: `h5p-author.zip` for Claude and Grok, `h5p-author-chatgpt.zip` for ChatGPT's Plugins; and its files, with a page that lists each at its full address, which no page links to | [src/h5p/skill/](src/h5p/skill/), copied by [eleventy.config.js](eleventy.config.js); the zips written by [vite.config.ts](vite.config.ts) |
+| `/h5p/skill/` | The skill as zips to install: `h5p-author.zip` for Claude and Grok, `h5p-author-chatgpt.zip` for ChatGPT's Plugins; and a page that lists them and the bundles' addresses, each in full, which no page links to | [src/h5p/skill/](src/h5p/skill/); the zips written by [vite.config.ts](vite.config.ts) |
 | `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm; and `h5p-author-build.tar.gz`, the tool and every library in one archive, for a person to attach to a chat whose code can download nothing | written by [vite.config.ts](vite.config.ts) |
 | `/h5p/build/types/` | The skill's type files, which the build page copies for the chat | written by [vite.config.ts](vite.config.ts) |
 
 A chat takes the skill installed: from a zip in Claude, ChatGPT and Grok, or with `npx skills add` in an agent with a terminal, as `/h5p/create-with-ai/` says. Where the skill cannot reach npm, it builds from the tool and a bundle in `/h5p/bundles/`, at the addresses `/h5p/skill/` lists, if it can run Node and fetch a file: Grok did, on 2026-11-13. Where its code runs Node but can fetch nothing, as in ChatGPT, it builds from `h5p-author-build.tar.gz` once the person attaches it, and otherwise gives them a link to `/h5p/build/`, which builds in their browser. The tool is a Node.js program, so a chat whose code runs no Node, as most chat apps for local models, takes the link; an agent with a terminal and a local model builds offline from the archive.
 
-Until 2026-11-13 the site's prompts sent a chat to read the skill at `/h5p/skill/` instead. That worked only in chats that now take the zip, so the prompts name the installed skill, and no page links to `/h5p/skill/`. Its page and files stay: the copies of the skill already installed name that address, and so do the prompts people copied before.
+Until 2026-11-13 the site's prompts sent a chat to read the skill at `/h5p/skill/` instead. That worked only in chats that now take the zip, so the prompts name the installed skill, and no page links to `/h5p/skill/`. Its page stays, for the skill's route 3 and the copies already installed, which take the bundles' addresses from it. The skill's text files were served there one by one too until h5p-author 0.10.0: the zips carry them, so the site serves them only as zips. A copy of 0.9.7 or older, in a chat that has its text alone, and a prompt copied before 2026-11-13 find no files there now.
 
 ## Develop
 
@@ -44,7 +44,7 @@ The pages run published releases, pinned exactly in [package.json](package.json)
 | Package | What it moves |
 | --- | --- |
 | `@missing-elements/pdfjs-viewer` | The docs' version numbers, and the viewer in the live preview |
-| `@missing-elements/h5p-author` | The build the build page runs, its sample, the type files, the skill's files at `/h5p/skill/`, and the tool in `/h5p/bundles/` |
+| `@missing-elements/h5p-author` | The build the build page runs, its sample, the type files, the skill's zips at `/h5p/skill/`, and the tool in `/h5p/bundles/` |
 | `@missing-elements/h5p-libraries` | The library pack: the build page's libraries, and the bundles |
 | `@missing-elements/h5p-offline-player`, `@missing-elements/h5p-runtime` | The player on the build page, and its runtime |
 
