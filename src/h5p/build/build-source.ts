@@ -35,6 +35,9 @@ export interface TypeFile {
  *   model can write its own JSON but cannot compress it (h5p-offline-player#206). The value runs to
  *   the end of the fragment, since JSON text holds `&` and `+`, and it is percent-decoded as far as
  *   it can be (`percentDecoded`). Base64url never holds `{` or `%`, so the forms cannot be mistaken.
+ *   Its text is returned even where it is not JSON: a weak model's JSON slips, and text that can
+ *   be read goes in the box, where the build lists where the JSON breaks, for the chat to fix, as
+ *   for a source pasted in. Only a compressed source that cannot be read is a damaged link.
  *
  * Returns `null` for a fragment that carries none, and throws for one that carries something else.
  */
@@ -46,8 +49,7 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
     if (isJson(text)) return text
     // A link set in a sentence may end in what follows it, as `}.`: the JSON is up to its last brace.
     const upToBrace = text.slice(0, text.lastIndexOf('}') + 1)
-    if (isJson(upToBrace)) return upToBrace
-    throw new Error('The link’s #source= holds JSON that does not parse')
+    return isJson(upToBrace) ? upToBrace : text
   }
   const value = new URLSearchParams(fragment).get('source')
   if (!value) return null
