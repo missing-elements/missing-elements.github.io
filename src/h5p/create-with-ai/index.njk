@@ -48,8 +48,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 
   {#- The steps are drawn as the skill page's timeline (site.css). The first is the install: the
       zips are written by vite.config.ts from the release the site pins, and each was uploaded as
-      it is, by the owner, on 2026-11-13, Claude's into Grok too. Its heading keeps the id that
-      the top bar and the skill's page link to. -#}
+      it is, by the owner, on 2026-11-13, Claude's into Grok too. The archive kept in a ChatGPT
+      Project built there on the owner's free account on 2026-11-14 (#49). Its heading keeps the
+      id that the top bar and the skill's page link to. -#}
   <section class="step" aria-labelledby="install">
     <h2 id="install"><span class="step-marker"><span class="step-number">1</span></span> Install the skill, once</h2>
     <p>
@@ -66,10 +67,12 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
         <strong>ChatGPT</strong>: download
         <a href="/h5p/skill/h5p-author-chatgpt.zip" download>h5p-author-chatgpt.zip</a> and upload it
         under Plugins. ChatGPT's code cannot download the build tool, so download
-        <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too,
-        and attach it to the message where you ask: ChatGPT then builds the <code>.h5p</code> file in
-        the chat. Without it, ChatGPT hands over a link to the build page; if the page says the link
-        arrived damaged, ask for the source as a file and open that on the build page.
+        <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too.
+        Make a Project in ChatGPT, add the archive to it, and ask in a chat of that project:
+        ChatGPT then builds the <code>.h5p</code> file in the chat, with nothing to attach.
+        Outside a project, attach the archive to the message where you ask. Without it, ChatGPT
+        hands over a link to the build page; if the page says the link arrived damaged, ask for
+        the source as a file and open that on the build page.
       </li>
       <li>
         <strong>Grok</strong>: download
@@ -124,7 +127,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       runs Node.js:
     </p>
     <ul>
-      <li>the <code>.h5p</code> file itself, from a chat whose code runs Node.js and can reach the build tool, as Claude's and Grok's can, and ChatGPT's with the build archive attached;</li>
+      <li>the <code>.h5p</code> file itself, from a chat whose code runs Node.js and can reach the build tool, as Claude's and Grok's can, and ChatGPT's with the build archive, kept in a Project or attached;</li>
       <li>a link that opens the activity on the build page, as ChatGPT gives without it;</li>
       <li>or its source, as a file or a block of JSON: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
     </ul>
@@ -291,8 +294,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       Download <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>
       and attach it to your next message: a chat whose code runs Node.js builds the file from it,
-      without installing or downloading anything. A chat whose code runs no Node.js gives you a
-      link to the build page instead.
+      without installing or downloading anything. In ChatGPT, keep the archive in a Project and
+      ask in a chat of it: there is then nothing to attach again. A chat whose code runs no
+      Node.js gives you a link to the build page instead.
     </p>
 
     <h3>The build lists problems</h3>
