@@ -25,14 +25,31 @@ export interface TypeFile {
 }
 
 /**
- * The source a link carries in its fragment, `#source=<base64url>`, which the browser never
- * sends to a server. The bytes are the source's JSON, as UTF-8, or that JSON compressed with
- * raw deflate, which a chat's sandbox writes with Node's `zlib.deflateRawSync` or Python's
- * `zlib.compressobj(wbits=-15)` to keep the link short. Returns `null` for a fragment that
- * carries none, and throws for one that carries something else.
+ * The source a link carries in its fragment, `#source=`, which the browser never sends to a
+ * server, in either of two forms:
+ *
+ * - `#source=<base64url>`: the source's JSON, as UTF-8, or that JSON compressed with raw deflate,
+ *   which a chat's sandbox writes with Node's `zlib.deflateRawSync` or Python's
+ *   `zlib.compressobj(wbits=-15)` to keep the link short.
+ * - `#source={…}`: the JSON itself, which a chat with no code tool writes into the link, since a
+ *   model can write its own JSON but cannot compress it (h5p-offline-player#206). The value runs to
+ *   the end of the fragment, since JSON text holds `&` and `+`, and it is percent-decoded as far as
+ *   it can be (`percentDecoded`). Base64url never holds `{` or `%`, so the forms cannot be mistaken.
+ *
+ * Returns `null` for a fragment that carries none, and throws for one that carries something else.
  */
 export async function sourceFromFragment(hash: string): Promise<string | null> {
-  const value = new URLSearchParams(hash.replace(/^#/, '')).get('source')
+  const fragment = hash.replace(/^#/, '')
+  const readable = /(?:^|&)source=(?=\{|%7B)/i.exec(fragment)
+  if (readable) {
+    const text = percentDecoded(fragment.slice(readable.index + readable[0].length))
+    if (isJson(text)) return text
+    // A link set in a sentence may end in what follows it, as `}.`: the JSON is up to its last brace.
+    const upToBrace = text.slice(0, text.lastIndexOf('}') + 1)
+    if (isJson(upToBrace)) return upToBrace
+    throw new Error('The link’s #source= holds JSON that does not parse')
+  }
+  const value = new URLSearchParams(fragment).get('source')
   if (!value) return null
   let bytes: Uint8Array<ArrayBuffer>
   try {
@@ -51,6 +68,22 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
     // Not deflate either; said below.
   }
   throw new Error('The link’s #source= is neither JSON nor deflated JSON in base64url')
+}
+
+/**
+ * Percent-decodes JSON a model wrote into a link, as far as it can: each run of escapes is decoded
+ * where it is UTF-8 and kept as written where it is not, and a `%` that starts no escape is a `%`.
+ * The browser escapes some characters itself as it opens the link (a space, `"`, `<`, `>`, and any
+ * letter outside ASCII), and the model escapes the few a Markdown link cannot hold.
+ */
+function percentDecoded(text: string): string {
+  return text.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => {
+    try {
+      return decodeURIComponent(run)
+    } catch {
+      return run
+    }
+  })
 }
 
 function isJson(text: string): boolean {
