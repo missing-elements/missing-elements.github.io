@@ -35,7 +35,8 @@ export interface TypeFile {
  *   model can write its own JSON but cannot compress it (h5p-offline-player#206). The value runs to
  *   the end of the fragment, since JSON text holds `&` and `+`, and it is percent-decoded as far as
  *   it can be (`percentDecoded`). Base64url never holds `{` or `%`, so the forms cannot be mistaken.
- *   Its text is returned even where it is not JSON: a weak model's JSON slips, and text that can
+ *   Up to three braces or brackets left open at its end are closed (`withClosers`). Its text is
+ *   returned even where it is still not JSON: a weak model's JSON slips, and text that can
  *   be read goes in the box, where the build lists where the JSON breaks, for the chat to fix, as
  *   for a source pasted in. Only a compressed source that cannot be read is a damaged link.
  *
@@ -49,7 +50,9 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
     if (isJson(text)) return text
     // A link set in a sentence may end in what follows it, as `}.`: the JSON is up to its last brace.
     const upToBrace = text.slice(0, text.lastIndexOf('}') + 1)
-    return isJson(upToBrace) ? upToBrace : text
+    if (isJson(upToBrace)) return upToBrace
+    const closed = withClosers(text)
+    return closed !== null && isJson(closed) ? closed : text
   }
   const value = new URLSearchParams(fragment).get('source')
   if (!value) return null
@@ -70,6 +73,33 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
     // Not deflate either; said below.
   }
   throw new Error('The link’s #source= is neither JSON nor deflated JSON in base64url')
+}
+
+/**
+ * The JSON with the braces and brackets still open at its end closed, up to three of them, or
+ * `null` where it ends inside a string or has more open. A model that writes a source on one line
+ * loses count of its closers: Haiku left one `}` out of a True/False's 600 characters
+ * (h5p-offline-player#206). What is closed at the end is only where the source ends, and the
+ * build still checks every field of it.
+ */
+function withClosers(text: string): string | null {
+  const open: string[] = []
+  let inString = false
+  let escaped = false
+  for (const char of text) {
+    if (inString) {
+      if (escaped) escaped = false
+      else if (char === '\\') escaped = true
+      else if (char === '"') inString = false
+    } else if (char === '"') inString = true
+    else if (char === '{') open.push('}')
+    else if (char === '[') open.push(']')
+    else if (char === '}' || char === ']') {
+      if (open.pop() !== char) return null
+    }
+  }
+  if (inString || !open.length || open.length > 3) return null
+  return text.trimEnd() + open.reverse().join('')
 }
 
 /**
