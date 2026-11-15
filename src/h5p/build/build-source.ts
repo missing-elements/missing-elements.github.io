@@ -25,14 +25,36 @@ export interface TypeFile {
 }
 
 /**
- * The source a link carries in its fragment, `#source=<base64url>`, which the browser never
- * sends to a server. The bytes are the source's JSON, as UTF-8, or that JSON compressed with
- * raw deflate, which a chat's sandbox writes with Node's `zlib.deflateRawSync` or Python's
- * `zlib.compressobj(wbits=-15)` to keep the link short. Returns `null` for a fragment that
- * carries none, and throws for one that carries something else.
+ * The source a link carries in its fragment, `#source=`, which the browser never sends to a
+ * server, in either of two forms:
+ *
+ * - `#source=<base64url>`: the source's JSON, as UTF-8, or that JSON compressed with raw deflate,
+ *   which a chat's sandbox writes with Node's `zlib.deflateRawSync` or Python's
+ *   `zlib.compressobj(wbits=-15)` to keep the link short.
+ * - `#source={…}`: the JSON itself, which a chat with no code tool writes into the link, since a
+ *   model can write its own JSON but cannot compress it (h5p-offline-player#206). The value runs to
+ *   the end of the fragment, since JSON text holds `&` and `+`, and it is percent-decoded as far as
+ *   it can be (`percentDecoded`). Base64url never holds `{` or `%`, so the forms cannot be mistaken.
+ *   Up to three braces or brackets left open at its end are closed (`withClosers`). Its text is
+ *   returned even where it is still not JSON: a weak model's JSON slips, and text that can
+ *   be read goes in the box, where the build lists where the JSON breaks, for the chat to fix, as
+ *   for a source pasted in. Only a compressed source that cannot be read is a damaged link.
+ *
+ * Returns `null` for a fragment that carries none, and throws for one that carries something else.
  */
 export async function sourceFromFragment(hash: string): Promise<string | null> {
-  const value = new URLSearchParams(hash.replace(/^#/, '')).get('source')
+  const fragment = hash.replace(/^#/, '')
+  const readable = /(?:^|&)source=(?=\{|%7B)/i.exec(fragment)
+  if (readable) {
+    const text = percentDecoded(fragment.slice(readable.index + readable[0].length))
+    if (isJson(text)) return text
+    // A link set in a sentence may end in what follows it, as `}.`: the JSON is up to its last brace.
+    const upToBrace = text.slice(0, text.lastIndexOf('}') + 1)
+    if (isJson(upToBrace)) return upToBrace
+    const closed = withClosers(text)
+    return closed !== null && isJson(closed) ? closed : text
+  }
+  const value = new URLSearchParams(fragment).get('source')
   if (!value) return null
   let bytes: Uint8Array<ArrayBuffer>
   try {
@@ -51,6 +73,49 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
     // Not deflate either; said below.
   }
   throw new Error('The link’s #source= is neither JSON nor deflated JSON in base64url')
+}
+
+/**
+ * The JSON with the braces and brackets still open at its end closed, up to three of them, or
+ * `null` where it ends inside a string or has more open. A model that writes a source on one line
+ * loses count of its closers: Haiku left one `}` out of a True/False's 600 characters
+ * (h5p-offline-player#206). What is closed at the end is only where the source ends, and the
+ * build still checks every field of it.
+ */
+function withClosers(text: string): string | null {
+  const open: string[] = []
+  let inString = false
+  let escaped = false
+  for (const char of text) {
+    if (inString) {
+      if (escaped) escaped = false
+      else if (char === '\\') escaped = true
+      else if (char === '"') inString = false
+    } else if (char === '"') inString = true
+    else if (char === '{') open.push('}')
+    else if (char === '[') open.push(']')
+    else if (char === '}' || char === ']') {
+      if (open.pop() !== char) return null
+    }
+  }
+  if (inString || !open.length || open.length > 3) return null
+  return text.trimEnd() + open.reverse().join('')
+}
+
+/**
+ * Percent-decodes JSON a model wrote into a link, as far as it can: each run of escapes is decoded
+ * where it is UTF-8 and kept as written where it is not, and a `%` that starts no escape is a `%`.
+ * The browser escapes some characters itself as it opens the link (a space, `"`, `<`, `>`, and any
+ * letter outside ASCII), and the model escapes the few a Markdown link cannot hold.
+ */
+function percentDecoded(text: string): string {
+  return text.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => {
+    try {
+      return decodeURIComponent(run)
+    } catch {
+      return run
+    }
+  })
 }
 
 function isJson(text: string): boolean {
