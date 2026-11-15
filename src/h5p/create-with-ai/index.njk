@@ -81,11 +81,6 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
         the chat.
       </li>
       <li>
-        <strong>Open WebUI</strong>: an administrator imports the skill under Import from URL, from
-        its folder on GitHub,
-        <code>https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author</code>.
-      </li>
-      <li>
         <strong>An agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
         <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>.
       </li>
@@ -262,14 +257,11 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       does not run Node.js:
     </p>
     <ul>
-      <li>Open WebUI's code tool runs Python;</li>
       <li>LM Studio's code plugin runs JavaScript in Deno, not Node.js;</li>
       <li>Jan has no code tool of its own.</li>
     </ul>
     <p>
-      So there the chat hands over a link or the source, and the build page builds the file. Open
-      WebUI with Open Terminal is the exception: its default image has Node.js, which the build
-      needs.
+      So there the chat hands over the source, and the build page builds the file.
     </p>
     <p>
       With Node.js 22 or later on your own computer, the whole build can stay offline. Install the
