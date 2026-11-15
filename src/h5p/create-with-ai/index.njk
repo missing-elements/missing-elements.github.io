@@ -71,8 +71,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
         Make a Project in ChatGPT, add the archive to it, and ask in a chat of that project:
         ChatGPT then builds the <code>.h5p</code> file in the chat, with nothing to attach.
         Outside a project, attach the archive to the message where you ask. Without it, ChatGPT
-        hands over a link to the build page; if the page says the link arrived damaged, ask for
-        the source as a file and open that on the build page.
+        hands over the activity's source, to paste or open on the build page.
       </li>
       <li>
         <strong>Grok</strong>: download
@@ -123,8 +122,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     </p>
     <ul>
       <li>the <code>.h5p</code> file itself, from a chat whose code runs Node.js and can reach the build tool, as Claude's and Grok's can, and ChatGPT's with the build archive, kept in a Project or attached;</li>
-      <li>a link that opens the activity on the build page, as ChatGPT gives without it;</li>
-      <li>or its source, as a file or a block of JSON: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
+      <li>or its source, as a file or a block of JSON, as ChatGPT gives without the archive: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
     </ul>
     <p>
       From a link or a source, the build page builds it in your browser, plays it, and saves the
@@ -288,7 +286,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       and attach it to your next message: a chat whose code runs Node.js builds the file from it,
       without installing or downloading anything. In ChatGPT, keep the archive in a Project and
       ask in a chat of it: there is then nothing to attach again. A chat whose code runs no
-      Node.js gives you a link to the build page instead.
+      Node.js gives you the activity's source for the build page instead.
     </p>
 
     <h3>The build lists problems</h3>
