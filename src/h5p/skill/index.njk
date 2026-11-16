@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: The h5p-author skill · Missing Elements
-description: The h5p-author skill's zips to install, and the files its build fetches where npm cannot be reached, each at its full address.
+description: The h5p-author skill's zip to install, and the files its build fetches where npm cannot be reached, each at its full address.
 # No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
@@ -10,8 +10,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     the skill from this page: the skill is installed, which is the guide's first step. The page
     stays for what names its address: the skill's route 3, and the copies of it already installed,
     which take the build tool's and the bundles' addresses from it where npm cannot be reached (as
-    Grok built on 2026-11-13). The zips are served from this folder too. Its text files are not:
-    the zips carry them, and a chat with the text alone, which read them here until 0.9.7, is one
+    Grok built on 2026-11-13). The zip is served from this folder too. Its text files are not:
+    the zip carries them, and a chat with the text alone, which read them here until 0.9.7, is one
     the skill is no longer offered to (the owner, 2026-11-15). -#}
 {#- Every address is written out whole, as its link's text too: a chat's fetch tool may open only
     the addresses it has seen in full, and a relative link is none. -#}
@@ -23,7 +23,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <header class="docs-header">
     <h1>The h5p-author skill</h1>
     <p class="lead">
-      Its zips to install, and the files its build fetches where npm cannot be reached, each at its
+      Its zip to install, and the files its build fetches where npm cannot be reached, each at its
       full address.
     </p>
     {#- A person opens this address too, to see what a prompt sends their chat to: they are told
@@ -40,7 +40,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       These are the files of h5p-author {{ skill.version }}, the release the build page at
       <a href="{{ site.url }}/h5p/build/">{{ site.url }}/h5p/build/</a> runs. The skill's text is in
-      the zips, and on
+      the zip, and on
       <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">GitHub</a>.
     </p>
   </header>
@@ -52,11 +52,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       In an agent with a terminal:
       <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>. In a chat
-      app, from a zip:
+      app, from one zip:
     </p>
     <ul class="skill-files" role="list">
-      <li><a href="{{ base }}h5p-author.zip">{{ base }}h5p-author.zip</a>: for Claude and Grok</li>
-      <li><a href="{{ base }}h5p-author-chatgpt.zip">{{ base }}h5p-author-chatgpt.zip</a>: for ChatGPT's Plugins</li>
+      <li><a href="{{ base }}h5p-author.zip">{{ base }}h5p-author.zip</a>: Claude's Skills and ChatGPT's Plugins take it, and Grok reads it attached to a message</li>
     </ul>
   </section>
 
