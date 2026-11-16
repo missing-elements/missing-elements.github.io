@@ -12,7 +12,7 @@ socialImage:
   alt: "The build page: its headline, Build an H5P activity with AI, and a course presentation playing beside it."
 # The top bar's links to the page's own sections (topbar.njk).
 topbarLinks:
-  - { href: "#install", text: "Install" }
+  - { href: "#install", text: "The skill" }
   - { href: "#prompts", text: "Prompts" }
   - { href: "#types", text: "Types" }
   - { href: "#open-source", text: "Open source" }
@@ -34,11 +34,12 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p class="lead">
       An AI chat can write a whole H5P activity, not only its questions: a quiz, flash cards, a
       course presentation or any of <a href="#types">{{ skill.offered.length }} H5P types</a>. Here
-      is how, from installing the skill to the <code>.h5p</code> file in your Moodle.
+      is how, from giving your chat the skill to the <code>.h5p</code> file in your Moodle.
     </p>
     <p>
       The chat needs the h5p-author skill, the instructions that tell it how to write H5P: you
-      <a href="#install">install it once</a>. Then the chat writes the activity. Claude and Grok
+      <a href="#install">give it to your chat</a>, once in Claude and ChatGPT, and with your
+      message in Grok. Then the chat writes the activity. Claude and Grok
       make it a <code>.h5p</code> file for Moodle or any other H5P site in the chat, and for
       ChatGPT <a href="/h5p/build/">the build page</a> makes the file in your browser. The skill
       and the page are free and <a href="#open-source">open source</a>, with no account.
@@ -53,9 +54,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       kept in a ChatGPT Project built there on the owner's free account on 2026-11-14 (#49). Its
       heading keeps the id that the top bar and the skill's page link to. -#}
   <section class="step" aria-labelledby="install">
-    <h2 id="install"><span class="step-marker"><span class="step-number">1</span></span> Install the skill, once</h2>
+    <h2 id="install"><span class="step-marker"><span class="step-number">1</span></span> Give your chat the skill</h2>
     <p>
-      In Claude and ChatGPT the skill then stays, for every activity you ask for. Where it goes
+      Claude and ChatGPT install it once and keep it, for every activity you ask for. Grok has
+      nothing to install it into, and takes it with your message, in each new chat. Where it goes
       depends on the chat:
     </p>
     <ul>
@@ -75,10 +77,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
         hands over the activity's source, to paste or open on the build page.
       </li>
       <li>
-        <strong>Grok</strong> has no place to install a skill: download
+        <strong>Grok</strong>: download
         <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a>, the same file as for
-        Claude, and attach it to the message where you ask, in each new chat. Grok builds the <code>.h5p</code> file in
-        the chat.
+        Claude, and attach it to the message where you ask, in each new chat. Grok builds the
+        <code>.h5p</code> file in the chat.
       </li>
       <li>
         <strong>An agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
@@ -278,8 +280,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <h3>The chat doesn't use the skill</h3>
     <p>
       Name it in your message, as the prompts here do: "Use the h5p-author skill to…". If the chat
-      knows no such skill, check that it is still installed where <a href="#install">step 1</a> put
-      it, and ask in a new chat.
+      knows no such skill, check that it is still where <a href="#install">step 1</a> put it, or
+      attached to your message in Grok, and ask in a new chat.
     </p>
 
     <h3>The chat says it cannot get the build tool</h3>
