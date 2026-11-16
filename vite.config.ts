@@ -284,8 +284,7 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
  * are the only way the site serves the skill's text: every chat it is offered to installs it.
  *
  * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
- *   app takes under Customize, Skills, and Grok's under Skills, Import (as does Open WebUI's
- *   import).
+ *   app takes under Customize, Skills, and Grok's under Skills, Import.
  * - `h5p-author-chatgpt.zip`: the same files as a plugin, under `skills/h5p-author/`, with its
  *   `plugin.json` at the root, which ChatGPT's Plugins take. A zip with the folder at its root is
  *   refused there ("Plugin archive must contain … `skills/*\/SKILL.md`"). The manifest is the Agent
