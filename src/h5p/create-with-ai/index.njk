@@ -46,9 +46,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p><a class="button button-solid button-large" href="/h5p/build/">Open the build page</a></p>
   </header>
 
-  {#- The steps are drawn as the skill page's timeline (site.css). The first is the install: one
-      zip for every chat, written by vite.config.ts from the release the site pins. Grok has no
-      place to install a skill, so it reads the zip attached (the owner, 2026-11-15). The archive
+  {#- The steps are drawn as the skill page's timeline (site.css). The first is the install: the
+      zips are written by vite.config.ts from the release the site pins, and each was uploaded as
+      it is, by the owner, on 2026-11-13. Grok has no place to install a skill, so it reads
+      Claude's zip attached (the owner, 2026-11-15). The archive
       kept in a ChatGPT Project built there on the owner's free account on 2026-11-14 (#49). Its
       heading keeps the id that the top bar and the skill's page link to. -#}
   <section class="step" aria-labelledby="install">
@@ -65,7 +66,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       </li>
       <li>
         <strong>ChatGPT</strong>: download
-        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a>, the same file, and upload it
+        <a href="/h5p/skill/h5p-author-chatgpt.zip" download>h5p-author-chatgpt.zip</a> and upload it
         under Plugins. ChatGPT's code cannot download the build tool, so download
         <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too.
         Make a Project in ChatGPT, add the archive to it, and ask in a chat of that project:
@@ -75,8 +76,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       </li>
       <li>
         <strong>Grok</strong> has no place to install a skill: download
-        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a>, the same file, and attach it
-        to the message where you ask, in each new chat. Grok builds the <code>.h5p</code> file in
+        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a>, the same file as for
+        Claude, and attach it to the message where you ask, in each new chat. Grok builds the <code>.h5p</code> file in
         the chat.
       </li>
       <li>
@@ -85,7 +86,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       </li>
     </ul>
     <p>
-      The zip holds h5p-author {{ skill.version }}, the release the build page runs: text files and
+      The zips hold h5p-author {{ skill.version }}, the release the build page runs: text files and
       nothing that runs, which you can read
       <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">on GitHub</a>.
       The archive holds the same release's build tool, which runs in the chat's own sandbox, and
@@ -125,8 +126,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <li>or its source, as a file or a block of JSON, as ChatGPT gives without the archive: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
     </ul>
     <p>
-      From a link or a source, the build page builds it in your browser, plays it, and saves the
-      file with Download the .h5p.
+      From the source, the build page builds it in your browser, plays it, and saves the file
+      with Download the .h5p. A chat that built the file gives its source file too: open it on the
+      build page to play the activity before you use it.
     </p>
   </section>
 

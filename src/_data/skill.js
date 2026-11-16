@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { contentTypes, openPack } from "@missing-elements/h5p-author";
 
 // The h5p-author skill as the pinned @missing-elements/h5p-author carries it since 0.9.0. The site
-// serves it only as the zip vite.config.ts writes to /h5p/skill/: its text files are not served
+// serves it only as the zips vite.config.ts writes to /h5p/skill/: its text files are not served
 // one by one, since every chat it is offered to installs it (README.md).
 const author = "node_modules/@missing-elements/h5p-author";
 const { version } = JSON.parse(readFileSync(`${author}/package.json`, "utf8"));

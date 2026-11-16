@@ -21,10 +21,10 @@ import { build, defineConfig, type Plugin } from 'vite'
  * - `/h5p/build/sample.h5p` and `sample.json`, the sample the page plays where it is opened with no
  *   source, and its source (see `sample()`).
  * - `/h5p/bundles/`, for a chat that reaches no npm registry (see `bundles()`).
- * - `/h5p/skill/h5p-author.zip`, the h5p-author skill to install, one file for every chat (see
+ * - `/h5p/skill/h5p-author.zip` and `h5p-author-chatgpt.zip`, the h5p-author skill to install (see
  *   `skillZips()`).
  *
- * `/h5p/skill/`'s page, which lists the zip and the bundles' addresses, is Eleventy's
+ * `/h5p/skill/`'s page, which lists the zips and the bundles' addresses, is Eleventy's
  * (`src/h5p/skill/`). It is written before the bundles: it names them from the author package's
  * `contentTypes`, the list `writeBundles` writes from.
  *
@@ -280,25 +280,27 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
 }
 
 /**
- * The h5p-author skill as one zip to install, `/h5p/skill/h5p-author.zip`, from the pinned author
- * package: the only way the site serves the skill's text, since every chat it is offered to
- * installs it. One file for every chat (the owner, 2026-11-15), so it holds the skill twice:
+ * The h5p-author skill as zips to install, in `/h5p/skill/`, from the pinned author package. They
+ * are the only way the site serves the skill's text: every chat it is offered to installs it.
  *
- * - as a plugin, which ChatGPT's Plugins take: `plugin.json` at the root and the skill under
- *   `skills/h5p-author/`. A zip with only the folder at its root is refused there ("Plugin archive
- *   must contain … `skills/*\/SKILL.md`"). The manifest is the Agent Plugins one, which allows no
- *   field but its own ten, with ChatGPT's name for the plugin under `extensions`; a name that leads
- *   with "H5P" says who made it.
- * - as the skill's folder at the root, `h5p-author/SKILL.md`, which Claude's app takes under
- *   Customize, Skills: it looks for `<skill-name>/SKILL.md`.
+ * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
+ *   app takes under Customize, Skills. Grok has no place to install a skill (the owner,
+ *   2026-11-15): it reads this zip attached to a message.
+ * - `h5p-author-chatgpt.zip`: the same files as a plugin, under `skills/h5p-author/`, with its
+ *   `plugin.json` at the root, which ChatGPT's Plugins take. A zip with the folder at its root is
+ *   refused there ("Plugin archive must contain … `skills/*\/SKILL.md`"). The manifest is the Agent
+ *   Plugins one, which allows no field but its own ten, with ChatGPT's name for the plugin under
+ *   `extensions`; a name that leads with "H5P" says who made it.
  *
- * Grok has no place to install a skill (the owner, 2026-11-15): the person attaches the zip to the
- * message, and Grok reads the skill from it. Until then the site served two zips, the folder alone
- * for Claude and Grok and the plugin for ChatGPT, each uploaded as written by the owner on
- * 2026-11-13. ChatGPT's code cannot read a plugin's files, so the zip carries no build tool: where a
- * chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page builds.
- * The plugin's description leads with what sets it apart, in the owner's words: privacy first, no
- * MCP server, so nothing a person makes passes through a server of ours.
+ * Both were uploaded as they are written here, by the owner on 2026-11-13. One zip for every chat
+ * was tried on 2026-11-16 and is not possible: a zip holding both layouts is refused by Claude's
+ * Skills ("All files must be inside the top-level folder", "Zip must contain exactly one SKILL.md
+ * file. Currently there are 2"), though ChatGPT's Plugins took it; and the plugin layout alone
+ * would go into Claude under Plugins, which its free plan does not have, where Skills it has.
+ * ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
+ * where a chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page
+ * builds. The plugin's description leads with what sets it apart, in the owner's words: privacy
+ * first, no MCP server, so nothing a person makes passes through a server of ours.
  */
 function skillZips(): Plugin {
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
@@ -341,31 +343,29 @@ function skillZips(): Plugin {
       }
       const folder = join(outDir, 'h5p', 'skill')
       await mkdir(folder, { recursive: true })
-      const plugin = new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`)
-      await writeFile(join(folder, 'h5p-author.zip'), await zipOf(['skills/h5p-author/', 'h5p-author/'], skill, [['plugin.json', plugin]]))
+      await writeFile(join(folder, 'h5p-author.zip'), await zipOf('h5p-author/', skill))
+      await writeFile(join(folder, 'h5p-author-chatgpt.zip'), await zipOf('skills/h5p-author/', skill, [['plugin.json', new TextEncoder().encode(`${JSON.stringify(manifest, null, 2)}\n`)]]))
     }
   }
 }
 
 /**
- * A zip of the files under each of `prefixes`, after the files at its root, with an entry for each
- * folder before what is in it, as `git archive` writes one: the shape of the zips first uploaded.
+ * A zip of the files under `prefix`, after the files at its root, with an entry for each folder
+ * before what is in it, as `git archive` writes one: the shape of the zips first uploaded.
  */
-async function zipOf(prefixes: readonly string[], files: ReadonlyArray<readonly [string, Uint8Array]>, atRoot: ReadonlyArray<readonly [string, Uint8Array]> = []): Promise<Uint8Array> {
+async function zipOf(prefix: string, files: ReadonlyArray<readonly [string, Uint8Array]>, atRoot: ReadonlyArray<readonly [string, Uint8Array]> = []): Promise<Uint8Array> {
   const writer = new ZipWriter(new Uint8ArrayWriter(), { useWebWorkers: false, lastModDate: ZIP_DATE, extendedTimestamp: false })
   for (const [path, bytes] of atRoot) await writer.add(path, new Uint8ArrayReader(bytes))
   const folders = new Set<string>()
-  for (const prefix of prefixes) {
-    for (const [path, bytes] of files) {
-      const parts = `${prefix}${path}`.split('/')
-      for (let depth = 1; depth < parts.length; depth++) {
-        const name = `${parts.slice(0, depth).join('/')}/`
-        if (folders.has(name)) continue
-        folders.add(name)
-        await writer.add(name, undefined, { directory: true })
-      }
-      await writer.add(`${prefix}${path}`, new Uint8ArrayReader(bytes))
+  for (const [path, bytes] of files) {
+    const parts = `${prefix}${path}`.split('/')
+    for (let depth = 1; depth < parts.length; depth++) {
+      const name = `${parts.slice(0, depth).join('/')}/`
+      if (folders.has(name)) continue
+      folders.add(name)
+      await writer.add(name, undefined, { directory: true })
     }
+    await writer.add(`${prefix}${path}`, new Uint8ArrayReader(bytes))
   }
   return writer.close()
 }
