@@ -284,15 +284,20 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
  * are the only way the site serves the skill's text: every chat it is offered to installs it.
  *
  * - `h5p-author.zip`: the skill's folder at the zip's root, `h5p-author/SKILL.md`, which Claude's
- *   app takes under Customize, Skills, and Grok's under Skills, Import.
+ *   app takes under Customize, Skills. Grok has no place to install a skill (the owner,
+ *   2026-11-15): it reads this zip attached to a message.
  * - `h5p-author-chatgpt.zip`: the same files as a plugin, under `skills/h5p-author/`, with its
  *   `plugin.json` at the root, which ChatGPT's Plugins take. A zip with the folder at its root is
  *   refused there ("Plugin archive must contain … `skills/*\/SKILL.md`"). The manifest is the Agent
  *   Plugins one, which allows no field but its own ten, with ChatGPT's name for the plugin under
  *   `extensions`; a name that leads with "H5P" says who made it.
  *
- * Both were uploaded as they are written here, by the owner on 2026-11-13, the first into Claude
- * and into Grok. ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
+ * Both were uploaded as they are written here, by the owner on 2026-11-13. One zip for every chat
+ * was tried on 2026-11-16 and is not possible: a zip holding both layouts is refused by Claude's
+ * Skills ("All files must be inside the top-level folder", "Zip must contain exactly one SKILL.md
+ * file. Currently there are 2"), though ChatGPT's Plugins took it; and the plugin layout alone
+ * would go into Claude under Plugins, which its free plan does not have, where Skills it has.
+ * ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
  * where a chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page
  * builds. The plugin's description leads with what sets it apart, in the owner's words: privacy
  * first, no MCP server, so nothing a person makes passes through a server of ours.
