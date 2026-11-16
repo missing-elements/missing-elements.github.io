@@ -50,7 +50,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   {#- The steps are drawn as the skill page's timeline (site.css). The first is the install: the
       zips are written by vite.config.ts from the release the site pins, and each was uploaded as
       it is, by the owner, on 2026-11-13. Grok has no place to install a skill, so it reads
-      Claude's zip attached (the owner, 2026-11-15). The archive
+      Claude's zip attached (the owner, 2026-11-15). Each zip keeps its address, which other
+      pages link to, and its link here saves it under a name with the release in it, so a person
+      can tell two downloads apart. The archive
       kept in a ChatGPT Project built there on the owner's free account on 2026-11-14 (#49). Its
       heading keeps the id that the top bar and the skill's page link to. -#}
   <section class="step" aria-labelledby="install">
@@ -63,13 +65,14 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <ul>
       <li>
         <strong>Claude</strong>, on claude.ai or in its apps: download
-        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a> and upload it under Customize,
-        then Skills, with code execution on. Claude builds the <code>.h5p</code> file in the chat.
+        <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>
+        and upload it under Customize, then Skills, with code execution on. Claude builds the
+        <code>.h5p</code> file in the chat.
       </li>
       <li>
         <strong>ChatGPT</strong>: download
-        <a href="/h5p/skill/h5p-author-chatgpt.zip" download>h5p-author-chatgpt.zip</a> and upload it
-        under Plugins. ChatGPT's code cannot download the build tool, so download
+        <a href="/h5p/skill/h5p-author-chatgpt.zip" download="h5p-author-chatgpt-{{ skill.version }}.zip">h5p-author-chatgpt-{{ skill.version }}.zip</a>
+        and upload it under Plugins. ChatGPT's code cannot download the build tool, so download
         <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too.
         Make a Project in ChatGPT, add the archive to it, and ask in a chat of that project:
         ChatGPT then builds the <code>.h5p</code> file in the chat, with nothing to attach.
@@ -78,8 +81,8 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       </li>
       <li>
         <strong>Grok</strong>: download
-        <a href="/h5p/skill/h5p-author.zip" download>h5p-author.zip</a>, the same file as for
-        Claude, and attach it to the message where you ask, in each new chat. Grok builds the
+        <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>,
+        the same file as for Claude, and attach it to the message where you ask, in each new chat. Grok builds the
         <code>.h5p</code> file in the chat.
       </li>
       <li>
