@@ -300,7 +300,7 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
  * ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
  * where a chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page
  * builds. The plugin's description leads with what sets it apart, in the owner's words: privacy
- * first, no MCP server, so nothing a person makes passes through a server of ours.
+ * first, no server of ours, so nothing a person makes passes through us.
  */
 function skillZips(): Plugin {
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
@@ -324,7 +324,7 @@ function skillZips(): Plugin {
         $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
         name: 'h5p-author',
         version,
-        description: 'Privacy first, no MCP server: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
+        description: 'Privacy first, no server of ours: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
         author: { name: 'Missing Elements', url: 'https://github.com/missing-elements' },
         homepage: guide,
         repository: 'https://github.com/missing-elements/h5p-offline-player',
@@ -334,7 +334,7 @@ function skillZips(): Plugin {
           'com.openai': {
             interface: {
               displayName: 'H5P Author by Missing Elements',
-              shortDescription: 'H5P activities from a prompt: privacy first, no MCP server',
+              shortDescription: 'H5P activities from a prompt: privacy first, no server of ours',
               developerName: 'Missing Elements',
               websiteURL: guide
             }
