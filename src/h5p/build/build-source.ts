@@ -32,7 +32,7 @@ export interface TypeFile {
  *   which a chat's sandbox writes with Node's `zlib.deflateRawSync` or Python's
  *   `zlib.compressobj(wbits=-15)` to keep the link short.
  * - `#source={…}`: the JSON itself, which a chat with no code tool writes into the link, since a
- *   model can write its own JSON but cannot compress it (h5p-offline-player#206). The value runs to
+ *   model can write its own JSON but cannot compress it (h5p-toolkit#206). The value runs to
  *   the end of the fragment, since JSON text holds `&` and `+`, and it is percent-decoded as far as
  *   it can be (`percentDecoded`). Base64url never holds `{` or `%`, so the forms cannot be mistaken.
  *   Up to three braces or brackets left open at its end are closed (`withClosers`). Its text is
@@ -79,7 +79,7 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
  * The JSON with the braces and brackets still open at its end closed, up to three of them, or
  * `null` where it ends inside a string or has more open. A model that writes a source on one line
  * loses count of its closers: Haiku left one `}` out of a True/False's 600 characters
- * (h5p-offline-player#206). What is closed at the end is only where the source ends, and the
+ * (h5p-toolkit#206). What is closed at the end is only where the source ends, and the
  * build still checks every field of it.
  */
 function withClosers(text: string): string | null {
@@ -224,7 +224,7 @@ export function matchFiles(paths: string[], chosen: File[]): { files: Record<str
  * The source's own type is h5p-author's reading of it, `sourceType`: its `type` as it is or as it is
  * spoken of, "interactive-book", or with none the one under `contentType` or `library`. A chat with
  * no skill text writes it so, and a rule of the page's own, `type` as written, gave its first copy
- * no file (h5p-offline-player#176). Below it a name counts only as it is, a listed machine name with
+ * no file (h5p-toolkit#176). Below it a name counts only as it is, a listed machine name with
  * or without a major and minor: what reads like one, a slide's element `{ "type": "text" }`, is no
  * H5P.Text.
  */
@@ -250,7 +250,7 @@ export function typesNamed(source: unknown, listed: Iterable<string>): string[] 
  * them the type files of the content types the source is written in. A chat in a browser has the
  * skill's text and none of its files, so it guesses a type's fields, and a problem tells it one
  * level's names a round. With the files beside the first problems, the weakest model tried wrote
- * 42 of 46 sources right by its second reply, and 29 without them (h5p-offline-player#172). The
+ * 42 of 46 sources right by its second reply, and 29 without them (h5p-toolkit#172). The
  * wording is the one measured.
  */
 export function forTheChat(problems: Problem[], typeFiles: TypeFile[] = []): string {

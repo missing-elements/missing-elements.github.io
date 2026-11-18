@@ -1,10 +1,10 @@
-// The address the project answers at: the one h5p-offline-player's code of conduct and security
+// The address the project answers at: the one h5p-toolkit's code of conduct and security
 // policy give, and the organization's on GitHub.
 const contact = "alekswebnet@gmail.com";
 
 // Where to say how the H5P build page and the h5p-author skill went, in two ways that start from
 // the same title and two questions. An email asks for no account, and a teacher may have none on
-// GitHub. A new discussion in h5p-offline-player, where the author is made, is public, for someone
+// GitHub. A new discussion in h5p-toolkit, where the author is made, is public, for someone
 // who has one. A mail body's lines end in CRLF (RFC 6068).
 const feedbackTitle = "Feedback on the H5P build page";
 const feedbackBody = "What I made (the content type, and the chat that wrote the source):\n\n\nWhat went well, or wrong:\n\n";
@@ -13,7 +13,7 @@ const buildFeedback = {
     `mailto:${contact}?subject=${encodeURIComponent(feedbackTitle)}` +
     `&body=${encodeURIComponent(feedbackBody.replaceAll("\n", "\r\n"))}`,
   github:
-    "https://github.com/missing-elements/h5p-offline-player/discussions/new?category=general" +
+    "https://github.com/missing-elements/h5p-toolkit/discussions/new?category=general" +
     `&title=${encodeURIComponent(feedbackTitle)}&body=${encodeURIComponent(feedbackBody)}`,
 };
 
@@ -47,7 +47,7 @@ export default {
       description: "Plays .h5p files from your own URLs or from disk with no H5P server, offline too, and reports results as xAPI, cmi5 or SCORM.",
       docs: "https://h5p-offline-player.vercel.app/",
       docsText: "Demo",
-      repo: "https://github.com/missing-elements/h5p-offline-player",
+      repo: "https://github.com/missing-elements/h5p-toolkit",
     },
   ],
   // The tools on the home page, under the elements: built on them, in the browser, an editor or an AI
@@ -67,7 +67,7 @@ export default {
       description: "Turns a .h5p file into a SCORM zip that an LMS plays and grades, in your browser.",
       links: [
         { text: "Open", href: "https://h5p-offline-player.vercel.app/demo/scorm.html" },
-        { text: "GitHub", href: "https://github.com/missing-elements/h5p-offline-player/tree/main/packages/embed" },
+        { text: "GitHub", href: "https://github.com/missing-elements/h5p-toolkit/tree/main/packages/embed" },
       ],
     },
     {
@@ -75,7 +75,7 @@ export default {
       description: "An app you install from the browser that plays .h5p files with no network.",
       links: [
         { text: "Open", href: "https://h5p-offline-player.vercel.app/app/" },
-        { text: "GitHub", href: "https://github.com/missing-elements/h5p-offline-player" },
+        { text: "GitHub", href: "https://github.com/missing-elements/h5p-toolkit" },
       ],
     },
     {
@@ -84,7 +84,7 @@ export default {
       links: [
         { text: "VS Code Marketplace", href: "https://marketplace.visualstudio.com/items?itemName=MissingElements.h5p-preview" },
         { text: "Open VSX", href: "https://open-vsx.org/extension/MissingElements/h5p-preview" },
-        { text: "GitHub", href: "https://github.com/missing-elements/h5p-offline-player/tree/main/packages/vscode" },
+        { text: "GitHub", href: "https://github.com/missing-elements/h5p-toolkit/tree/main/packages/vscode" },
       ],
     },
     {
@@ -93,7 +93,7 @@ export default {
       links: [
         { text: "Install", href: "https://skills.sh/missing-elements/h5p-offline-player" },
         { text: "For a chat", href: "/h5p/create-with-ai/#install" },
-        { text: "GitHub", href: "https://github.com/missing-elements/h5p-offline-player/tree/main/skills" },
+        { text: "GitHub", href: "https://github.com/missing-elements/h5p-toolkit/tree/main/skills" },
       ],
     },
   ],

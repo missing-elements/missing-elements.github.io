@@ -87,13 +87,13 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       </li>
       <li>
         <strong>An agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
-        <code>npx skills add missing-elements/h5p-offline-player --skill h5p-author</code>.
+        <code>npx skills add missing-elements/h5p-toolkit --skill h5p-author</code>.
       </li>
     </ul>
     <p>
       The zips hold h5p-author {{ skill.version }}, the release the build page runs: text files and
       nothing that runs, which you can read
-      <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">on GitHub</a>.
+      <a href="https://github.com/missing-elements/h5p-toolkit/tree/main/skills/h5p-author">on GitHub</a>.
       The archive holds the same release's build tool, which runs in the chat's own sandbox, and
       the H5P libraries it puts in the file, each under its own licence.
     </p>
@@ -160,7 +160,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       Any other H5P site takes it where it adds H5P content, H5P.com too, and Lumi opens it on your
       computer. With no H5P site, h5p-offline-player plays it
-      <a href="https://github.com/missing-elements/h5p-offline-player/blob/main/docs/setup.md">on a site of your own</a>
+      <a href="https://github.com/missing-elements/h5p-toolkit/blob/main/docs/setup.md">on a site of your own</a>
       or <a href="https://h5p-offline-player.vercel.app/app/">offline, in its app</a>.
     </p>
   </section>
@@ -242,7 +242,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       the MIT licence. The build page's code is in
       <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">this site's repository</a>,
       and the skill and the player are in
-      <a href="https://github.com/missing-elements/h5p-offline-player">h5p-offline-player</a>. The H5P
+      <a href="https://github.com/missing-elements/h5p-toolkit">h5p-toolkit</a>. The H5P
       runtime the player loads is <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>, and the H5P
       libraries in a file are each under their own licence, most MIT, as
       <a href="/h5p/assets/libraries-LICENSES.txt">the pack's licence list</a> says. The packages
@@ -322,11 +322,11 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 
 </main>
 
-{%- set footIssues = site.github ~ "/h5p-offline-player/issues" %}
+{%- set footIssues = site.github ~ "/h5p-toolkit/issues" %}
 {%- set footNote %}
 <p>
   The h5p-author skill is MIT, from
-  <a href="https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author">h5p-offline-player</a>.
+  <a href="https://github.com/missing-elements/h5p-toolkit/tree/main/skills/h5p-author">h5p-toolkit</a>.
 </p>
 {%- endset %}
 {% include "site-foot.njk" %}

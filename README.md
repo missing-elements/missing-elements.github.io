@@ -1,6 +1,6 @@
 # missing-elements.github.io
 
-The site of the [missing-elements](https://github.com/missing-elements) web components, at <https://missing-elements.github.io>: the docs of the PDF viewer, and the pages that make H5P content with an AI chat and the [h5p-author skill](https://github.com/missing-elements/h5p-offline-player/tree/main/skills/h5p-author).
+The site of the [missing-elements](https://github.com/missing-elements) web components, at <https://missing-elements.github.io>: the docs of the PDF viewer, and the pages that make H5P content with an AI chat and the [h5p-author skill](https://github.com/missing-elements/h5p-toolkit/tree/main/skills/h5p-author).
 
 ## What it serves
 
@@ -50,4 +50,4 @@ The pages run published releases, pinned exactly in [package.json](package.json)
 
 To move a pin, change its version in `package.json`, run `pnpm install`, then `pnpm build`, and commit the lockfile with it. Dependabot opens the pull requests for the pins as their own, apart from its group for everything else, and takes a new `@missing-elements` release the day it comes out where it holds other packages back for three days: [.github/dependabot.yml](.github/dependabot.yml) and [pnpm-workspace.yaml](pnpm-workspace.yaml) say why.
 
-The rules behind the H5P pages, and what was measured to reach them, are in [design/author.md](https://github.com/missing-elements/h5p-offline-player/blob/main/design/author.md) of h5p-offline-player, where the skill and its packages live.
+The rules behind the H5P pages, and what was measured to reach them, are in [design/author.md](https://github.com/missing-elements/h5p-toolkit/blob/main/design/author.md) of h5p-toolkit, where the skill and its packages live.
