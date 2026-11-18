@@ -10,7 +10,7 @@ import { buildPackage } from "@missing-elements/h5p-author";
 // A chat asked plainly for an H5P activity has to write the two files that are its content,
 // content.json and h5p.json. With the h5p-author skill it writes the source, and the build writes
 // those two from it. Both are counted as JSON on one line, with no layout, and in tokens at four
-// characters a token, the rule design/author.md of h5p-offline-player measures by. Tokens are a
+// characters a token, the rule design/author.md of h5p-toolkit measures by. Tokens are a
 // model's own, so they are said as "about", to the nearest ten.
 const source = JSON.parse(await readFile("src/h5p/build/sample.json", "utf8"));
 const work = await mkdtemp(join(tmpdir(), "h5p-build-cost-"));

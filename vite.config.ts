@@ -82,7 +82,7 @@ function licenceFiles(): Plugin {
  * A chat in a browser has the skill's text and none of its files, so it guesses how a content type
  * is written, and learns one level's names from each round of problems. The build page copies the
  * files of a source's own type, and of the libraries it names, for the chat along with the
- * source's problems (h5p-offline-player#172). They are the release's, so they describe the fields
+ * source's problems (h5p-toolkit#172). They are the release's, so they describe the fields
  * of the build this page runs.
  */
 function typeFiles(): Plugin {
@@ -157,7 +157,7 @@ function sample(): Plugin {
  * - `h5p-author.mjs`: the command line as one file, everything it imports bundled in by Vite, so it
  *   runs with nothing installed. It takes `--libraries`: the npm package's pinned pack is not with
  *   it. Since 0.9.8 its `--version` prints the versions from copies of the two package.json files
- *   Vite writes in (h5p-offline-player#198); before, it crashed, finding neither beside it. The
+ *   Vite writes in (h5p-toolkit#198); before, it crashed, finding neither beside it. The
  *   build runs it and stops where it does not print the versions `index.json` says.
  * - `h5p-author-LICENSES.txt`: every package bundled into `h5p-author.mjs` with its licence, as
  *   Vite lists them, since MIT and BSD-3-Clause ask their notices to travel with copies (zod came
@@ -332,7 +332,7 @@ function skillZips(): Plugin {
         description: 'Privacy first, no server of ours: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
         author: { name: 'Missing Elements', url: 'https://github.com/missing-elements' },
         homepage: guide,
-        repository: 'https://github.com/missing-elements/h5p-offline-player',
+        repository: 'https://github.com/missing-elements/h5p-toolkit',
         license: 'MIT',
         keywords: ['h5p', 'quiz', 'e-learning', 'authoring'],
         extensions: {
