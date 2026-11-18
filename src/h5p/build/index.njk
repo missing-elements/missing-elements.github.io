@@ -1,11 +1,11 @@
 ---
 layout: base.njk
 # The title and description carry what people search for: an AI H5P generator, with ChatGPT and the
-# like, and what sets it apart, in the owner's words: privacy first, no MCP server. The description
+# like, and what sets it apart, in the owner's words: privacy first, no server of ours. The description
 # counts the types as the hero does, in the release the page runs.
 title: "Free AI H5P generator, privacy first: make H5P with ChatGPT, Claude or Grok"
 eleventyComputed:
-  description: "Describe a lesson to ChatGPT, Claude or Grok and get an H5P activity for Moodle: a quiz, a course presentation or any of {{ skill.offered.length }} H5P types. Free, privacy first: no MCP server, no account."
+  description: "Describe a lesson to ChatGPT, Claude or Grok and get an H5P activity for Moodle: a quiz, a course presentation or any of {{ skill.offered.length }} H5P types. Free, privacy first: no server of ours, no account."
 # The picture a shared link shows: the page's first screen at 1200×630, light, with the sample
 # settled. It is a screenshot, so take it again when that screen changes.
 socialImage:
@@ -102,7 +102,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
-          <h3>Privacy first, no MCP server</h3>
+          <h3>Privacy first, no server of ours</h3>
           <p>Your chat builds the activity in its own sandbox, or this page builds and plays it on your computer: nothing you make is sent to us. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, and needs no account.</p>
         </li>
         <li class="feature">
@@ -328,8 +328,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
 {%- set footNote %}
 <p>
   Built with <a href="https://github.com/missing-elements/h5p-offline-player">h5p-offline-player</a>
-  and <code>@missing-elements/h5p-author</code>, MIT. The H5P runtime the player loads is
-  <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>.
+  and <code>@missing-elements/h5p-author</code>, MIT, among
+  <a href="/h5p/assets/build-page-LICENSES.txt">the packages the page bundles</a>. The H5P runtime
+  the player loads is <a href="/h5p/assets/runtime-LICENSE.txt">GPL-3.0</a>.
 </p>
 {%- endset %}
 {% include "site-foot.njk" %}

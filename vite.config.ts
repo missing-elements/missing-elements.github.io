@@ -141,13 +141,13 @@ function sample(): Plugin {
  * `/h5p/bundles/`, for a chat that runs Node but reaches no npm registry. The h5p-author skill
  * builds there from what it gets from here:
  *
- * - `h5p-author-build.tar.gz`: the command line, every part of the pack with its index, and
- *   `libraries.txt`, which the person downloads once and attaches to a chat whose code can fetch
- *   nothing. ChatGPT's cannot: its download tool saved none of eleven files tried on 2026-11-13,
- *   ours or any site's, and an installed plugin's files never reach it. With this attached it
- *   built, as Claude and Grok did. Every type in one file, since it is downloaded before a type is
- *   chosen; a `.tar.gz`, since ChatGPT took the same files as a `.zip` for a plugin to install and
- *   refused it.
+ * - `h5p-author-build.tar.gz`: the command line and its licence list, every part of the pack with
+ *   its index, and `libraries.txt`, which the person downloads once and attaches to a chat whose
+ *   code can fetch nothing. ChatGPT's cannot: its download tool saved none of eleven files tried
+ *   on 2026-11-13, ours or any site's, and an installed plugin's files never reach it. With this
+ *   attached it built, as Claude and Grok did. Every type in one file, since it is downloaded
+ *   before a type is chosen; a `.tar.gz`, since ChatGPT took the same files as a `.zip` for a
+ *   plugin to install and refused it.
  * - `<type>.zip`, one per content type in the pack (`h5p-author bundle --all`): `parts/`, the
  *   pack's whole index with the parts a build of that type can read, and `libraries.txt`. With
  *   the command line, two files a chat that can fetch takes from here: Grok built that way on
@@ -159,6 +159,9 @@ function sample(): Plugin {
  *   it. Since 0.9.8 its `--version` prints the versions from copies of the two package.json files
  *   Vite writes in (h5p-offline-player#198); before, it crashed, finding neither beside it. The
  *   build runs it and stops where it does not print the versions `index.json` says.
+ * - `h5p-author-LICENSES.txt`: every package bundled into `h5p-author.mjs` with its licence, as
+ *   Vite lists them, since MIT and BSD-3-Clause ask their notices to travel with copies (zod came
+ *   in with h5p-author 0.12.0; zip.js was in already). It goes into the archive with the tool.
  * - `index.json`: the author's and the pack's versions, and each bundle's file, size and parts.
  * - `libraries.txt`: the pack's licence list, which asks to travel with its libraries.
  *
@@ -196,6 +199,7 @@ function bundles(): Plugin {
           emptyOutDir: false,
           copyPublicDir: false,
           minify: false,
+          license: { fileName: 'h5p-author-LICENSES.txt' },
           reportCompressedSize: false,
           rolldownOptions: { output: { entryFileNames: 'h5p-author.mjs', format: 'es', codeSplitting: false } }
         },
@@ -208,6 +212,7 @@ function bundles(): Plugin {
       // The archive lays them out as a build from the bundles does: `tar -xzf`, then `--libraries parts`.
       const archive = tarGz([
         ['h5p-author.mjs', await readFile(join(folder, 'h5p-author.mjs'))],
+        ['h5p-author-LICENSES.txt', await readFile(join(folder, 'h5p-author-LICENSES.txt'))],
         ['libraries.txt', await readFile(join(folder, 'libraries.txt'))],
         ['parts/index.json', await readFile(join(parts, 'index.json'))],
         ...(await Promise.all(index.libraries.map(async ({ folder: part }) => [`parts/${part}.h5p`, await readFile(join(parts, `${part}.h5p`))] as const)))
@@ -300,7 +305,7 @@ function tarGz(files: ReadonlyArray<readonly [string, Uint8Array]>): Buffer {
  * ChatGPT's code cannot read a plugin's files, so neither carries the build tool:
  * where a chat's code cannot reach it, the person attaches `bundles()`'s archive, or the build page
  * builds. The plugin's description leads with what sets it apart, in the owner's words: privacy
- * first, no MCP server, so nothing a person makes passes through a server of ours.
+ * first, no server of ours, so nothing a person makes passes through us.
  */
 function skillZips(): Plugin {
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
@@ -324,7 +329,7 @@ function skillZips(): Plugin {
         $schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
         name: 'h5p-author',
         version,
-        description: 'Privacy first, no MCP server: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
+        description: 'Privacy first, no server of ours: create H5P content from a prompt, a lesson or supplied material, as a playable .h5p (quizzes, flash cards, presentations, interactive books and more). It is built in your chat\'s own sandbox or in your browser, and nothing you make is sent to us.',
         author: { name: 'Missing Elements', url: 'https://github.com/missing-elements' },
         homepage: guide,
         repository: 'https://github.com/missing-elements/h5p-offline-player',
@@ -334,7 +339,7 @@ function skillZips(): Plugin {
           'com.openai': {
             interface: {
               displayName: 'H5P Author by Missing Elements',
-              shortDescription: 'H5P activities from a prompt: privacy first, no MCP server',
+              shortDescription: 'H5P activities from a prompt: privacy first, no server of ours',
               developerName: 'Missing Elements',
               websiteURL: guide
             }
@@ -380,6 +385,9 @@ export default defineConfig({
     outDir: '_site',
     emptyOutDir: false,
     assetsDir: ASSETS,
+    // Every package bundled into the page's scripts with its licence (zod, zip.js, CodeMirror and
+    // ours), beside the runtime's and the pack's: MIT and BSD-3-Clause ask it to travel with them.
+    license: { fileName: `${ASSETS}/build-page-LICENSES.txt` },
     rolldownOptions: {
       input: { 'build-page': 'src/h5p/build/build-page.ts' },
       output: { entryFileNames: 'h5p/build/[name].js' }
