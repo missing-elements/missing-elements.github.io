@@ -120,8 +120,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
   </section>
 
   {#- The prompt is a code block, which site.js gives a Copy button. It names the skill, which the
-      chat has once the first step is done, and the content type, so the chat asks only for the
-      author and licence: the sample is what Haiku wrote for this request, with the site's name and
+      chat has once the first step is done, and the content type, so the chat asks nothing (since
+      2026-11-14 the skill asks for the type at most, and writes the author and licence the prompt
+      gives, or defaults): the sample is what Haiku wrote for this request, with the site's name and
       licence put on it. Until 2026-11-13 the prompt sent the chat to read the skill at /h5p/skill/
       instead, which worked only in chats that now take the skill as a zip. -#}
   <section class="band band-tint make when-unlinked" id="make" aria-labelledby="make-heading">
@@ -137,7 +138,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li>
           <h3>Ask your chat</h3>
-          <p>Paste the prompt below into a new chat, with a subject of your own. The chat asks whose name and which licence go on the activity, which you may skip, and writes it.</p>
+          <p>Paste the prompt below into a new chat, with a subject of your own. It names the type, so the chat asks nothing and writes the activity.</p>
         </li>
         <li>
           <h3>Play it, then download it</h3>
