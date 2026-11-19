@@ -109,14 +109,21 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       another language, say so, such as "in French": the activity's buttons come in it too, where
       H5P has a translation.
     </p>
+    <p>
+      To change an activity you already have, attach its <code>.h5p</code> and say what to change,
+      such as "add two harder questions". A chat that builds the file itself, as in step 4, reads
+      the activity back, changes it and builds it again, if it was made with the versions of H5P's
+      libraries the build tool has. Otherwise the chat says so and offers to make the activity anew.
+    </p>
   </section>
 
   <section class="step" aria-labelledby="answer-heading">
-    <h2 id="answer-heading"><span class="step-marker"><span class="step-number">3</span></span> Answer its questions</h2>
+    <h2 id="answer-heading"><span class="step-marker"><span class="step-number">3</span></span> Answer its question</h2>
     <p>
       If the prompt names no type, the chat proposes one or two that fit your material, and you
-      choose. Then it asks whose name and which licence go on the activity, which you may skip, and
-      writes it.
+      choose. It asks nothing else, and writes the activity. To put your name and a licence on it,
+      say them in the prompt, such as "by Ann Lee, CC BY 4.0"; otherwise it carries the name the
+      chat knows you by, or "Unknown", and an undisclosed licence.
     </p>
   </section>
 
@@ -168,7 +175,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section aria-labelledby="prompts">
     <h2 id="prompts">Prompts to start from</h2>
     <p>
-      Each names its type, so the chat asks only whose name and licence go on it. Change the subject
+      Each names its type, so the chat asks nothing. Change the subject
       and the numbers to yours.
     </p>
 
