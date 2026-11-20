@@ -39,8 +39,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       '@missing-elements/h5p-offline-player':
-        specifier: 1.6.0
-        version: 1.6.0(@missing-elements/h5p-runtime@1.0.1)
+        specifier: 1.7.0
+        version: 1.7.0(@missing-elements/h5p-runtime@1.0.1)
       '@missing-elements/h5p-runtime':
         specifier: 1.0.1
         version: 1.0.1
@@ -180,6 +180,15 @@ packages:
 
   '@missing-elements/h5p-offline-player@1.6.0':
     resolution: {integrity: sha512-Kn5jZBLZSYIiRNbiEVMdFzyatLTy2PPZyzwEBZ9iA8YvMqohRAfC+IKbDkwdbl+Y3pIYFtCnnIbDZy1aTRJgmQ==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@missing-elements/h5p-runtime': ^1.0.0
+    peerDependenciesMeta:
+      '@missing-elements/h5p-runtime':
+        optional: true
+
+  '@missing-elements/h5p-offline-player@1.7.0':
+    resolution: {integrity: sha512-G76LLCO8op2Ea6GrH4LHaPUhBAdWIBu6oq2b4WiPU+Pfn3cqe7Y6mIFu/ajBBLoJzjWX1+pOYsFFWWBFW2nNQw==}
     engines: {node: '>=20'}
     peerDependencies:
       '@missing-elements/h5p-runtime': ^1.0.0
@@ -1295,6 +1304,12 @@ snapshots:
       '@zip.js/zip.js': 2.25.0
 
   '@missing-elements/h5p-offline-player@1.6.0(@missing-elements/h5p-runtime@1.0.1)':
+    dependencies:
+      '@zip.js/zip.js': 2.25.0
+    optionalDependencies:
+      '@missing-elements/h5p-runtime': 1.0.1
+
+  '@missing-elements/h5p-offline-player@1.7.0(@missing-elements/h5p-runtime@1.0.1)':
     dependencies:
       '@zip.js/zip.js': 2.25.0
     optionalDependencies:
