@@ -1,0 +1,24 @@
+---
+layout: base.njk
+title: "Play an H5P activity"
+description: "An H5P activity an AI chat wrote, built and played in your browser, with its .h5p file to download. Nothing is sent to a server."
+bodyClass: play
+# Not a page to land on from a search: it is opened with an activity's source in its link.
+eleventyExcludeFromCollections: true
+# As the build page's policy: packages it built play in the player's frame, under the policy the
+# player's Service Worker gives each response there.
+csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src * data: blob:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'"
+---
+{#- The player alone, for an activity's source in the link (#source=, as the build page takes it),
+    so that a chat app can show the activity in its reply: play-page.ts builds it and plays it. -#}
+<main class="play" id="main">
+  <p class="play-status" id="status" data-state="building">Building the activity in your browser…</p>
+  <div class="play-box">
+    <h5p-player id="player"></h5p-player>
+  </div>
+  <p class="play-actions">
+    <a class="button button-solid" id="download" download hidden>Download the .h5p</a>
+    <a class="button" id="edit" target="_blank" rel="noopener">Open in the build page</a>
+  </p>
+</main>
+<script type="module" src="/h5p/play/play-page.js"></script>

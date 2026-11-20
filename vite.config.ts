@@ -375,8 +375,8 @@ export default defineConfig({
     // ours), beside the runtime's and the pack's: MIT and BSD-3-Clause ask it to travel with them.
     license: { fileName: `${ASSETS}/build-page-LICENSES.txt` },
     rolldownOptions: {
-      input: { 'build-page': 'src/h5p/build/build-page.ts' },
-      output: { entryFileNames: 'h5p/build/[name].js' }
+      input: { 'build-page': 'src/h5p/build/build-page.ts', 'play-page': 'src/h5p/play/play-page.ts' },
+      output: { entryFileNames: (chunk) => chunk.name === 'play-page' ? 'h5p/play/[name].js' : 'h5p/build/[name].js' }
     }
   }
 })
