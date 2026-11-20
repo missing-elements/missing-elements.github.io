@@ -103,7 +103,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
           <h3>Privacy first, no server of ours</h3>
-          <p>Your chat builds the activity in its own sandbox, or this page builds and plays it on your computer: nothing you make is sent to us. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, and needs no account.</p>
+          <p>Your chat builds the activity in its own sandbox, or this page builds and plays it on your computer: nothing you make is sent to us. Where your source names a picture or a video by web address, the page asks that address's site for it, and YouTube or Vimeo whether the video is there. It is free and <a href="https://github.com/missing-elements/missing-elements.github.io/tree/main/src/h5p/build">open source</a>, and needs no account.</p>
         </li>
         <li class="feature">
           <span class="feature-icon icon-school" aria-hidden="true"></span>
@@ -239,7 +239,19 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
           Work through all of it, wrong answers included, and check the answers and feedback against
           your material. The build checks the structure, not whether the content is right.
         </p>
-        <p><a class="button button-solid button-large" id="download" download>Download the .h5p</a></p>
+        {#- The source goes with the package, as the command line writes it beside one (author
+            0.15.0, h5p-toolkit#219): as the build took it, naming the version of its content type
+            it was built with, so that a later build with newer libraries can say the type has
+            moved. It is the build's, not the box's text, which stays as the person wrote it. -#}
+        <p class="downloads">
+          <a class="button button-solid button-large" id="download" download>Download the .h5p</a>
+          <a class="button button-large" id="download-source" download>Download its source</a>
+        </p>
+        <p class="hint">
+          Keep the source with the file. To change the activity later, open the source here and
+          build it again: it names the version of its content type it was built with, and a build
+          with newer libraries says if that has moved.
+        </p>
         <div class="player-box">
           <h5p-player id="player"></h5p-player>
         </div>

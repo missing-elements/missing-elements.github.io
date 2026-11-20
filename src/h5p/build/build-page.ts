@@ -60,6 +60,7 @@ const notesBox = $('notes-box')
 const notesList = $<HTMLUListElement>('notes')
 const playStep = $('play-step')
 const download = $<HTMLAnchorElement>('download')
+const downloadSource = $<HTMLAnchorElement>('download-source')
 const player = $('player') as HTMLElementTagNameMap['h5p-player']
 const sample = $('sample') as HTMLElementTagNameMap['h5p-player']
 const sampleFigure = $('sample-figure')
@@ -97,6 +98,8 @@ let typeFilesArriving: Promise<void> | null = null
 let shows = 0
 /** The address of the package last built, given back when the next one replaces it. */
 let packageUrl: string | null = null
+/** The address of its source, as the build took it, given back likewise. */
+let sourceUrl: string | null = null
 /** Counts builds, so that one overtaken by a newer one shows nothing. */
 let builds = 0
 /** Whether the address carries a source, which it then keeps in step with the source as it changes. */
@@ -304,6 +307,14 @@ async function build(): Promise<void> {
     download.href = packageUrl
     download.download = name
     download.textContent = `Download ${name}`
+    // The source as the build took it, naming what it was built with, under the package's name:
+    // the file the command line writes beside a package, and the one "Or open a file" takes.
+    const sourceName = name.replace(/\.h5p$/, '.source.json')
+    if (sourceUrl) URL.revokeObjectURL(sourceUrl)
+    sourceUrl = URL.createObjectURL(new Blob([`${JSON.stringify(result.source, null, 2)}\n`], { type: 'application/json' }))
+    downloadSource.href = sourceUrl
+    downloadSource.download = sourceName
+    downloadSource.textContent = `Download ${sourceName}`
     showNotes([...result.notes, ...translationNotes(String(result.manifest.language ?? ''), result.translations)])
     const media = result.media.length ? `, ${result.media.length} media file${result.media.length === 1 ? '' : 's'}` : ''
     setStatus(`Built “${title}”: ${String(result.manifest.mainLibrary)}, ${result.libraries.length} libraries${media}, ${sized(result.blob.size)}. Starting it below…`, 'building')
