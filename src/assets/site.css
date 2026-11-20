@@ -1089,6 +1089,7 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
 
 /* The play page, /h5p/play/: the activity alone, for a chat app's frame. */
 .play { padding: 0.5rem; }
+.play .player-box { margin: 0; }
 .play-status { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.9rem; }
 .play-status[data-state="error"] { color: inherit; font-weight: 600; }
 .play-status[data-state="ready"] { display: none; }
