@@ -12,7 +12,13 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     so that a chat app can show the activity in its reply: play-page.ts builds it and plays it. -#}
 <main class="play" id="main">
   <p class="play-status" id="status" role="status" data-state="building">Building the activity in your browser…</p>
-  <div class="player-box">
+  {#- For a source that names files of the person's own, a video beside it: chosen here, where
+      they stay in the browser. The field is hidden, and the button opens it. -#}
+  <p class="play-files" id="files-box" hidden>
+    <button type="button" class="button button-solid" id="choose">Choose the file</button>
+    <input type="file" id="files" multiple hidden>
+  </p>
+  <div class="player-box" id="player-box" hidden>
     <h5p-player id="player"></h5p-player>
   </div>
   <p class="play-actions">
