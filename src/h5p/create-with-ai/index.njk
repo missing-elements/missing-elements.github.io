@@ -111,6 +111,18 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       nothing that runs, which you can read
       <a href="https://github.com/missing-elements/h5p-toolkit/tree/main/skills/h5p-author">on GitHub</a>.
     </p>
+    {#- The archive is named here too (the owner, 2026-11-20): a reader sets a chat up in this
+        step, and one who never reached the end of step 4 did not learn there is an archive.
+        For a chat with projects it is set up once, as the skill is. Step 4 keeps the whole of
+        it, with what to do in a chat that has no projects. -#}
+    <p>
+      <strong>If your chat has projects</strong>, give it one more file, once: add
+      <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>, the
+      build archive, to a project, and ask in a chat of that project. The archive holds the
+      build tool, so a chat whose code runs Node.js makes the <code>.h5p</code> file itself,
+      even where it cannot download the tool. With no projects, you attach the archive to a
+      message when the chat needs it, as <a href="#archive">step 4</a> says.
+    </p>
   </section>
 
   <section class="step" aria-labelledby="ask-heading">
@@ -156,14 +168,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       with Download the .h5p. A chat that built the file gives its source file too: open it on the
       build page to play the activity before you use it.
     </p>
-    {#- The archive is offered here, where a reader has just seen which of the two their chat
-        gave, and not in step 1: nobody can tell beforehand whether a chat's code downloads the
-        tool, and the skill's own reply offers the archive where it would help (route 4's fixed
-        line). A project is any chat's, not one product's: a chat that has projects keeps their
-        files for every chat in them, and the skill looks for the archive among the chat's files
-        wherever it came from (route 1). Where a project does not hand its files to the chat's
-        code, the reader attaches it, which the step says too. -#}
-    <p id="archive">
+    {#- The whole of the archive is here, under a heading of its own, where a reader has just
+        seen which of the two their chat gave: nobody can tell beforehand whether a chat's code
+        downloads the tool, and the skill's own reply offers the archive where it would help
+        (route 4's fixed line). Step 1 names it too, for a chat with projects. A project is any
+        chat's, not one product's: a chat that has projects keeps their files for every chat in
+        them, and the skill looks for the archive among the chat's files wherever it came from
+        (route 1). Where a project does not hand its files to the chat's code, the reader
+        attaches it, which the step says too. The heading keeps the id the build page links to. -#}
+    <h3 id="archive">The build archive, for a chat that cannot download the tool</h3>
+    <p>
       A chat that runs code and still hands over the source could not download the build tool,
       and its reply says so. Give it the tool yourself: download
       <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>, the
