@@ -34,16 +34,16 @@ importers:
         version: 1.2.5
       '@missing-elements/h5p-author':
         specifier: 0.13.0
-        version: 0.13.0(@missing-elements/h5p-runtime@1.0.1)
+        version: 0.13.0(@missing-elements/h5p-runtime@1.0.2)
       '@missing-elements/h5p-libraries':
         specifier: 1.1.0
         version: 1.1.0
       '@missing-elements/h5p-offline-player':
         specifier: 1.7.0
-        version: 1.7.0(@missing-elements/h5p-runtime@1.0.1)
+        version: 1.7.0(@missing-elements/h5p-runtime@1.0.2)
       '@missing-elements/h5p-runtime':
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 1.0.2
+        version: 1.0.2
       '@missing-elements/pdfjs-viewer':
         specifier: 4.5.0
         version: 4.5.0
@@ -196,8 +196,8 @@ packages:
       '@missing-elements/h5p-runtime':
         optional: true
 
-  '@missing-elements/h5p-runtime@1.0.1':
-    resolution: {integrity: sha512-/cvjh7a9X9DMHEzIOqCMJAngEJxrCOCr33NI+FOM5UGdXR7Er0CYpMqQKGslrS2hVJIlWJ9iI8YG/Bw2/vISlA==}
+  '@missing-elements/h5p-runtime@1.0.2':
+    resolution: {integrity: sha512-Z97zWfBZW2jRQQoacGZmyO0coMHM8KlbjK/UAXZFVFvqSuV3lznuNONFdxz34sXUED2asAVW/tS58rDY23xtqA==}
     engines: {node: '>=20'}
 
   '@missing-elements/pdfjs-viewer@4.5.0':
@@ -1287,11 +1287,11 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.4': {}
 
-  '@missing-elements/h5p-author@0.13.0(@missing-elements/h5p-runtime@1.0.1)':
+  '@missing-elements/h5p-author@0.13.0(@missing-elements/h5p-runtime@1.0.2)':
     dependencies:
       '@missing-elements/h5p-libraries': 1.1.0
       '@missing-elements/h5p-normalize': 1.4.0
-      '@missing-elements/h5p-offline-player': 1.6.0(@missing-elements/h5p-runtime@1.0.1)
+      '@missing-elements/h5p-offline-player': 1.6.0(@missing-elements/h5p-runtime@1.0.2)
       '@zip.js/zip.js': 2.25.0
       zod: 4.6.7
     transitivePeerDependencies:
@@ -1303,19 +1303,19 @@ snapshots:
     dependencies:
       '@zip.js/zip.js': 2.25.0
 
-  '@missing-elements/h5p-offline-player@1.6.0(@missing-elements/h5p-runtime@1.0.1)':
+  '@missing-elements/h5p-offline-player@1.6.0(@missing-elements/h5p-runtime@1.0.2)':
     dependencies:
       '@zip.js/zip.js': 2.25.0
     optionalDependencies:
-      '@missing-elements/h5p-runtime': 1.0.1
+      '@missing-elements/h5p-runtime': 1.0.2
 
-  '@missing-elements/h5p-offline-player@1.7.0(@missing-elements/h5p-runtime@1.0.1)':
+  '@missing-elements/h5p-offline-player@1.7.0(@missing-elements/h5p-runtime@1.0.2)':
     dependencies:
       '@zip.js/zip.js': 2.25.0
     optionalDependencies:
-      '@missing-elements/h5p-runtime': 1.0.1
+      '@missing-elements/h5p-runtime': 1.0.2
 
-  '@missing-elements/h5p-runtime@1.0.1': {}
+  '@missing-elements/h5p-runtime@1.0.2': {}
 
   '@missing-elements/pdfjs-viewer@4.5.0':
     dependencies:
