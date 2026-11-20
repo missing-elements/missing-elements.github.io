@@ -98,7 +98,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <li class="feature">
           <span class="feature-icon icon-ai" aria-hidden="true"></span>
           <h3>Works with your AI chat</h3>
-          <p>Claude and ChatGPT take the h5p-author skill as a zip you upload once, and Grok reads Claude's zip attached to your message. An agent with a terminal, such as Claude Code, Codex or Cursor, installs it with one command.</p>
+          <p>The h5p-author skill is a zip of text files. A chat with a place for skills takes it once, and any other reads it attached to your message. An agent with a terminal, one that runs commands on your computer, installs it with one command.</p>
         </li>
         <li class="feature">
           <span class="feature-icon icon-browser" aria-hidden="true"></span>
@@ -119,7 +119,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     </div>
   </section>
 
-  {#- The prompt is a code block, which site.js gives a Copy button. It names the skill, which the
+  {#- The steps say what a chat can do, and name none: what one chat does changes within weeks, and
+      the guide goes by what the reader's chat has (create-with-ai/index.njk says why). The chats
+      in the page's title and under the heading are examples of an AI chat.
+      The prompt is a code block, which site.js gives a Copy button. It names the skill, which the
       chat has once the first step is done, and the content type, so the chat asks nothing (since
       2026-11-14 the skill asks for the type at most, and writes the author and licence the prompt
       gives, or defaults): the sample is what Haiku wrote for this request, with the site's name and
@@ -129,12 +132,12 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     <div class="wrap">
       <header class="band-head">
         <h2 id="make-heading">How it works</h2>
-        <p>Three steps, in Claude, ChatGPT or Grok.</p>
+        <p>Three steps, in the AI chat you use: ChatGPT, Claude, Grok or another.</p>
       </header>
       <ol class="how" role="list">
         <li>
           <h3>Give your chat the skill</h3>
-          <p>The h5p-author skill is the instructions that tell a chat how to write H5P. Download it and add it to your chat, once in Claude and ChatGPT and with your message in Grok: <a href="/h5p/create-with-ai/#install">where it goes in each</a>.</p>
+          <p>The h5p-author skill is the instructions that tell a chat how to write H5P. Download it and give it to your chat, once where the chat keeps skills, or with your message where it keeps none: <a href="/h5p/create-with-ai/#install">where it goes</a>.</p>
         </li>
         <li>
           <h3>Ask your chat</h3>
@@ -142,7 +145,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         </li>
         <li>
           <h3>Play it, then download it</h3>
-          <p>Claude and Grok build the <code>.h5p</code> file in the chat, and so does ChatGPT with <a href="/h5p/create-with-ai/#install">the build archive</a>, kept in a Project or attached. Without it, ChatGPT hands over the activity's source, to <a href="#build-it">open or paste below</a>.</p>
+          <p>A chat whose code can run the build tool builds the <code>.h5p</code> file in the chat, from <a href="/h5p/create-with-ai/#archive">the build archive</a> where it cannot download the tool. Any other chat hands over the activity's source, to <a href="#build-it">open or paste below</a>.</p>
         </li>
       </ol>
       <div class="prompt-box">

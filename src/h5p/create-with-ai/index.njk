@@ -38,64 +38,78 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     </p>
     <p>
       The chat needs the h5p-author skill, the instructions that tell it how to write H5P: you
-      <a href="#install">give it to your chat</a>, once in Claude and ChatGPT, and with your
-      message in Grok. Then the chat writes the activity. Claude and Grok
-      make it a <code>.h5p</code> file for Moodle or any other H5P site in the chat, and for
-      ChatGPT <a href="/h5p/build/">the build page</a> makes the file in your browser. The skill
+      <a href="#install">give it to your chat</a>, once where the chat keeps skills, or with your
+      message where it keeps none. Then the chat writes the activity. A chat whose code can run
+      the build tool makes it a <code>.h5p</code> file itself, and for any other chat
+      <a href="/h5p/build/">the build page</a> makes the file in your browser. The skill
       and the page are free and <a href="#open-source">open source</a>, with no account.
     </p>
     <p><a class="button button-solid button-large" href="/h5p/build/">Open the build page</a></p>
   </header>
 
-  {#- The steps are drawn as the skill page's timeline (site.css). The first is the install: the
-      zips are written by vite.config.ts from the release the site pins, and each was uploaded as
-      it is, by the owner, on 2026-11-13. Grok has no place to install a skill, so it reads
-      Claude's zip attached (the owner, 2026-11-15). Each zip keeps its address, which other
-      pages link to, and its link here saves it under a name with the release in it, so a person
-      can tell two downloads apart. The archive
-      kept in a ChatGPT Project built there on the owner's free account on 2026-11-14 (#49). Its
-      heading keeps the id that the top bar and the skill's page link to. -#}
+  {#- The steps go by what a chat has, not by its name (the owner, 2026-11-20): what a chat does
+      changes faster than a guide is read, and a step that names a chat then sends its reader the
+      wrong way. Grok imported the zip under Skills on 2026-11-13 and had no place for one on
+      2026-11-15, and a chat app for local models was added to this step and taken out within
+      three days. So each step names what a reader can look for in their own chat (a place for
+      skills, plugins, projects, code that runs) and says what to do with it and without it.
+      No step says what one product does, and none says what a product lacks. The chats in the
+      title are examples of an AI chat: the page says nothing of any of them alone.
+
+      Seen so far, for this record and not for the page: Claude's Skills took h5p-author.zip and
+      ChatGPT's Plugins the plugin zip (the owner, 2026-11-13); Grok read the skill from the zip
+      attached to a message (2026-11-15); the archive kept in a ChatGPT Project built there on
+      the owner's free account (2026-11-14, #49).
+
+      The steps are drawn as the skill page's timeline (site.css). The zips are written by
+      vite.config.ts from the release the site pins. Each keeps its address, which other pages
+      link to, and its link here saves it under a name with the release in it, so a person can
+      tell two downloads apart. The first step's heading keeps the id that the top bar and the
+      skill's page link to.
+
+      An agent with a terminal comes before the cases, and outside them: the cases are taken in
+      order, and such an agent has no settings to look in, so it would stop at the last, the
+      zip attached. The plugin zip is one layout of several, a `plugin.json` at its root and the
+      skill under `skills/`, the one ChatGPT's Plugins took on 2026-11-13 (vite.config.ts): a
+      chat whose plugins ask for another refuses it, which the case says, and the next takes
+      it from there. -#}
   <section class="step" aria-labelledby="install">
     <h2 id="install"><span class="step-marker"><span class="step-number">1</span></span> Give your chat the skill</h2>
     <p>
-      Claude and ChatGPT install it once and keep it, for every activity you ask for. Grok has
-      nothing to install it into, and takes it with your message, in each new chat. Where it goes
-      depends on the chat:
+      The skill is a small zip of text files. AI chats change what they offer from month to
+      month, so this guide goes by what your chat has, not by its name.
+    </p>
+    <p>
+      In an agent with a terminal, one that runs commands on your computer, with Node.js
+      installed, run
+      <code>npx skills add missing-elements/h5p-toolkit --skill h5p-author</code>, and go on to
+      step 2. If the command does not list your agent, or fails, use a zip as below. In a chat
+      app, look in its settings, and take the first of these that fits:
     </p>
     <ul>
       <li>
-        <strong>Claude</strong>, on claude.ai or in its apps: download
+        <strong>It has a place for skills.</strong> Download
         <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>
-        and upload it under Customize, then Skills, with code execution on. Claude builds the
-        <code>.h5p</code> file in the chat.
+        and upload it there, once: the chat keeps it for every activity you ask for. If the
+        settings have a switch for running code, turn it on, since the chat builds the file with it.
       </li>
       <li>
-        <strong>ChatGPT</strong>: download
-        <a href="/h5p/skill/h5p-author-chatgpt.zip" download="h5p-author-chatgpt-{{ skill.version }}.zip">h5p-author-chatgpt-{{ skill.version }}.zip</a>
-        and upload it under Plugins. ChatGPT's code cannot download the build tool, so download
-        <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a> once too.
-        Make a Project in ChatGPT, add the archive to it, and ask in a chat of that project:
-        ChatGPT then builds the <code>.h5p</code> file in the chat, with nothing to attach.
-        Outside a project, attach the archive to the message where you ask. Without it, ChatGPT
-        hands over the activity's source, to paste or open on the build page.
+        <strong>It has plugins, and no skills.</strong> Download
+        <a href="/h5p/skill/h5p-author-chatgpt.zip" download="h5p-author-chatgpt-{{ skill.version }}.zip">h5p-author-chatgpt-{{ skill.version }}.zip</a>,
+        the same skill laid out as a plugin, and upload it there, once. Plugins come in more
+        than one layout: a chat that refuses this one takes the zip attached, as the next case says.
       </li>
       <li>
-        <strong>Grok</strong>: download
-        <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>,
-        the same file as for Claude, and attach it to the message where you ask, in each new chat. Grok builds the
-        <code>.h5p</code> file in the chat.
-      </li>
-      <li>
-        <strong>An agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
-        <code>npx skills add missing-elements/h5p-toolkit --skill h5p-author</code>.
+        <strong>It has neither, or it refuses the upload.</strong> Attach
+        <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>
+        to the message where you ask. The chat reads the skill from the zip, and a new chat needs
+        it attached again.
       </li>
     </ul>
     <p>
       The zips hold h5p-author {{ skill.version }}, the release the build page runs: text files and
       nothing that runs, which you can read
       <a href="https://github.com/missing-elements/h5p-toolkit/tree/main/skills/h5p-author">on GitHub</a>.
-      The archive holds the same release's build tool, which runs in the chat's own sandbox, and
-      the H5P libraries it puts in the file, each under its own licence.
     </p>
   </section>
 
@@ -130,17 +144,38 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section class="step" aria-labelledby="file-heading">
     <h2 id="file-heading"><span class="step-marker"><span class="step-number">4</span></span> Get the .h5p file</h2>
     <p>
-      The build tool is a Node.js program, so what the chat hands you depends on whether its code
-      runs Node.js:
+      The build tool is a Node.js program, so what the chat hands you depends on what its code
+      can do:
     </p>
     <ul>
-      <li>the <code>.h5p</code> file itself, from a chat whose code runs Node.js and can reach the build tool, as Claude's and Grok's can, and ChatGPT's with the build archive, kept in a Project or attached;</li>
-      <li>or its source, as a file or a block of JSON, as ChatGPT gives without the archive: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
+      <li>the <code>.h5p</code> file itself, where the chat's code runs Node.js and gets the build tool: it downloads the tool, or takes it from <a href="#archive">the build archive</a>, below;</li>
+      <li>or its source, as a file or a block of JSON, where the chat runs no code, or its code cannot get the tool: open or paste it <a href="/h5p/build/#build-it">on the build page</a> and choose Build.</li>
     </ul>
     <p>
       From the source, the build page builds it in your browser, plays it, and saves the file
       with Download the .h5p. A chat that built the file gives its source file too: open it on the
       build page to play the activity before you use it.
+    </p>
+    {#- The archive is offered here, where a reader has just seen which of the two their chat
+        gave, and not in step 1: nobody can tell beforehand whether a chat's code downloads the
+        tool, and the skill's own reply offers the archive where it would help (route 4's fixed
+        line). A project is any chat's, not one product's: a chat that has projects keeps their
+        files for every chat in them, and the skill looks for the archive among the chat's files
+        wherever it came from (route 1). Where a project does not hand its files to the chat's
+        code, the reader attaches it, which the step says too. -#}
+    <p id="archive">
+      A chat that runs code and still hands over the source could not download the build tool,
+      and its reply says so. Give it the tool yourself: download
+      <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>, the
+      build archive, once, and put it where the chat finds it:
+    </p>
+    <ul>
+      <li><strong>Your chat has projects.</strong> Add the archive to a project, and ask in a chat of that project: it is then there for every activity.</li>
+      <li><strong>It has none, or the chat does not find the archive there.</strong> Attach it to the message where you ask.</li>
+    </ul>
+    <p>
+      The archive holds the same release's build tool, which runs in the chat's own sandbox, and
+      the H5P libraries it puts in the file, each under its own licence.
     </p>
   </section>
 
@@ -268,15 +303,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section aria-labelledby="local">
     <h2 id="local">With a local model, or offline</h2>
     <p>
-      A chat app for local models writes the activity as any chat does, but out of the box its code
-      does not run Node.js:
-    </p>
-    <ul>
-      <li>LM Studio's code plugin runs JavaScript in Deno, not Node.js;</li>
-      <li>Jan has no code tool of its own.</li>
-    </ul>
-    <p>
-      So there the chat hands over the source, and the build page builds the file.
+      A chat app for local models writes the activity as any chat does. What it hands you
+      depends on its code, as in <a href="#file-heading">step 4</a>: where the app runs no code,
+      or its code is not Node.js, the chat hands over the source, and the build page builds the
+      file.
     </p>
     <p>
       With Node.js 22 or later on your own computer, the whole build can stay offline. Install the
@@ -294,16 +324,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       Name it in your message, as the prompts here do: "Use the h5p-author skill to…". If the chat
       knows no such skill, check that it is still where <a href="#install">step 1</a> put it, or
-      attached to your message in Grok, and ask in a new chat.
+      attached to your message, and ask in a new chat.
     </p>
 
     <h3>The chat says it cannot get the build tool</h3>
     <p>
       Download <a href="/h5p/bundles/h5p-author-build.tar.gz" download>h5p-author-build.tar.gz</a>
       and attach it to your next message: a chat whose code runs Node.js builds the file from it,
-      without installing or downloading anything. In ChatGPT, keep the archive in a Project and
-      ask in a chat of it: there is then nothing to attach again. A chat whose code runs no
-      Node.js gives you the activity's source for the build page instead.
+      without installing or downloading anything. If your chat has projects, keep the archive in
+      one and ask in a chat of it: there is then nothing to attach again. A chat whose code runs
+      no Node.js gives you the activity's source for the build page instead.
     </p>
 
     <h3>The build lists problems</h3>
@@ -315,8 +345,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
 
     <h3>The chat's link builds nothing</h3>
     <p>
-      Ask the chat for the source as JSON instead, and paste it on the build page. A link is made by
-      running code, and one a chat wrote out itself breaks.
+      Ask the chat for the source as JSON instead, and paste it on the build page. The skill
+      gives the build page's plain address: a link that carries the activity breaks where a chat
+      writes one character of it wrong.
     </p>
 
     <h3 id="moodle-libraries">Moodle says a library is missing</h3>
