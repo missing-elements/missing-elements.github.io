@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 import { buildPackage, writeBundles } from '@missing-elements/h5p-author'
 import { Uint8ArrayReader, Uint8ArrayWriter, ZipWriter } from '@zip.js/zip.js'
-import { build, defineConfig, type Plugin } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 
 /*
  * The site's H5P part, `/h5p/`, which Vite builds into `_site/` once Eleventy has written the pages
@@ -154,21 +154,22 @@ function sample(): Plugin {
  *   2026-11-13, its `npx` having timed out.
  * - `parts/`: every part of the pack under its own name, and its index. A bundle holds no addon,
  *   so a build whose text calls for one stops and names its part, which the chat fetches from here.
- * - `h5p-author.mjs`: the command line as one file, everything it imports bundled in by Vite, so it
- *   runs with nothing installed. It takes `--libraries`: the npm package's pinned pack is not with
- *   it. Since 0.9.8 its `--version` prints the versions from copies of the two package.json files
- *   Vite writes in (h5p-toolkit#198); before, it crashed, finding neither beside it. The
+ * - `h5p-author.mjs`: the command line as one file, everything it imports bundled in, so it runs
+ *   with nothing installed. Copied as the author package ships it (`dist/`, built by its
+ *   `prepack` since 0.14.0, h5p-toolkit#247), so the bytes a chat runs are the npm package's,
+ *   which its provenance covers, and this site's build tools never touch them. It takes
+ *   `--libraries`: the npm package's pinned pack is not with it. Its `--version` prints the
+ *   versions from copies of the two package.json files bundled into it (h5p-toolkit#198). The
  *   build runs it and stops where it does not print the versions `index.json` says.
- * - `h5p-author-LICENSES.txt`: every package bundled into `h5p-author.mjs` with its licence, as
- *   Vite lists them, since MIT and BSD-3-Clause ask their notices to travel with copies (zod came
- *   in with h5p-author 0.12.0; zip.js was in already). It goes into the archive with the tool.
+ * - `h5p-author-LICENSES.txt`: every package bundled into `h5p-author.mjs` with its licence,
+ *   shipped beside it, since MIT and BSD-3-Clause ask their notices to travel with copies. It goes
+ *   into the archive with the tool.
  * - `index.json`: the author's and the pack's versions, and each bundle's file, size and parts.
  * - `libraries.txt`: the pack's licence list, which asks to travel with its libraries.
  *
  * Written after the page, from the packages the lockfile pins: `_site/` holds them, git does not.
  */
 function bundles(): Plugin {
-  const root = fileURLToPath(new URL('.', import.meta.url))
   const author = new URL('./node_modules/@missing-elements/h5p-author/', import.meta.url)
   const libraries = new URL('./node_modules/@missing-elements/h5p-libraries/', import.meta.url)
   const version = async (from: URL) => (JSON.parse(await readFile(new URL('package.json', from), 'utf8')) as { version: string }).version
@@ -188,23 +189,8 @@ function bundles(): Plugin {
       for (const { folder: part } of index.libraries) await copyFile(new URL(`parts/${part}.h5p`, libraries), join(parts, `${part}.h5p`))
       await copyFile(new URL('parts/index.json', libraries), join(parts, 'index.json'))
       await copyFile(new URL('libraries.txt', libraries), join(folder, 'libraries.txt'))
-      await build({
-        configFile: false,
-        root,
-        logLevel: 'warn',
-        publicDir: false,
-        build: {
-          ssr: fileURLToPath(new URL('bin/h5p-author.mjs', author)),
-          outDir: folder,
-          emptyOutDir: false,
-          copyPublicDir: false,
-          minify: false,
-          license: { fileName: 'h5p-author-LICENSES.txt' },
-          reportCompressedSize: false,
-          rolldownOptions: { output: { entryFileNames: 'h5p-author.mjs', format: 'es', codeSplitting: false } }
-        },
-        ssr: { noExternal: true, target: 'node' }
-      })
+      // The command line as one file and its licence list, as the author package ships them.
+      for (const file of ['h5p-author.mjs', 'h5p-author-LICENSES.txt']) await copyFile(new URL(`dist/${file}`, author), join(folder, file))
       // The tool says its own versions, as a model checking it first asks: those this site pins.
       const expected = `@missing-elements/h5p-author ${await version(author)}, library pack ${await version(libraries)}`
       const printed = execFileSync(process.execPath, [join(folder, 'h5p-author.mjs'), '--version'], { encoding: 'utf8' }).trim()
