@@ -1091,7 +1091,9 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
 .play { padding: 0.5rem; }
 .play .player-box { margin: 0; }
 .play-status { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.9rem; }
+.play-status[data-state="asking"] { color: inherit; }
 .play-status[data-state="error"] { color: inherit; font-weight: 600; }
+.play-files { margin: 0 0 0.5rem; }
 .play-status[data-state="ready"] { display: none; }
 .play-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0; }
 .play-actions [hidden] { display: none; }
