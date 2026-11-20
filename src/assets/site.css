@@ -1051,6 +1051,8 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
 .build .file-list li[data-chosen="true"]::before { border: 0; border-radius: 0; background: var(--accent); mask: var(--icon-check) center / contain no-repeat; }
 .build .file-list li[data-chosen="false"] { color: var(--muted); }
 .build .hint { color: var(--muted); font-size: 0.875rem; }
+/* The package and its source, side by side, and one under the other where they do not fit. */
+.build .downloads { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 /* H5P content draws on white, whatever the page's theme. */
 /* H5P content draws on white, whatever the page's theme. Clipped to the box's corners. */
 .player-box { margin: 1rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: clip; background: #ffffff; }
