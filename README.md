@@ -9,6 +9,7 @@ The site of the [missing-elements](https://github.com/missing-elements) web comp
 | `/` | The project list, the tools (the build page first, with its how-to), and a footer of links | [src/index.njk](src/index.njk); the lists are in [src/_data/site.js](src/_data/site.js) |
 | `/pdfjs-viewer/` | The docs of `<pdfjs-viewer-element>`, with a live preview | [src/pdfjs-viewer/](src/pdfjs-viewer/) |
 | `/h5p/build/` | The build page, for people: what it makes, a sample that plays, and the build of a chat's source into a `.h5p`, in the visitor's browser | [src/h5p/build/](src/h5p/build/) |
+| `/h5p/play/` | The play page: the activity in a link's `#source=`, built in the visitor's browser as the build page builds it, and played with nothing beside it but its download and a link to the build page, for a chat app to show in its reply (h5p-toolkit#210); no page links to it | [src/h5p/play/](src/h5p/play/) |
 | `/h5p/create-with-ai/` | The how-to, for people: installing the skill, asking a chat, the prompts to start from, the types, and what to do when something goes wrong | [src/h5p/create-with-ai/](src/h5p/create-with-ai/) |
 | `/h5p/skill/` | The skill as zips to install: `h5p-author.zip`, installed once in a chat's place for skills, or attached to the message in each new chat where it has none, and `h5p-author-chatgpt.zip`, the same skill laid out as a plugin; and a page that lists them and the bundles' addresses, each in full, which no page links to | [src/h5p/skill/](src/h5p/skill/); the zips written by [vite.config.ts](vite.config.ts) |
 | `/h5p/bundles/` | The skill's build tool and a library bundle per content type, for a chat that runs Node but cannot reach npm; and `h5p-author-build.tar.gz`, the tool and every library in one archive, for a person to attach to a chat whose code can download nothing | written by [vite.config.ts](vite.config.ts) |
@@ -36,7 +37,7 @@ pnpm preview    # serves _site/ as GitHub Pages does, http://localhost:4173
 ## How it is built and deployed
 
 - **Eleventy** writes the pages from `src/` into `_site/`. They ship no framework. Their scripts are the theme toggle and the code-block buttons ([src/assets/site.js](src/assets/site.js)), the pdfjs-viewer live preview ([src/pdfjs-viewer/docs.js](src/pdfjs-viewer/docs.js)) and the build page.
-- **Vite** then writes `/h5p/` into the same `_site/`: the build page's script, bundled with the H5P player, its runtime and the library pack; the build page's sample; the type files; and the bundles. That is build output: git holds none of it, and the bundles alone are over 100 MB.
+- **Vite** then writes `/h5p/` into the same `_site/`: the build page's and the play page's scripts, bundled with the H5P player, its runtime and the library pack; the build page's sample; the type files; and the bundles. That is build output: git holds none of it, and the bundles alone are over 100 MB.
 - A push to `main` deploys through [pages.yml](.github/workflows/pages.yml). A pull request is built by [build.yml](.github/workflows/build.yml).
 
 ## What the site pins
