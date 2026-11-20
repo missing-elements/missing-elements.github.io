@@ -41,6 +41,8 @@ const chosen = new Map<string, File>()
 let packageUrl: string | null = null
 /** Counts builds, so that one overtaken by a newer one shows nothing. */
 let builds = 0
+/** The missing names the parent was last told, so that it is told again only when they change. */
+let told = ''
 
 const framed = window.parent !== window
 const toParent = (message: Record<string, unknown>): void => { if (framed) window.parent.postMessage({ source: 'h5p-play', ...message }, '*') }
@@ -76,7 +78,11 @@ function filesFor(paths: string[]): { files: Record<string, File>, missing: stri
   return matched
 }
 
-/** Asks for the files still missing, by their names, and tells the parent, which may have them. */
+/**
+ * Asks for the files still missing, by their names, and tells the parent, which may have them. The
+ * parent is told once for a set of names: one that answers each time with the same files, some of
+ * them or none that match, would otherwise be asked again with every answer, without end.
+ */
 function ask(missing: string[]): void {
   const names = missing.map(baseName)
   const listed = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(names)
@@ -87,6 +93,9 @@ function ask(missing: string[]): void {
   say(chosen.size
     ? `Still needed: ${listed}.`
     : `This activity uses ${one ? 'a file' : 'files'} of yours: ${listed}. Choose ${one ? 'it' : 'them'} from your computer; ${one ? 'it stays' : 'they stay'} in your browser.`, 'asking')
+  const missingNow = names.join('\n')
+  if (missingNow === told) return
+  told = missingNow
   toParent({ type: 'needs-files', names })
 }
 
