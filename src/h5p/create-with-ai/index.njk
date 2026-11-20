@@ -65,13 +65,24 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       vite.config.ts from the release the site pins. Each keeps its address, which other pages
       link to, and its link here saves it under a name with the release in it, so a person can
       tell two downloads apart. The first step's heading keeps the id that the top bar and the
-      skill's page link to. -#}
+      skill's page link to.
+
+      An agent with a terminal comes before the cases, and outside them: the cases are taken in
+      order, and such an agent has no settings to look in, so it would stop at the last, the
+      zip attached. The plugin zip is one layout of several, a `plugin.json` at its root and the
+      skill under `skills/`, the one ChatGPT's Plugins took on 2026-11-13 (vite.config.ts): a
+      chat whose plugins ask for another refuses it, which the case says, and the next takes
+      it from there. -#}
   <section class="step" aria-labelledby="install">
     <h2 id="install"><span class="step-marker"><span class="step-number">1</span></span> Give your chat the skill</h2>
     <p>
       The skill is a small zip of text files. AI chats change what they offer from month to
-      month, so this guide goes by what your chat has, not by its name. Look in your chat's
-      settings, and take the first that fits:
+      month, so this guide goes by what your chat has, not by its name.
+    </p>
+    <p>
+      In an agent with a terminal, such as Claude Code, Codex or Cursor, run
+      <code>npx skills add missing-elements/h5p-toolkit --skill h5p-author</code>, and go on to
+      step 2. In a chat app, look in its settings, and take the first of these that fits:
     </p>
     <ul>
       <li>
@@ -83,17 +94,14 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <li>
         <strong>It has plugins, and no skills.</strong> Download
         <a href="/h5p/skill/h5p-author-chatgpt.zip" download="h5p-author-chatgpt-{{ skill.version }}.zip">h5p-author-chatgpt-{{ skill.version }}.zip</a>,
-        the same skill laid out as a plugin, and upload it there, once.
+        the same skill laid out as a plugin, and upload it there, once. Plugins come in more
+        than one layout: a chat that refuses this one takes the zip attached, as the next case says.
       </li>
       <li>
         <strong>It has neither, or it refuses the upload.</strong> Attach
         <a href="/h5p/skill/h5p-author.zip" download="h5p-author-{{ skill.version }}.zip">h5p-author-{{ skill.version }}.zip</a>
         to the message where you ask. The chat reads the skill from the zip, and a new chat needs
         it attached again.
-      </li>
-      <li>
-        <strong>You work in an agent with a terminal</strong>, such as Claude Code, Codex or Cursor:
-        <code>npx skills add missing-elements/h5p-toolkit --skill h5p-author</code>.
       </li>
     </ul>
     <p>
