@@ -23,6 +23,13 @@ import { baseName, kindOf, matchFiles, matchNamed, namedFiles, packageName, pars
  * Download asks the parent for the bytes, shows them coming under the stage while the activity plays
  * on, and builds the package to keep with the file in it.
  *
+ * A frame may be let save nothing: a chat's card was found to drop the download of this page's own
+ * link with nothing said (ChatGPT, 2026-11-23), while the card itself could ask the chat to save a
+ * file. So a parent that saves files says so (#98), with the most it takes, and Download then hands
+ * it the package and says under the stage how that went. A package bigger than that is not handed
+ * over, and a video that would make one is not fetched for it: the build page, in a tab of its
+ * own, is offered, where the person chooses the file and downloads as anywhere.
+ *
  * What is seen is one stage, in one of five states (`data-state` on `main`): `building`, a loader
  * over the place the player takes; `fetching`, the loader with how much of a file the parent has
  * brought so far; `asking`, for the person's files; `error`, with the one thing to do about it;
@@ -57,6 +64,7 @@ const keepLabel = $('keep-label')
 const keepProgress = $('keep-progress')
 const keepBar = $('keep-bar')
 const keepInstead = $<HTMLButtonElement>('keep-instead')
+const keepOpen = $<HTMLAnchorElement>('keep-open')
 const announcer = document.querySelector<HTMLElement>('[data-status="page"]')
 const edit = $<HTMLAnchorElement>('edit')
 const player = $('player') as HTMLElementTagNameMap['h5p-player']
@@ -89,6 +97,18 @@ let bringing = false
 let packing = false
 /** Whether the package that plays has its files in it. Files that come after that change nothing. */
 let whole = false
+/** That package, as a file, for a parent that saves it. */
+let kept: File | null = null
+/** The most bytes the parent saves of a file it is handed, where it saves files itself; null where this page does. */
+let hostSaves: number | null = null
+/** Whether a file was handed to the parent to save, and it has not said how that went. */
+let handed = false
+/** Whether one ever was: a yes that comes after the wait for it ended is still said. */
+let everHanded = false
+let handedTimer: ReturnType<typeof setTimeout> | undefined
+/** The address each file of the preview plays from, by its path in the source, and the sizes the parent gave, by address. */
+let shownFrom: Record<string, string> = {}
+const sizeAt = new Map<string, number>()
 /** Shows the question for the person's files a moment late, where the parent may bring them first. */
 let askTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -139,7 +159,7 @@ function about(name: unknown, type: unknown, size?: number | string): void {
 }
 
 // The build page, with the same source, where its problems can be fixed and its files chosen.
-edit.href = fix.href = `/h5p/build/${location.hash}`
+edit.href = fix.href = keepOpen.href = `/h5p/build/${location.hash}`
 
 // The page's height for the parent, which sizes its frame to it.
 if (framed) new ResizeObserver(() => toParent({ type: 'height', height: Math.ceil(document.documentElement.getBoundingClientRect().height) })).observe(document.body)
@@ -260,12 +280,68 @@ const previewedAs = (): string => previewed.length === 1 ? called(previewed[0]!)
 function preparing(text: string, choice: boolean): void {
   keepBox.hidden = false
   keepInstead.hidden = !choice
+  keepOpen.hidden = true
   keepLabel.textContent = text
   keepProgress.hidden = false
   keepProgress.dataset.indeterminate = ''
   keepProgress.removeAttribute('aria-valuenow')
   download.setAttribute('aria-disabled', 'true')
   downloadLabel.textContent = 'Preparing…'
+}
+
+/** The row under the stage for a download the parent makes: what it is doing, or how it went, with the build page where that is the way on. */
+function saying(text: string, { busy = false, open = false } = {}): void {
+  keepBox.hidden = false
+  keepInstead.hidden = true
+  keepOpen.hidden = !open
+  keepLabel.textContent = text
+  keepProgress.hidden = !busy
+  if (busy) {
+    keepProgress.dataset.indeterminate = ''
+    keepProgress.removeAttribute('aria-valuenow')
+  }
+  download[busy ? 'setAttribute' : 'removeAttribute']('aria-disabled', 'true')
+  downloadLabel.textContent = busy ? 'Saving…' : 'Download .h5p'
+  announce(text)
+}
+
+/**
+ * A package the parent cannot save: the build page can, with the person's files chosen there.
+ * Before it is built, its size is at least its files': said as "over".
+ */
+function tooBig(size: number, atLeast = false): void {
+  const files = wanted.length ? `choose your ${wanted.length === 1 ? called(wanted[0]!) : 'files'} there, ` : ''
+  saying(`${atLeast ? `With your ${previewedAs()} in it, this .h5p is over` : 'This .h5p is'} ${sized(size)}, more than the chat can save from here. Open it in the build page, ${files}and download it.`, { open: true })
+}
+
+/** The package handed to a parent that saves files itself, which says how that went; no word in a minute is taken as no. */
+function handOver(file: File): void {
+  if (hostSaves !== null && file.size > hostSaves) return tooBig(file.size)
+  handed = everHanded = true
+  saying('The chat is saving the .h5p…', { busy: true })
+  toParent({ type: 'save', file })
+  clearTimeout(handedTimer)
+  handedTimer = setTimeout(() => saveDone(false), 60_000)
+}
+
+/** How the parent's save went. A yes that comes after the minute is still said. */
+function saveDone(ok: boolean): void {
+  clearTimeout(handedTimer)
+  handed = false
+  if (!ok) return saying('The chat did not save it. Open it in the build page, and download it there.', { open: true })
+  saying('Saved. Look in your downloads.')
+  handedTimer = setTimeout(() => { keepBox.hidden = true }, 8000)
+}
+
+/** What the files of a preview weigh, where the parent said for each: the package is that and a little. */
+function previewSize(): number | null {
+  let total = 0
+  for (const path of previewed) {
+    const size = sizeAt.get(shownFrom[path] ?? '')
+    if (size === undefined) return null
+    total += size
+  }
+  return total
 }
 
 /**
@@ -319,6 +395,7 @@ async function keep(): Promise<void> {
     const name = packageName(String(result.manifest.title ?? ''))
     if (packageUrl) URL.revokeObjectURL(packageUrl)
     packageUrl = URL.createObjectURL(result.blob)
+    kept = new File([result.blob], name, { type: 'application/zip' })
     // Download may have been pressed while this was built.
     const asked = keeping
     previewed = []
@@ -330,11 +407,11 @@ async function keep(): Promise<void> {
     download.removeAttribute('aria-disabled')
     downloadLabel.textContent = 'Download .h5p'
     about(result.manifest.title, result.builtWith, result.blob.size)
-    toParent({ type: 'built', file: new File([result.blob], name, { type: 'application/zip' }), title: result.manifest.title, size: sized(result.blob.size) })
+    toParent({ type: 'built', file: kept, title: result.manifest.title, size: sized(result.blob.size) })
     if (!asked) return
+    // The download the person asked for: made by a parent that saves files, or by this page.
+    if (hostSaves !== null) return handOver(kept)
     announce(`The .h5p is ready, ${sized(result.blob.size)}: downloading.`)
-    // The download the person asked for. A frame its parent lets download nothing has given the
-    // parent the file above, to save its own way.
     download.click()
   } catch (error) {
     // Unasked, nothing is said: the preview plays on, and Download builds from the same files.
@@ -367,6 +444,7 @@ async function play(): Promise<void> {
     if (packageUrl) URL.revokeObjectURL(packageUrl)
     const file = new File([result.blob], name, { type: 'application/zip' })
     previewed = result.linked
+    shownFrom = linked
     download.hidden = false
     if (previewed.length) {
       // A preview is not a file to hand out: its address expires. Download fetches the bytes first.
@@ -377,6 +455,7 @@ async function play(): Promise<void> {
       about(result.manifest.title, result.builtWith, `${previewedAs() === 'files' ? 'its files play' : `its ${previewedAs()} plays`} from the chat`)
     } else {
       whole = true
+      kept = file
       packageUrl = URL.createObjectURL(result.blob)
       download.href = packageUrl
       download.download = name
@@ -425,11 +504,19 @@ player.addEventListener('error', (event) => {
 choose.addEventListener('click', () => filesInput.click())
 instead.addEventListener('click', () => filesInput.click())
 keepInstead.addEventListener('click', () => filesInput.click())
-// Download of a preview fetches the files first; of a package with its files in it, it is a link.
+// Download of a preview fetches the files first; of a package with its files in it, it is a link,
+// or, under a parent that saves files itself, the package handed to it.
 download.addEventListener('click', (event) => {
-  if (!previewed.length) return
+  if (previewed.length) {
+    event.preventDefault()
+    // A video whose package the parent could not save is not fetched for nothing.
+    const size = hostSaves !== null && !keeping ? previewSize() : null
+    if (size !== null && size > hostSaves!) return tooBig(size, true)
+    return fetchToKeep()
+  }
+  if (hostSaves === null || !kept) return
   event.preventDefault()
-  fetchToKeep()
+  if (!handed) handOver(kept)
 })
 filesInput.addEventListener('change', () => {
   const files = [...(filesInput.files ?? [])]
@@ -451,32 +538,38 @@ main.addEventListener('drop', (event) => {
   take([...event.dataTransfer.files])
 })
 
+/** A count of bytes as a message gives it: a number that is one, and not below nothing. */
+const amount = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
+
 /**
  * Addresses the parent gives for files it holds, by name: kept where they are http(s) and name a
  * video or a recording, and the activity built with them where a file of its own is still missing.
  * While a preview plays they are only kept: a new address for the same file is not a new activity.
  */
-function takeLinks(given: Record<string, unknown>): void {
+function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown>): void {
   let added = false
   for (const [name, address] of Object.entries(given)) {
     if (typeof address !== 'string' || !/^https?:\/\//i.test(address) || !URL.canParse(address) || !playable(name)) continue
     links.set(baseName(name), address)
+    // What the file there weighs, where the parent knows: a download is not begun that cannot be saved.
+    const size = amount(sizes[name])
+    if (size !== null) sizeAt.set(address, size)
     added = true
   }
   if (added && !previewed.length && filesFor(wanted).missing.length) void play()
 }
 
-/** A count of bytes as a message gives it: a number that is one, and not below nothing. */
-const amount = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
-
 // From the frame's parent, which may hold what the person attached in the chat: the files, how
-// much of one has come so far, and the chat's theme where it is not the system's.
+// much of one has come so far, and the chat's theme where it is not the system's. And from one
+// that saves files itself: that it does, with the most it takes, and how a save went.
 window.addEventListener('message', (event) => {
   if (!framed || event.source !== window.parent) return
-  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown } | null
+  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, ok?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
-  else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>)
+  else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>, message.sizes && typeof message.sizes === 'object' ? message.sizes as Record<string, unknown> : {})
+  else if (message.type === 'saves') hostSaves = amount(message.max) ?? Infinity
+  else if (message.type === 'saved' && (handed || (everHanded && message.ok === true))) saveDone(message.ok !== false)
   else if (message.type === 'progress' && amount(message.received) !== null) fetching(typeof message.name === 'string' ? message.name : '', amount(message.received)!, amount(message.total) ?? 0)
   else if (message.type === 'theme' && (message.theme === 'light' || message.theme === 'dark')) document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]')!.content = message.theme
 })
