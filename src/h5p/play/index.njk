@@ -1,6 +1,7 @@
 ---
 layout: base.njk
 title: "Play an H5P activity"
+bodyClass: play-page
 description: "An H5P activity an AI chat wrote, built and played in your browser, with its .h5p file to download. Nothing is sent to a server."
 # Not a page to land on from a search: it is opened with an activity's source in its link.
 eleventyExcludeFromCollections: true
@@ -10,20 +11,49 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
 ---
 {#- The player alone, for an activity's source in the link (#source=, as the build page takes it),
     so that a chat app can show the activity in its reply: play-page.ts builds it and plays it. -#}
-<main class="play" id="main">
-  <p class="play-status" id="status" role="status" data-state="building">Building the activity in your browser…</p>
-  {#- For a source that names files of the person's own, a video beside it: chosen here, where
-      they stay in the browser. The field is hidden, and the button opens it. -#}
-  <p class="play-files" id="files-box" hidden>
-    <button type="button" class="button button-solid" id="choose">Choose the file</button>
-    <input type="file" id="files" multiple hidden>
-  </p>
-  <div class="player-box" id="player-box" hidden>
-    <h5p-player id="player"></h5p-player>
+<main class="play" id="main" data-state="building">
+  {#- What a screen reader is told of each step; what is seen is drawn below. -#}
+  <p class="visually-hidden" id="status" role="status" data-state="building">Building the activity in your browser…</p>
+  <div class="play-stage" id="stage">
+    <div class="player-box" id="player-box" hidden>
+      <h5p-player id="player"></h5p-player>
+    </div>
+    {#- Over the player until it is ready: one of the three below. -#}
+    <div class="play-panel" id="panel">
+      <div class="play-loader" id="loader">
+        <span class="play-spinner" aria-hidden="true"></span>
+        <p class="play-label" id="label">Building the activity in your browser…</p>
+        <div class="play-progress" id="progress" role="progressbar" aria-label="Getting the file" aria-valuemin="0" aria-valuemax="100" hidden><span id="progress-bar"></span></div>
+        <p class="play-note" id="note">Nothing is sent to a server.</p>
+        <button type="button" class="button" id="instead" hidden>Choose it from your computer instead</button>
+      </div>
+      {#- For a source that names files of the person's own, a video beside it: chosen here or
+          dropped, they stay in the browser. The field is hidden, and the button opens it. -#}
+      <div class="play-ask" id="files-box" hidden>
+        <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>
+        <h1 class="play-heading" id="ask-title">Add your file</h1>
+        <p class="play-text" id="ask-text"></p>
+        <button type="button" class="button button-solid button-large" id="choose">Choose the file</button>
+        <p class="play-note">or drop it here</p>
+        <input type="file" id="files" multiple hidden>
+      </div>
+      <div class="play-error" id="error" hidden>
+        <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5v.5M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <h1 class="play-heading" id="error-title"></h1>
+        <p class="play-text" id="error-text"></p>
+        <a class="button button-solid button-large" id="fix" target="_blank" rel="noopener" hidden>Open in the build page</a>
+      </div>
+    </div>
   </div>
-  <p class="play-actions">
-    <a class="button button-solid" id="download" download hidden>Download the .h5p</a>
-    <a class="button" id="edit" target="_blank" rel="noopener">Open in the build page</a>
-  </p>
+  <div class="play-bar">
+    <div class="play-about">
+      <p class="play-title" id="title"></p>
+      <p class="play-meta" id="meta"></p>
+    </div>
+    <p class="play-actions">
+      <a class="button" id="edit" target="_blank" rel="noopener">Open in the build page</a>
+      <a class="button button-solid" id="download" download hidden><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Download .h5p</a>
+    </p>
+  </div>
 </main>
 <script type="module" src="/h5p/play/play-page.js"></script>

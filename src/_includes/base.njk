@@ -8,7 +8,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <script>
-    try { document.querySelector('meta[name="color-scheme"]').content = localStorage.getItem("color-scheme") ?? "light dark"; } catch {}
+    // A page in a frame is told its theme in its address (?theme=dark), where the frame's own page has one.
+    try { const asked = new URLSearchParams(location.search).get("theme"); document.querySelector('meta[name="color-scheme"]').content = asked === "light" || asked === "dark" ? asked : localStorage.getItem("color-scheme") ?? "light dark"; } catch {}
   </script>
   <title>{{ title }}</title>
   <meta name="description" content="{{ description }}">

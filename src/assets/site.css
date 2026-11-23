@@ -1087,13 +1087,68 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
   .step-marker::before, .sample-note[data-loading]::before { border-color: GrayText; border-top-color: Highlight; }
 }
 
-/* The play page, /h5p/play/: the activity alone, for a chat app's frame. */
-.play { padding: 0.5rem; }
-.play .player-box { margin: 0; }
-.play-status { margin: 0 0 0.5rem; color: var(--muted); font-size: 0.9rem; }
-.play-status[data-state="asking"] { color: inherit; }
-.play-status[data-state="error"] { color: inherit; font-weight: 600; }
-.play-files { margin: 0 0 0.5rem; }
-.play-status[data-state="ready"] { display: none; }
-.play-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0; }
+/* The play page, /h5p/play/: the activity alone, for a chat app's frame. Its page has no colour of
+   its own, so a frame shows the chat's behind it; opened by itself it gets room around it. */
+body.play-page { background: transparent; }
+.play { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.5rem; max-width: 60rem; margin: 0 auto; padding: 0.5rem; }
+html[data-standalone] .play { padding: 1rem; }
+
+/* The stage: the player, and over it until it is ready a loader, a question or a problem. Before
+   the player has a size of its own it keeps a video's shape, so what follows does not jump. */
+.play-stage { display: grid; border: 1px solid var(--border); border-radius: 12px; overflow: clip; background: var(--surface); }
+.play-stage > * { grid-area: 1 / 1; min-width: 0; }
+.play:not([data-state="ready"]) .play-stage { aspect-ratio: 16 / 9; }
+.play .player-box { margin: 0; border: 0; border-radius: 0; }
+.play:not([data-state="ready"]) .player-box { visibility: hidden; }
+.play-panel { z-index: 1; display: grid; place-items: center; padding: 1.5rem 1rem; background: var(--surface); text-align: center; }
+.play[data-state="ready"] .play-panel, .play-panel [hidden] { display: none; }
+.play[data-state="asking"] .play-stage { border-style: dashed; border-color: var(--control); }
+.play[data-drop] .play-stage { border-color: var(--accent); }
+.play[data-drop] .play-panel { background: var(--tint); }
+
+.play-loader, .play-ask, .play-error { display: grid; justify-items: center; gap: 0.75rem; width: 100%; min-width: 0; max-width: 26rem; }
+.play-panel .button { white-space: normal; }
+.play-label, .play-text, .play-note, .play-heading { margin: 0; }
+.play-label { font-size: 0.9375rem; font-weight: 600; line-height: 1.4; }
+.play-heading { font-size: 1.0625rem; font-weight: 650; line-height: 1.3; }
+.play-text { color: var(--muted); font-size: 0.875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.play-note { color: var(--muted); font-size: 0.8125rem; line-height: 1.4; }
+.play-spinner { width: 2rem; height: 2rem; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; }
+.play-progress { width: min(18rem, 100%); height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.play-progress span { display: block; width: var(--done, 0%); height: 100%; border-radius: inherit; background: var(--accent); }
+.play-icon { box-sizing: border-box; width: 3rem; height: 3rem; padding: 0.75rem; border-radius: 50%; background: var(--tint); color: var(--accent); fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.play-error .play-icon { background: color-mix(in srgb, var(--t-tag) 14%, transparent); color: var(--t-tag); }
+
+/* Under the stage: what the activity is, and what to do with it. Until its name is known a bar
+   of its size stands there. */
+.play-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.125rem 0.25rem; }
+.play-about { flex: 1 1 12rem; min-width: 0; }
+.play-title, .play-meta { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.play-title { font-size: 0.9375rem; font-weight: 600; line-height: 1.35; }
+.play-meta { color: var(--muted); font-size: 0.8125rem; line-height: 1.35; }
+.play-title:empty, .play-meta:empty { border-radius: 4px; background: var(--border); }
+.play-title:empty { width: 11rem; height: 0.9rem; margin: 0.2rem 0; }
+/* A link that carried no activity has no name to wait for. */
+.play[data-state="error"] :is(.play-title, .play-meta):empty { display: none; }
+.play-meta:empty { width: 6rem; height: 0.7rem; margin: 0.2rem 0; }
+.play-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
 .play-actions [hidden] { display: none; }
+.button-icon { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .play-spinner { animation: turn 0.8s linear infinite; }
+  .play-progress span { transition: width 0.3s ease-out; }
+  .play[data-state="building"] .play-panel, .play[data-state="fetching"] .play-panel {
+    background: linear-gradient(100deg, var(--surface) 40%, color-mix(in srgb, var(--raised) 70%, var(--surface)) 50%, var(--surface) 60%) 0 0 / 250% 100%;
+    animation: sheen 1.8s linear infinite;
+  }
+  .play-title:empty, .play-meta:empty { animation: breathe 1.4s ease-in-out infinite alternate; }
+}
+@keyframes sheen { from { background-position: 125% 0; } to { background-position: -125% 0; } }
+@keyframes breathe { from { opacity: 1; } to { opacity: 0.45; } }
+
+@media (forced-colors: active) {
+  .play-spinner { border-color: GrayText; border-top-color: Highlight; }
+  .play-progress { border: 1px solid CanvasText; }
+  .play-progress span { background: Highlight; }
+}
