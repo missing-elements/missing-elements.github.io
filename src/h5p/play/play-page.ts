@@ -264,6 +264,9 @@ main.addEventListener('drop', (event) => {
   take([...event.dataTransfer.files])
 })
 
+/** A count of bytes as a message gives it: a number that is one, and not below nothing. */
+const amount = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
+
 // From the frame's parent, which may hold what the person attached in the chat: the files, how
 // much of one has come so far, and the chat's theme where it is not the system's.
 window.addEventListener('message', (event) => {
@@ -271,7 +274,7 @@ window.addEventListener('message', (event) => {
   const message = event.data as { source?: unknown, type?: unknown, files?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
-  else if (message.type === 'progress' && typeof message.received === 'number') fetching(typeof message.name === 'string' ? message.name : '', message.received, typeof message.total === 'number' ? message.total : 0)
+  else if (message.type === 'progress' && amount(message.received) !== null) fetching(typeof message.name === 'string' ? message.name : '', amount(message.received)!, amount(message.total) ?? 0)
   else if (message.type === 'theme' && (message.theme === 'light' || message.theme === 'dark')) document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]')!.content = message.theme
 })
 
