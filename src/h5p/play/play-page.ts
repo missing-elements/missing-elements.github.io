@@ -96,7 +96,8 @@ function fail(heading: string, text: string, fixable = false): void {
   errorTitle.textContent = heading
   errorText.textContent = text
   fix.hidden = !fixable
-  show('error', `${heading}. ${text}`)
+  // The headings above end in no full stop, and a message from elsewhere may be empty.
+  show('error', text ? `${heading}. ${text}` : `${heading}.`)
 }
 
 /** What the activity is, under the stage: its title, and its type with the package's size once built. */

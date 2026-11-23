@@ -8,8 +8,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <script>
-    // A page in a frame is told its theme in its address (?theme=dark), where the frame's own page has one.
-    try { const asked = new URLSearchParams(location.search).get("theme"); document.querySelector('meta[name="color-scheme"]').content = asked === "light" || asked === "dark" ? asked : localStorage.getItem("color-scheme") ?? "light dark"; } catch {}
+    // Only a page in a frame is told its theme in its address (?theme=dark), by the page that frames it, whose
+    // theme may not be the system's. Opened by itself, a page keeps the visitor's own choice whatever its address says.
+    try { const asked = window.parent !== window ? new URLSearchParams(location.search).get("theme") : null; document.querySelector('meta[name="color-scheme"]').content = asked === "light" || asked === "dark" ? asked : localStorage.getItem("color-scheme") ?? "light dark"; } catch {}
   </script>
   <title>{{ title }}</title>
   <meta name="description" content="{{ description }}">
