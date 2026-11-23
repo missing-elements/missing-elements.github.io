@@ -2,7 +2,7 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { baseName, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
+import { baseName, kindOf, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
 
 /**
  * The play page, `/h5p/play/`: the activity in a link's `#source=` built in the browser, as the
@@ -145,25 +145,16 @@ edit.href = fix.href = `/h5p/build/${location.hash}`
 if (framed) new ResizeObserver(() => toParent({ type: 'height', height: Math.ceil(document.documentElement.getBoundingClientRect().height) })).observe(document.body)
 
 /** A file's kind, by the ending of its name. */
-const kind = (name: string): string => name.slice(name.lastIndexOf('.') + 1).toLowerCase()
+const kind = kindOf
 /** What a person calls a file of that kind. */
 const called = (name: string): string => /^(mp4|webm|ogv|mov)$/.test(kind(name)) ? 'video' : /^(mp3|m4a|wav|ogg|oga)$/.test(kind(name)) ? 'recording' : /^(png|jpe?g|gif|bmp)$/.test(kind(name)) ? 'picture' : 'file'
 
 /**
- * The given files for the paths the source names, matched by name as the build page matches them.
- * Where it names one file and one of the same kind was given, that is the file whatever it is
- * called: a chat may write the name its own way, and the source cannot be changed here.
+ * The given files for the paths the source names, matched as the build page matches them: by name,
+ * and a single file of a kind whatever it is called, since a chat may write the name its own way
+ * and the source cannot be changed here.
  */
-function filesFor(paths: string[]): { files: Record<string, File>, missing: string[] } {
-  const given = [...chosen.values()]
-  const matched = matchFiles(paths, given)
-  const [path] = paths
-  const [file] = given
-  if (matched.missing.length && paths.length === 1 && given.length === 1 && path !== undefined && file !== undefined && kind(path) === kind(file.name)) {
-    return { files: { [path]: file }, missing: [] }
-  }
-  return matched
-}
+const filesFor = (paths: string[]): { files: Record<string, File>, missing: string[] } => matchFiles(paths, [...chosen.values()])
 
 /** Whether a file of that name can be played from an address: a video or a recording. */
 const playable = (name: string): boolean => called(name) === 'video' || called(name) === 'recording'

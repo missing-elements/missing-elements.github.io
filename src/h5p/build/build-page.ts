@@ -2,7 +2,7 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { compactSource, forTheChat, fragmentFromSource, linksSource, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
+import { baseName, compactSource, forTheChat, fragmentFromSource, kindOf, linksSource, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, typesNamed, type Problem, type TypeFile } from './build-source'
 import type { SourceEditor } from './editor'
 import { formatSource, jsonProblem, place, type Target } from './json-scan'
 
@@ -47,6 +47,7 @@ const openSource = $<HTMLButtonElement>('open-source')
 const filesStep = $('files-step')
 const fileList = $<HTMLUListElement>('file-list')
 const filesInput = $<HTMLInputElement>('files')
+const filesNote = $('files-note')
 const buildButton = $<HTMLButtonElement>('build')
 const buildNumber = $('build-number')
 const playNumber = $('play-number')
@@ -252,16 +253,25 @@ function number(withFiles: boolean): void {
 function updateFiles(): string[] {
   const parsed = parseSource(sourceField.value)
   const paths = 'source' in parsed ? namedFiles(parsed.source) : []
-  const { files } = matchFiles(paths, [...chosen.values()])
+  const { files, unused } = matchFiles(paths, [...chosen.values()])
   fileList.replaceChildren(...paths.map((path) => {
     const item = document.createElement('li')
     const name = document.createElement('code')
     name.textContent = path
     const file = files[path]
     item.dataset.chosen = String(Boolean(file))
-    item.append(name, file ? ` chosen, ${sized(file.size)}` : ' not chosen yet')
+    // A file taken under another name than the source's is named, so that it is seen which one it is.
+    item.append(name, !file ? ' not chosen yet' : file.name === baseName(path) ? ` chosen, ${sized(file.size)}` : ` chosen: ${file.name}, ${sized(file.size)}`)
     return item
   }))
+  // A chosen file that no path took is said, with why: picking it would otherwise seem to do nothing.
+  const said = (files: File[], why: string): string => files.length ? `${new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(files.map((file) => file.name))} ${files.length === 1 ? 'is' : 'are'} not used: ${why}` : ''
+  const fits = (file: File): boolean => paths.some((path) => kindOf(path) === kindOf(file.name))
+  filesNote.textContent = [
+    said(unused.filter(fits), 'with more than one file of that kind, each has to be called as the source calls it.'),
+    said(unused.filter((file) => !fits(file)), 'the source names no file of that kind.')
+  ].filter(Boolean).join(' ')
+  filesNote.hidden = !unused.length
   number(paths.length > 0)
   return paths
 }
@@ -451,7 +461,17 @@ openSource.addEventListener('click', () => sourceFile.click())
 sourceLabel.addEventListener('click', () => editor?.focus())
 
 filesInput.addEventListener('change', () => {
-  for (const file of filesInput.files ?? []) chosen.set(file.name, file)
+  const picked = [...(filesInput.files ?? [])]
+  // The last file picked for the one path of its kind is its file, whatever each is called: those
+  // picked for it before go, as a second choice replaces the first where the names are the source's.
+  const paths = updateFiles()
+  const named = new Set(paths.map(baseName))
+  for (const file of picked) {
+    const same = paths.filter((path) => kindOf(path) === kindOf(file.name))
+    const only = same.length === 1 && !named.has(file.name) ? baseName(same[0]!) : null
+    for (const name of [...chosen.keys()]) if (kindOf(name) === kindOf(file.name) && (!named.has(name) || name === only)) chosen.delete(name)
+  }
+  for (const file of picked) chosen.set(file.name, file)
   filesInput.value = ''
   updateFiles()
 })

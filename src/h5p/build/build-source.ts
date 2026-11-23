@@ -200,20 +200,38 @@ export function namedFiles(source: unknown): string[] {
 /** A path's last part, which is what a file chosen from a computer is called. */
 export const baseName = (path: string): string => path.slice(path.replace(/\\/g, '/').lastIndexOf('/') + 1)
 
+/** A file's kind, by the ending of its name. */
+export const kindOf = (name: string): string => name.slice(name.lastIndexOf('.') + 1).toLowerCase()
+
 /**
  * The files to build with: each path the source names, matched to a chosen file by its name,
- * keyed by the path as the source writes it.
+ * keyed by the path as the source writes it. A chat writes a file's name its own way, and the
+ * person's file is called what their camera or the chat called it: so where one path of a kind is
+ * left without its file, and one chosen file of that kind without a path, that is its file. More of
+ * a kind on either side are left, since nothing says which is which. `unused` are the chosen files
+ * no path took.
  */
-export function matchFiles(paths: string[], chosen: File[]): { files: Record<string, File>, missing: string[] } {
+export function matchFiles(paths: string[], chosen: File[]): { files: Record<string, File>, missing: string[], unused: File[] } {
   const byName = new Map(chosen.map((file) => [file.name, file]))
   const files: Record<string, File> = {}
-  const missing: string[] = []
+  const unnamed: string[] = []
   for (const path of paths) {
     const file = byName.get(baseName(path))
     if (file) files[path] = file
-    else missing.push(path)
+    else unnamed.push(path)
   }
-  return { files, missing }
+  const taken = new Set(Object.values(files))
+  const left = chosen.filter((file) => !taken.has(file))
+  const missing: string[] = []
+  for (const path of unnamed) {
+    const fits = left.filter((file) => kindOf(file.name) === kindOf(path))
+    const [file] = fits
+    if (file && fits.length === 1 && unnamed.filter((other) => kindOf(other) === kindOf(path)).length === 1) {
+      files[path] = file
+      taken.add(file)
+    } else missing.push(path)
+  }
+  return { files, missing, unused: chosen.filter((file) => !taken.has(file)) }
 }
 
 /**
