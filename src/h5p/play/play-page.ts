@@ -81,8 +81,14 @@ let told = ''
 const links = new Map<string, string>()
 /** The names the source gives the files the package last built plays from an address: a preview. */
 let previewed: string[] = []
-/** Whether Download is waiting for the parent to bring the bytes of those files. */
+/** Whether Download was pressed on a preview, and its package is not saved yet. */
 let keeping = false
+/** Whether the parent was asked for the bytes of those files, and has not brought them yet. */
+let bringing = false
+/** Whether the package to keep is being built: one at a time. */
+let packing = false
+/** Whether the package that plays has its files in it. Files that come after that change nothing. */
+let whole = false
 /** Shows the question for the person's files a moment late, where the parent may bring them first. */
 let askTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -116,6 +122,8 @@ function busy(text: string): void {
 function fail(heading: string, text: string, fixable = false): void {
   errorTitle.textContent = heading
   errorText.textContent = text
+  // Whatever was built does not play: files that come now are built from again.
+  whole = false
   fix.hidden = !fixable
   // The headings above end in no full stop, and a message from elsewhere may be empty.
   show('error', text ? `${heading}. ${text}` : `${heading}.`)
@@ -207,8 +215,12 @@ function ask(missing: string[]): void {
   // A parent that holds the files answers within a moment: until then the loader stays, so the
   // question does not flash up and go.
   clearTimeout(askTimer)
+  askTimer = undefined
   if (framed && first && !chosen.size) {
-    askTimer = setTimeout(() => showAsk(listed, one), 1200)
+    askTimer = setTimeout(() => {
+      askTimer = undefined
+      showAsk(listed, one)
+    }, 1200)
     return
   }
   showAsk(listed, one)
@@ -227,7 +239,10 @@ function showAsk(listed: string, one: boolean): void {
  */
 function fetching(name: string, received: number, total: number): void {
   if (keeping) return keepCount(name, received, total)
-  if (main.dataset.state !== 'asking' && main.dataset.state !== 'fetching') return
+  // Asked for, the question shown or still held back a moment: the file on its way is shown in its place.
+  if (main.dataset.state !== 'asking' && main.dataset.state !== 'fetching' && askTimer === undefined) return
+  clearTimeout(askTimer)
+  askTimer = undefined
   const what = wanted.length === 1 ? called(name || wanted[0]!) : 'file'
   label.textContent = `Getting your ${what}… ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
   note.textContent = 'From the chat to your browser, nowhere else.'
@@ -242,10 +257,14 @@ function fetching(name: string, received: number, total: number): void {
 /** Files given, by the person or by the parent: the activity is built once none is missing. */
 function take(files: File[]): void {
   if (!files.length || !wanted.length) return
+  // A file that comes late, from a parent still bringing what the person chose themselves
+  // meanwhile, must not start the activity again under them.
+  if (whole) return
   // Where one file is named, a second choice replaces the first.
   if (wanted.length === 1) chosen.clear()
   for (const file of files) chosen.set(file.name, file)
-  // While a preview plays, the files make the package to keep, and the player is left playing.
+  // While a preview plays, the files make the package to keep, and the player is left playing:
+  // saved where Download asked for them, and only made ready for it where the parent sent them unasked.
   if (previewed.length) void keep()
   else void play()
 }
@@ -253,27 +272,38 @@ function take(files: File[]): void {
 /** The words for the files a preview plays from an address: "video", or "files". */
 const previewedAs = (): string => previewed.length === 1 ? called(previewed[0]!) : 'files'
 
-/**
- * Download of a preview: the parent is asked for the bytes of what it plays from an address, and
- * how much has come is shown under the stage while the activity plays on. The person can choose
- * the file from their computer instead, as when it was first asked for.
- */
-function fetchToKeep(): void {
-  if (keeping) return
-  keeping = true
+/** The row under the stage while a download is made ready, with the choice of the file's own where it helps. */
+function preparing(text: string, choice: boolean): void {
   keepBox.hidden = false
-  keepInstead.hidden = false
-  keepLabel.textContent = `Getting your ${previewedAs()} from the chat for the download…`
+  keepInstead.hidden = !choice
+  keepLabel.textContent = text
+  keepProgress.hidden = false
   keepProgress.dataset.indeterminate = ''
   keepProgress.removeAttribute('aria-valuenow')
   download.setAttribute('aria-disabled', 'true')
   downloadLabel.textContent = 'Preparing…'
+}
+
+/**
+ * Download of a preview: the parent is asked for the bytes of what it plays from an address, and
+ * how much has come is shown under the stage while the activity plays on. The person can choose
+ * the file from their computer instead, as when it was first asked for. Files that are here
+ * already, sent unasked or left by a build that failed, are built from at once.
+ */
+function fetchToKeep(): void {
+  keeping = true
+  if (packing) return preparing(`Building the .h5p with your ${previewedAs()} in it…`, false)
+  if (bringing) return
+  if (!filesFor(wanted).missing.length) return void keep()
+  bringing = true
+  preparing(`Getting your ${previewedAs()} from the chat for the download…`, true)
   announce(`Getting your ${previewedAs()} from the chat for the download.`)
   toParent({ type: 'needs-bytes', names: previewed.map(baseName) })
 }
 
 /** How much of a file for the download has come. */
 function keepCount(name: string, received: number, total: number): void {
+  if (!bringing) return
   const what = previewed.length === 1 ? called(name || previewed[0]!) : 'file'
   keepLabel.textContent = `Getting your ${what} for the download… ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
   if (total > 0) {
@@ -284,26 +314,32 @@ function keepCount(name: string, received: number, total: number): void {
   }
 }
 
-/** The package to keep, built with the files in it, saved, and given to the parent; the player plays on. */
+/**
+ * The package to keep, built with the files in it and given to the parent, while the player plays
+ * on. It is saved only where Download asked for it: files the parent sends unasked make Download
+ * a link to it, with nothing shown and nothing saved.
+ */
 async function keep(): Promise<void> {
+  if (packing) return
   const { files, missing } = filesFor(wanted)
   if (missing.length) {
-    keepLabel.textContent = `Still needed for the download: ${new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(missing.map(baseName))}.`
+    if (keeping) keepLabel.textContent = `Still needed for the download: ${new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(missing.map(baseName))}.`
     return
   }
-  keeping = true
-  keepBox.hidden = false
-  keepInstead.hidden = true
-  keepLabel.textContent = 'Building the .h5p with your file in it…'
-  keepProgress.dataset.indeterminate = ''
+  packing = true
+  bringing = false
+  if (keeping) preparing(`Building the .h5p with your ${previewedAs()} in it…`, false)
   try {
     opened ??= openPack(installPack)
     const result = await buildPackage(source, { libraries: await opened, files })
     const name = packageName(String(result.manifest.title ?? ''))
     if (packageUrl) URL.revokeObjectURL(packageUrl)
     packageUrl = URL.createObjectURL(result.blob)
+    // Download may have been pressed while this was built.
+    const asked = keeping
     previewed = []
     keeping = false
+    whole = true
     keepBox.hidden = true
     download.href = packageUrl
     download.download = name
@@ -311,24 +347,30 @@ async function keep(): Promise<void> {
     downloadLabel.textContent = 'Download .h5p'
     about(result.manifest.title, result.builtWith, result.blob.size)
     toParent({ type: 'built', file: new File([result.blob], name, { type: 'application/zip' }), title: result.manifest.title, size: sized(result.blob.size) })
+    if (!asked) return
     announce(`The .h5p is ready, ${sized(result.blob.size)}: downloading.`)
     // The download the person asked for. A frame its parent lets download nothing has given the
     // parent the file above, to save its own way.
     download.click()
   } catch (error) {
-    keeping = false
+    // Unasked, nothing is said: the preview plays on, and Download builds from the same files.
+    if (!keeping) return
+    const text = `The .h5p could not be built: ${error instanceof Error ? error.message : String(error)}`
     keepInstead.hidden = false
-    delete keepProgress.dataset.indeterminate
-    keepBar.style.setProperty('--done', '0%')
-    keepLabel.textContent = `The .h5p could not be built: ${error instanceof Error ? error.message : String(error)}`
+    keepProgress.hidden = true
+    keepLabel.textContent = text
     download.removeAttribute('aria-disabled')
     downloadLabel.textContent = 'Try again'
+    announce(text)
+  } finally {
+    packing = false
   }
 }
 
 async function play(): Promise<void> {
   const build = ++builds
   clearTimeout(askTimer)
+  askTimer = undefined
   const found = filesFor(wanted)
   const { linked, missing } = linksFor(found.missing)
   if (missing.length) return ask(missing)
@@ -344,11 +386,13 @@ async function play(): Promise<void> {
     download.hidden = false
     if (previewed.length) {
       // A preview is not a file to hand out: its address expires. Download fetches the bytes first.
+      // Its link is this page's own, for a press that opens it elsewhere; a press here is taken below.
       packageUrl = null
-      download.href = '#download'
+      download.href = location.href
       download.removeAttribute('download')
       about(result.manifest.title, result.builtWith, `${previewedAs() === 'files' ? 'its files play' : `its ${previewedAs()} plays`} from the chat`)
     } else {
+      whole = true
       packageUrl = URL.createObjectURL(result.blob)
       download.href = packageUrl
       download.download = name
@@ -401,7 +445,7 @@ keepInstead.addEventListener('click', () => filesInput.click())
 download.addEventListener('click', (event) => {
   if (!previewed.length) return
   event.preventDefault()
-  if (!keeping) fetchToKeep()
+  fetchToKeep()
 })
 filesInput.addEventListener('change', () => {
   const files = [...(filesInput.files ?? [])]
@@ -425,8 +469,8 @@ main.addEventListener('drop', (event) => {
 
 /**
  * Addresses the parent gives for files it holds, by name: kept where they are http(s) and name a
- * video or a recording, and the activity built with them where it still waits for its files. While
- * a preview plays they are only kept: a new address for the same file is not a new activity.
+ * video or a recording, and the activity built with them where a file of its own is still missing.
+ * While a preview plays they are only kept: a new address for the same file is not a new activity.
  */
 function takeLinks(given: Record<string, unknown>): void {
   let added = false
@@ -435,7 +479,7 @@ function takeLinks(given: Record<string, unknown>): void {
     links.set(baseName(name), address)
     added = true
   }
-  if (added && wanted.length && !previewed.length && main.dataset.state !== 'ready') void play()
+  if (added && !previewed.length && filesFor(wanted).missing.length) void play()
 }
 
 /** A count of bytes as a message gives it: a number that is one, and not below nothing. */
