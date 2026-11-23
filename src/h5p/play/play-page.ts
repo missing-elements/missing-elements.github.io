@@ -258,8 +258,9 @@ function fetching(name: string, received: number, total: number): void {
 function take(files: File[]): void {
   if (!files.length || !wanted.length) return
   // A file that comes late, from a parent still bringing what the person chose themselves
-  // meanwhile, must not start the activity again under them.
-  if (whole) return
+  // meanwhile, must not start the activity again under them, nor take the place of the file
+  // the package to keep is being built from.
+  if (whole || packing) return
   // Where one file is named, a second choice replaces the first.
   if (wanted.length === 1) chosen.clear()
   for (const file of files) chosen.set(file.name, file)
