@@ -550,10 +550,12 @@ function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown
   let added = false
   for (const [name, address] of Object.entries(given)) {
     if (typeof address !== 'string' || !/^https?:\/\//i.test(address) || !URL.canParse(address) || !playable(name)) continue
-    links.set(baseName(name), address)
     // What the file there weighs, where the parent knows: a download is not begun that cannot be saved.
     const size = amount(sizes[name])
     if (size !== null) sizeAt.set(address, size)
+    // The same address again, as with its size once that is known, is nothing new to build with.
+    if (links.get(baseName(name)) === address) continue
+    links.set(baseName(name), address)
     added = true
   }
   if (added && !previewed.length && filesFor(wanted).missing.length) void play()
