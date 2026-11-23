@@ -26,9 +26,10 @@ import { baseName, kindOf, matchFiles, matchNamed, namedFiles, packageName, pars
  * A frame may be let save nothing: a chat's card was found to drop the download of this page's own
  * link with nothing said (ChatGPT, 2026-11-23), while the card itself could ask the chat to save a
  * file. So a parent that saves files says so (#98), with the most it takes, and Download then hands
- * it the package and says under the stage how that went. A package bigger than that is not handed
- * over, and a video that would make one is not fetched for it: the build page, in a tab of its
- * own, is offered, where the person chooses the file and downloads as anywhere.
+ * it the package, numbered, and says under the stage how the parent says that one went. A package
+ * bigger than that is not handed over, and a video that would make one is not fetched for it: the
+ * build page, in a tab of its own, is offered, where the person chooses the file and downloads as
+ * anywhere.
  *
  * What is seen is one stage, in one of five states (`data-state` on `main`): `building`, a loader
  * over the place the player takes; `fetching`, the loader with how much of a file the parent has
@@ -103,8 +104,8 @@ let kept: File | null = null
 let hostSaves: number | null = null
 /** Whether a file was handed to the parent to save, and it has not said how that went. */
 let handed = false
-/** Whether one ever was: a yes that comes after the wait for it ended is still said. */
-let everHanded = false
+/** The number of the last one handed, which the parent's word on it carries: word on an earlier one says nothing of this one. */
+let handedId = 0
 let handedTimer: ReturnType<typeof setTimeout> | undefined
 /** The address each file of the preview plays from, by its path in the source, and the sizes the parent gave, by address. */
 let shownFrom: Record<string, string> = {}
@@ -317,14 +318,14 @@ function tooBig(size: number, atLeast = false): void {
 /** The package handed to a parent that saves files itself, which says how that went; no word in a minute is taken as no. */
 function handOver(file: File): void {
   if (hostSaves !== null && file.size > hostSaves) return tooBig(file.size)
-  handed = everHanded = true
+  handed = true
   saying('The chat is saving the .h5p…', { busy: true })
-  toParent({ type: 'save', file })
+  toParent({ type: 'save', id: ++handedId, file })
   clearTimeout(handedTimer)
   handedTimer = setTimeout(() => saveDone(false), 60_000)
 }
 
-/** How the parent's save went. A yes that comes after the minute is still said. */
+/** How the parent's save of the last package handed went. A yes that comes after the minute is still said. */
 function saveDone(ok: boolean): void {
   clearTimeout(handedTimer)
   handed = false
@@ -566,12 +567,12 @@ function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown
 // that saves files itself: that it does, with the most it takes, and how a save went.
 window.addEventListener('message', (event) => {
   if (!framed || event.source !== window.parent) return
-  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, ok?: unknown } | null
+  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
   else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>, message.sizes && typeof message.sizes === 'object' ? message.sizes as Record<string, unknown> : {})
   else if (message.type === 'saves') hostSaves = amount(message.max) ?? Infinity
-  else if (message.type === 'saved' && (handed || (everHanded && message.ok === true))) saveDone(message.ok !== false)
+  else if (message.type === 'saved' && handedId && message.id === handedId && typeof message.ok === 'boolean' && (handed || message.ok)) saveDone(message.ok)
   else if (message.type === 'progress' && amount(message.received) !== null) fetching(typeof message.name === 'string' ? message.name : '', amount(message.received)!, amount(message.total) ?? 0)
   else if (message.type === 'theme' && (message.theme === 'light' || message.theme === 'dark')) document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]')!.content = message.theme
 })
