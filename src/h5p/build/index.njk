@@ -205,9 +205,10 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
 
       <section class="step" id="files-step" aria-labelledby="files-heading" hidden>
         <h3 id="files-heading"><span class="step-marker"><span class="step-number">2</span></span> Files</h3>
-        <p>The source names these files. Choose them from your computer; each is matched by its name.</p>
+        <p>The source names these files. Choose them from your computer. Each is matched by its name, and a single file of a kind fits whatever it is called.</p>
         {#- The lists are drawn without bullets, and Safari then reads one as a list only if it is told. -#}
         <ul class="file-list" id="file-list" role="list"></ul>
+        <p class="file-note" id="files-note" role="status" hidden></p>
         <p>
           <label for="files" class="inline-label">Choose files</label>
           <input type="file" id="files" multiple>

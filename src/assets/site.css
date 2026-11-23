@@ -1037,6 +1037,9 @@ pre.prompt { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.9375re
   white-space: nowrap;
 }
 .build .file-list code { white-space: normal; }
+/* A chosen file that no path took, and why. */
+.build .file-note { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.9375rem; overflow-wrap: anywhere; }
+.build .file-note[hidden] { display: none; }
 /* Beside the name's first line: a ring to fill, then a check. */
 .build .file-list li::before {
   content: "";
