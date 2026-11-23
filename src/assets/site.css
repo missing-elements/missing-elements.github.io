@@ -1098,6 +1098,8 @@ html[data-standalone] .play { padding: 1rem; }
 .play-stage { display: grid; border: 1px solid var(--border); border-radius: 12px; overflow: clip; background: var(--surface); }
 .play-stage > * { grid-area: 1 / 1; min-width: 0; }
 .play:not([data-state="ready"]) .play-stage { aspect-ratio: 16 / 9; }
+/* The activity's own frame keeps its square corners: the stage rounds only what the page draws in it. */
+.play[data-state="ready"] .play-stage { border-radius: 0; }
 .play .player-box { margin: 0; border: 0; border-radius: 0; }
 .play:not([data-state="ready"]) .player-box { visibility: hidden; }
 .play-panel { z-index: 1; display: grid; place-items: center; padding: 1.5rem 1rem; background: var(--surface); text-align: center; }
