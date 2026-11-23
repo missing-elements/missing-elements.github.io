@@ -2,7 +2,7 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { baseName, kindOf, matchFiles, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
+import { baseName, kindOf, matchFiles, matchNamed, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
 
 /**
  * The play page, `/h5p/play/`: the activity in a link's `#source=` built in the browser, as the
@@ -160,21 +160,13 @@ const filesFor = (paths: string[]): { files: Record<string, File>, missing: stri
 const playable = (name: string): boolean => called(name) === 'video' || called(name) === 'recording'
 
 /**
- * The addresses for the paths still missing, matched as files are: by name, or where one path and
- * one address are left, by kind. A picture is never played from an address: its size is read.
+ * The addresses for the paths still missing, matched as files are, by the same rule: by name, then
+ * a single one of a kind whatever it is called. A picture is never played from an address: its
+ * size is read.
  */
 function linksFor(paths: string[]): { linked: Record<string, string>, missing: string[] } {
-  const given = [...links]
-  const linked: Record<string, string> = {}
-  const missing: string[] = []
-  for (const path of paths) {
-    const [only] = given
-    const address = !playable(path) ? undefined
-      : links.get(baseName(path)) ?? (paths.length === 1 && given.length === 1 && only && kind(only[0]) === kind(path) ? only[1] : undefined)
-    if (address) linked[path] = address
-    else missing.push(path)
-  }
-  return { linked, missing }
+  const { matched } = matchNamed(paths.filter(playable), [...links])
+  return { linked: matched, missing: paths.filter((path) => !(path in matched)) }
 }
 
 /** Something said to a screen reader once, beside the state's own words. */

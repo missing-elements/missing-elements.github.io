@@ -204,34 +204,42 @@ export const baseName = (path: string): string => path.slice(path.replace(/\\/g,
 export const kindOf = (name: string): string => name.slice(name.lastIndexOf('.') + 1).toLowerCase()
 
 /**
- * The files to build with: each path the source names, matched to a chosen file by its name,
- * keyed by the path as the source writes it. A chat writes a file's name its own way, and the
- * person's file is called what their camera or the chat called it: so where one path of a kind is
- * left without its file, and one chosen file of that kind without a path, that is its file. More of
- * a kind on either side are left, since nothing says which is which. `unused` are the chosen files
- * no path took.
+ * Each path the source names, matched to one of the things given for it under a name: a file
+ * chosen, or an address a chat holds. By name first. A chat writes a file's name its own way, and
+ * the person's file is called what their camera or the chat called it: so where one path of a kind
+ * is left without its match, and one given thing of that kind without a path, that is its match.
+ * More of a kind on either side are left, since nothing says which is which. `unused` are the
+ * given things no path took.
  */
-export function matchFiles(paths: string[], chosen: File[]): { files: Record<string, File>, missing: string[], unused: File[] } {
-  const byName = new Map(chosen.map((file) => [file.name, file]))
-  const files: Record<string, File> = {}
+export function matchNamed<T>(paths: string[], given: (readonly [name: string, thing: T])[]): { matched: Record<string, T>, missing: string[], unused: T[] } {
+  const byName = new Map(given)
+  const matched: Record<string, T> = {}
   const unnamed: string[] = []
+  const taken = new Set<string>()
   for (const path of paths) {
-    const file = byName.get(baseName(path))
-    if (file) files[path] = file
-    else unnamed.push(path)
+    const name = baseName(path)
+    if (byName.has(name)) {
+      matched[path] = byName.get(name)!
+      taken.add(name)
+    } else unnamed.push(path)
   }
-  const taken = new Set(Object.values(files))
-  const left = chosen.filter((file) => !taken.has(file))
+  const left = [...byName.keys()].filter((name) => !taken.has(name))
   const missing: string[] = []
   for (const path of unnamed) {
-    const fits = left.filter((file) => kindOf(file.name) === kindOf(path))
-    const [file] = fits
-    if (file && fits.length === 1 && unnamed.filter((other) => kindOf(other) === kindOf(path)).length === 1) {
-      files[path] = file
-      taken.add(file)
+    const fits = left.filter((name) => kindOf(name) === kindOf(path))
+    const [name] = fits
+    if (name !== undefined && fits.length === 1 && unnamed.filter((other) => kindOf(other) === kindOf(path)).length === 1) {
+      matched[path] = byName.get(name)!
+      taken.add(name)
     } else missing.push(path)
   }
-  return { files, missing, unused: chosen.filter((file) => !taken.has(file)) }
+  return { matched, missing, unused: [...byName].filter(([name]) => !taken.has(name)).map(([, thing]) => thing) }
+}
+
+/** The files to build with, keyed by the path as the source writes it: `matchNamed`, of the chosen files. */
+export function matchFiles(paths: string[], chosen: File[]): { files: Record<string, File>, missing: string[], unused: File[] } {
+  const { matched, missing, unused } = matchNamed(paths, chosen.map((file) => [file.name, file] as const))
+  return { files: matched, missing, unused }
 }
 
 /**
