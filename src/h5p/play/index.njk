@@ -52,8 +52,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
     </div>
     <p class="play-actions">
       <a class="button" id="edit" target="_blank" rel="noopener">Open in the build page</a>
-      <a class="button button-solid" id="download" download hidden><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>Download .h5p</a>
+      <a class="button button-solid" id="download" download hidden><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg><span id="download-label">Download .h5p</span></a>
     </p>
+  </div>
+  {#- Download of an activity whose video plays from the chat: its bytes come first, while it plays on. -#}
+  <div class="play-keep" id="keep" hidden>
+    <div class="play-keep-text">
+      <p class="play-keep-label" id="keep-label"></p>
+      <div class="play-progress" id="keep-progress" role="progressbar" aria-label="Getting the file for the download" aria-valuemin="0" aria-valuemax="100" data-indeterminate><span id="keep-bar"></span></div>
+    </div>
+    <button type="button" class="button" id="keep-instead">Choose it from your computer instead</button>
   </div>
 </main>
 <script type="module" src="/h5p/play/play-page.js"></script>

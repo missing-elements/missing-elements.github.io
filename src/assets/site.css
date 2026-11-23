@@ -1133,11 +1133,20 @@ html[data-standalone] .play { padding: 1rem; }
 .play-meta:empty { width: 6rem; height: 0.7rem; margin: 0.2rem 0; }
 .play-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
 .play-actions [hidden] { display: none; }
+/* Download of a preview: the file's bytes coming, under the bar, while the activity plays on. */
+.play-keep { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.625rem 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.play-keep[hidden], .play-keep [hidden] { display: none; }
+.play-keep-text { display: grid; flex: 1 1 14rem; gap: 0.4rem; min-width: 0; }
+.play-keep-label { margin: 0; font-size: 0.875rem; line-height: 1.4; overflow-wrap: anywhere; }
+.play-keep .play-progress { width: 100%; }
+.play-progress[data-indeterminate] span { width: 30%; opacity: 0.85; }
+#download[aria-disabled="true"] { opacity: 0.7; cursor: progress; }
 .button-icon { width: 1.05em; height: 1.05em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 @media (prefers-reduced-motion: no-preference) {
   .play-spinner { animation: turn 0.8s linear infinite; }
   .play-progress span { transition: width 0.3s ease-out; }
+  .play-progress[data-indeterminate] span { animation: slide 1.3s ease-in-out infinite; }
   .play[data-state="building"] .play-panel, .play[data-state="fetching"] .play-panel {
     background: linear-gradient(100deg, var(--surface) 40%, color-mix(in srgb, var(--raised) 70%, var(--surface)) 50%, var(--surface) 60%) 0 0 / 250% 100%;
     animation: sheen 1.8s linear infinite;
@@ -1145,6 +1154,7 @@ html[data-standalone] .play { padding: 1rem; }
   .play-title:empty, .play-meta:empty { animation: breathe 1.4s ease-in-out infinite alternate; }
 }
 @keyframes sheen { from { background-position: 125% 0; } to { background-position: -125% 0; } }
+@keyframes slide { from { translate: -100% 0; } to { translate: 340% 0; } }
 @keyframes breathe { from { opacity: 1; } to { opacity: 0.45; } }
 
 @media (forced-colors: active) {
