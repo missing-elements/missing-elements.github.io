@@ -44,14 +44,18 @@ import { baseName, compactSource, fragmentFromSource, fragmentWithLinks, kindOf,
  *
  * Such a tab is there to save a file, not to play one (#104): it draws no player, only the file
  * coming, the package being built, and that it is saved, and then it closes itself, which a tab
- * with nothing behind it may do. It waits a few seconds first, and longer while something of the
- * browser's own is over the page, as a question where to save is. "Keep this tab open" stops it,
- * and the activity can then be played there.
+ * with nothing behind it may do. It waits a few seconds first, counted only while the page is seen
+ * and has the keyboard: a question of the browser's own, where to save or whether to, may be over
+ * it otherwise, or waiting in a tab nobody has looked at yet. "Keep this tab open" stops it, and
+ * the activity can then be played there. Such a tab builds from files only, never from an
+ * address: what it fetched, or what the person chose in its place.
  *
- * What is seen is one stage, in one of five states (`data-state` on `main`): `building`, a loader
- * over the place the player takes; `fetching`, the loader with how much of a file the parent has
- * brought so far; `asking`, for the person's files; `error`, with the one thing to do about it;
- * `ready`, the player. The parent is told each as a `status`, in words a screen reader is told too.
+ * What is seen is one stage, in one of six states (`data-state` on `main`): `building`, a loader
+ * over the place the player takes; `fetching`, the loader with how much of a file has come so far,
+ * from the parent or from its address; `asking`, for the person's files; `error`, with the one
+ * thing to do about it; `ready`, the player; `saved`, in a tab that only saves, the package saved
+ * and the tab about to close. The parent is told each as a `status`, in words a screen reader is
+ * told too.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
@@ -304,8 +308,12 @@ function take(files: File[]): void {
   // meanwhile, must not start the activity again under them, nor take the place of the file
   // the package to keep is being built from.
   if (whole || packing) return
-  // In a tab that only saves, a file chosen while the same one is fetched is the one built from.
-  if (savingOnly) fetchStop?.abort()
+  // In a tab that only saves, a file chosen while files are fetched ends the fetch, and with it
+  // the addresses: the package is built from files alone, and one still missing is asked for.
+  if (savingOnly) {
+    fetchStop?.abort()
+    links.clear()
+  }
   // Where one file is named, a second choice replaces the first.
   if (wanted.length === 1) chosen.clear()
   for (const file of files) chosen.set(file.name, file)
@@ -472,6 +480,8 @@ async function fetchThenBuild(from: Record<string, string>): Promise<void> {
   try {
     const files = await fetched(from, stop.signal, fetching)
     if (stop.signal.aborted) return
+    // The addresses are used up: a file still missing is asked for, not played from another's.
+    links.clear()
     take(files)
   } catch {
     if (stop.signal.aborted) return
@@ -483,8 +493,9 @@ async function fetchThenBuild(from: Record<string, string>): Promise<void> {
 
 /**
  * The package saved in a tab that only saves, with no press, and the tab closed a few seconds
- * later. The count stops while the page is seen and something else has the keyboard: a question
- * of the browser's own, where to save or whether to, is then likely over it.
+ * later. The seconds are counted only while the page is seen and has the keyboard: otherwise a
+ * question of the browser's own, where to save or whether to, may be open over it, or waiting
+ * in a tab that was opened behind another.
  */
 function savedHere(file: File): void {
   saveUnasked = false
@@ -498,7 +509,7 @@ function savedHere(file: File): void {
   show('saved', `Your .h5p is saved: ${named} is in your downloads. This tab closes itself in a few seconds.`)
   clearInterval(closing)
   closing = setInterval(() => {
-    if (!document.hidden && !document.hasFocus()) return
+    if (document.hidden || !document.hasFocus()) return
     if (--left > 0) return said()
     // A tab the browser lets no page close stays, and says what it would have.
     stay()
