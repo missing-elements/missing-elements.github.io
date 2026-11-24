@@ -19,6 +19,13 @@ const buildFeedback = {
 
 export default {
   name: "Missing Elements",
+  // Where to reach the project: the privacy, terms and support pages give it.
+  contact,
+  // The app in ChatGPT, as the privacy, terms and support pages name it, and the address of its
+  // server (h5p-toolkit's apps/mcp-worker). A name that leads with "H5P" says whose it is.
+  app: { name: "H5P Author by Missing Elements", server: "mcp.embed-my.org" },
+  // When the privacy and terms pages last changed what they say: the date they show.
+  legalUpdated: "24 November 2026",
   // What the organization makes, in a line: under the name in the top bar.
   tagline: "Browser-based OSS and tools",
   url: "https://missing-elements.github.io",
