@@ -453,15 +453,35 @@ async function fetchFiles(): Promise<void> {
   } catch (error) {
     // Stopped for a file the person chose: that one is built from.
     if (stop.signal.aborted) return
-    bringing = false
-    const text = `Your ${previewedAs()} could not be fetched from the chat (${error instanceof Error ? error.message : String(error)}): its address may have run out. Choose it from your computer instead.`
-    keepInstead.hidden = false
-    keepProgress.hidden = true
-    keepLabel.textContent = text
-    download.removeAttribute('aria-disabled')
-    downloadLabel.textContent = 'Try again'
-    announce(text)
+    notBrought(error instanceof Error ? error.message : String(error))
   }
+}
+
+/** The files for a download did not come, to this page or to the parent that was asked for them: said under the stage, with the way on. */
+function notBrought(why = ''): void {
+  bringing = false
+  const text = `Your ${previewedAs()} could not be fetched from the chat${why ? ` (${why})` : ''}: its address may have run out. Choose it from your computer instead.`
+  keepInstead.hidden = false
+  keepProgress.hidden = true
+  keepLabel.textContent = text
+  download.removeAttribute('aria-disabled')
+  downloadLabel.textContent = 'Try again'
+  announce(text)
+}
+
+/**
+ * The parent says a file it was asked for did not come (#106). For a download, that is said
+ * under the stage. For a file the activity is waiting to be built with, the person is asked for
+ * it, with the reason. At any other time it says nothing new.
+ */
+function failed(): void {
+  if (bringing && previewed.length) return notBrought()
+  if (main.dataset.state !== 'fetching' || whole || packing) return
+  const { missing } = filesFor(wanted)
+  if (!missing.length) return
+  ask(missing)
+  const one = missing.length === 1
+  askText.textContent = `Your ${one ? called(missing[0]!) : 'files'} could not be fetched from the chat. Choose ${one ? 'it' : 'them'} from your computer; ${one ? 'it stays' : 'they stay'} in your browser.`
 }
 
 /**
@@ -774,13 +794,14 @@ function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown
 // From the frame's parent, which may hold what the person attached in the chat: the files, how
 // much of one has come so far, and the chat's theme where it is not the system's. And from one
 // that saves files itself: that it does, with the most it takes, and how a save went; and from
-// one that opens links itself, that it does.
+// one that opens links itself, that it does. And that a file it was asked for did not come.
 window.addEventListener('message', (event) => {
   if (!framed || event.source !== window.parent) return
   const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
   else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>, message.sizes && typeof message.sizes === 'object' ? message.sizes as Record<string, unknown> : {})
+  else if (message.type === 'failed') failed()
   else if (message.type === 'saves') hostSaves = amount(message.max) ?? Infinity
   else if (message.type === 'opens') hostOpens = true
   else if (message.type === 'saved' && handedId && message.id === handedId && typeof message.ok === 'boolean' && (handed || message.ok)) saveDone(message.ok)
