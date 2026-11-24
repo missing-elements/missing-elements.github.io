@@ -472,12 +472,15 @@ function notBrought(why = ''): void {
 /**
  * The parent says a file it was asked for did not come (#106). For a download, that is said
  * under the stage. For a file the activity is waiting to be built with, the person is asked for
- * it, with the reason. At any other time it says nothing new.
+ * it, with the reason: while it is shown coming, while the question is held back a moment for
+ * the parent's answer, and where the question is shown already. At any other time it says
+ * nothing new.
  */
 function failed(): void {
   if (bringing && previewed.length) return notBrought()
-  if (main.dataset.state !== 'fetching' || whole || packing) return
-  const { missing } = filesFor(wanted)
+  const waiting = main.dataset.state === 'fetching' || main.dataset.state === 'asking' || askTimer !== undefined
+  if (!waiting || whole || packing) return
+  const { missing } = linksFor(filesFor(wanted).missing)
   if (!missing.length) return
   ask(missing)
   const one = missing.length === 1
