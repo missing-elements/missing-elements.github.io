@@ -42,10 +42,20 @@ import { baseName, compactSource, fragmentFromSource, fragmentWithLinks, kindOf,
  * links, Download of a video said to weigh more than the parent saves hands it such a link, at
  * once, while the press still lets a tab open.
  *
- * What is seen is one stage, in one of five states (`data-state` on `main`): `building`, a loader
- * over the place the player takes; `fetching`, the loader with how much of a file the parent has
- * brought so far; `asking`, for the person's files; `error`, with the one thing to do about it;
- * `ready`, the player. The parent is told each as a `status`, in words a screen reader is told too.
+ * Such a tab is there to save a file, not to play one (#104): it draws no player, only the file
+ * coming, the package being built, and that it is saved, and then it closes itself, which a tab
+ * with nothing behind it may do. It waits a few seconds first, counted only while the page is seen
+ * and has the keyboard: a question of the browser's own, where to save or whether to, may be over
+ * it otherwise, or waiting in a tab nobody has looked at yet. "Keep this tab open" stops it, and
+ * the activity can then be played there. Such a tab builds from files only, never from an
+ * address: what it fetched, or what the person chose in its place.
+ *
+ * What is seen is one stage, in one of six states (`data-state` on `main`): `building`, a loader
+ * over the place the player takes; `fetching`, the loader with how much of a file has come so far,
+ * from the parent or from its address; `asking`, for the person's files; `error`, with the one
+ * thing to do about it; `ready`, the player; `saved`, in a tab that only saves, the package saved
+ * and the tab about to close. The parent is told each as a `status`, in words a screen reader is
+ * told too.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
@@ -63,6 +73,10 @@ const askText = $('ask-text')
 const choose = $<HTMLButtonElement>('choose')
 const filesInput = $<HTMLInputElement>('files')
 const errorBox = $('error')
+const savedBox = $('saved')
+const savedText = $('saved-text')
+const savedStay = $<HTMLButtonElement>('saved-stay')
+const savedPlay = $<HTMLButtonElement>('saved-play')
 const errorTitle = $('error-title')
 const errorText = $('error-text')
 const fix = $<HTMLAnchorElement>('fix')
@@ -81,7 +95,7 @@ const edit = $<HTMLAnchorElement>('edit')
 const player = $('player') as HTMLElementTagNameMap['h5p-player']
 player.runtime = runtime
 
-type State = 'building' | 'fetching' | 'asking' | 'ready' | 'error'
+type State = 'building' | 'fetching' | 'asking' | 'ready' | 'error' | 'saved'
 type Opened = Awaited<ReturnType<typeof openPack>>
 /** The pack, opened at the first build and kept for the next, which a file chosen later starts. */
 let opened: Promise<Opened> | null = null
@@ -134,6 +148,10 @@ let unasked = false
 let ownFragment = ''
 /** Stops the page's own fetch of a file, where the person chooses it themselves meanwhile. */
 let fetchStop: AbortController | null = null
+/** Whether this is a tab of its own that a link asked to save the package: it draws no player. */
+let savingOnly = carried.save && window.parent === window
+/** Counts down to the tab closing itself, once the package is saved. */
+let closing: ReturnType<typeof setInterval> | undefined
 /** Shows the question for the person's files a moment late, where the parent may bring them first. */
 let askTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -147,6 +165,7 @@ function show(state: State, text: string): void {
   loader.hidden = state !== 'building' && state !== 'fetching'
   filesBox.hidden = state !== 'asking'
   errorBox.hidden = state !== 'error'
+  savedBox.hidden = state !== 'saved'
   // The way to the build page is the problem's own button where it has one.
   edit.hidden = state === 'error' && !fix.hidden
   if (status.textContent !== text) status.textContent = text
@@ -289,6 +308,12 @@ function take(files: File[]): void {
   // meanwhile, must not start the activity again under them, nor take the place of the file
   // the package to keep is being built from.
   if (whole || packing) return
+  // In a tab that only saves, a file chosen while files are fetched ends the fetch, and with it
+  // the addresses: the package is built from files alone, and one still missing is asked for.
+  if (savingOnly) {
+    fetchStop?.abort()
+    links.clear()
+  }
   // Where one file is named, a second choice replaces the first.
   if (wanted.length === 1) chosen.clear()
   for (const file of files) chosen.set(file.name, file)
@@ -395,29 +420,34 @@ function fetchToKeep(): void {
 }
 
 /**
- * The files of a preview fetched by this page, where no parent holds them: from the addresses it
- * plays from, counted as they come. The browser keeps each as a Blob, which it may hold on disk.
+ * Files fetched by this page from their addresses, by their paths in the source, counted as they
+ * come, ten times a second at most. The browser keeps each as a Blob, which it may hold on disk.
  */
+async function fetched(from: Record<string, string>, signal: AbortSignal, count: (name: string, received: number, total: number) => void): Promise<File[]> {
+  const files: File[] = []
+  for (const [path, address] of Object.entries(from)) {
+    const response = await fetch(address, { signal })
+    if (!response.ok || !response.body) throw new Error(`the chat answered ${response.status}`)
+    const total = Number(response.headers.get('content-length')) || 0
+    let received = 0
+    let shown = 0
+    const counted = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        received += chunk.byteLength
+        if (performance.now() - shown > 100) { shown = performance.now(); count(baseName(path), received, total) }
+        controller.enqueue(chunk)
+      },
+    }))
+    files.push(new File([await new Response(counted).blob()], baseName(path), { type: response.headers.get('content-type') ?? '' }))
+  }
+  return files
+}
+
+/** The files of a preview fetched by this page, where no parent holds them: from the addresses it plays from. */
 async function fetchFiles(): Promise<void> {
   const stop = fetchStop = new AbortController()
   try {
-    const files: File[] = []
-    for (const path of previewed) {
-      const response = await fetch(shownFrom[path] ?? '', { signal: stop.signal })
-      if (!response.ok || !response.body) throw new Error(`the chat answered ${response.status}`)
-      const total = Number(response.headers.get('content-length')) || 0
-      let received = 0
-      let shown = 0
-      const counted = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
-        transform(chunk, controller) {
-          received += chunk.byteLength
-          // Shown ten times a second at most.
-          if (performance.now() - shown > 100) { shown = performance.now(); keepCount(baseName(path), received, total) }
-          controller.enqueue(chunk)
-        },
-      }))
-      files.push(new File([await new Response(counted).blob()], baseName(path), { type: response.headers.get('content-type') ?? '' }))
-    }
+    const files = await fetched(Object.fromEntries(previewed.map((path) => [path, shownFrom[path] ?? ''])), stop.signal, keepCount)
     if (stop.signal.aborted) return
     take(files)
   } catch (error) {
@@ -432,6 +462,67 @@ async function fetchFiles(): Promise<void> {
     downloadLabel.textContent = 'Try again'
     announce(text)
   }
+}
+
+/**
+ * In a tab that only saves: the files fetched from the addresses the link carried, shown coming in
+ * the stage, and then built from. One that cannot be fetched is asked for, as where none was given.
+ */
+async function fetchThenBuild(from: Record<string, string>): Promise<void> {
+  const stop = fetchStop = new AbortController()
+  const paths = Object.keys(from)
+  const what = paths.length === 1 ? called(paths[0]!) : 'files'
+  label.textContent = `Getting your ${what}…`
+  note.textContent = 'From the chat to your browser, nowhere else.'
+  progress.hidden = true
+  instead.hidden = false
+  show('fetching', `Getting your ${what} from the chat.`)
+  try {
+    const files = await fetched(from, stop.signal, fetching)
+    if (stop.signal.aborted) return
+    // The addresses are used up: a file still missing is asked for, not played from another's.
+    links.clear()
+    take(files)
+  } catch {
+    if (stop.signal.aborted) return
+    links.clear()
+    ask(paths)
+    askText.textContent = `Your ${what} could not be fetched from the chat: its address may have run out. Choose ${paths.length === 1 ? 'it' : 'them'} from your computer; ${paths.length === 1 ? 'it stays' : 'they stay'} in your browser.`
+  }
+}
+
+/**
+ * The package saved in a tab that only saves, with no press, and the tab closed a few seconds
+ * later. The seconds are counted only while the page is seen and has the keyboard: otherwise a
+ * question of the browser's own, where to save or whether to, may be open over it, or waiting
+ * in a tab that was opened behind another.
+ */
+function savedHere(file: File): void {
+  saveUnasked = false
+  download.click()
+  const named = `${file.name}, ${sized(file.size)},`
+  let left = 5
+  const said = (): void => { savedText.textContent = `${named} is in your downloads. This tab closes in ${left} s.` }
+  savedStay.hidden = false
+  savedPlay.hidden = true
+  said()
+  show('saved', `Your .h5p is saved: ${named} is in your downloads. This tab closes itself in a few seconds.`)
+  clearInterval(closing)
+  closing = setInterval(() => {
+    if (document.hidden || !document.hasFocus()) return
+    if (--left > 0) return said()
+    // A tab the browser lets no page close stays, and says what it would have.
+    stay()
+    window.close()
+  }, 1000)
+}
+
+/** The tab kept open: the way on where the browser saved nothing, and the activity to play. */
+function stay(): void {
+  clearInterval(closing)
+  savedText.textContent = `${kept?.name ?? 'The .h5p'}, ${sized(kept?.size ?? 0)}, is in your downloads. If nothing was saved, press Download.`
+  savedStay.hidden = true
+  savedPlay.hidden = false
 }
 
 /** How much of a file for the download has come. */
@@ -540,6 +631,8 @@ async function play(): Promise<void> {
       about(result.manifest.title, result.builtWith, result.blob.size)
       toParent({ type: 'built', file, title: result.manifest.title, size: sized(result.blob.size) })
     }
+    // A tab that only saves has what it came for: no player is drawn.
+    if (savingOnly && whole) return savedHere(file)
     busy('Starting the activity…')
     playerBox.hidden = false
     player.file = file
@@ -572,6 +665,9 @@ async function start(): Promise<void> {
   wanted = namedFiles(source)
   const written = source as { title?: unknown, type?: unknown }
   about(written.title, written.type)
+  // A tab that only saves fetches what the link gave addresses for first, and builds once.
+  const { linked } = savingOnly ? linksFor(wanted) : { linked: {} }
+  if (Object.keys(linked).length) return fetchThenBuild(linked)
   await play()
 }
 
@@ -589,6 +685,15 @@ player.addEventListener('error', (event) => {
   fail('It was built, but does not play', (event as unknown as CustomEvent<{ message: string }>).detail.message, true)
 })
 
+savedStay.addEventListener('click', stay)
+// The package that was saved, played in the tab that was kept open.
+savedPlay.addEventListener('click', () => {
+  if (!kept) return
+  savingOnly = false
+  busy('Starting the activity…')
+  playerBox.hidden = false
+  player.file = kept
+})
 // The file field is hidden, and the buttons open it.
 choose.addEventListener('click', () => filesInput.click())
 instead.addEventListener('click', () => filesInput.click())

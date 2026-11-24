@@ -43,6 +43,16 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <p class="play-text" id="error-text"></p>
         <a class="button button-solid button-large" id="fix" target="_blank" rel="noopener" hidden>Open in the build page</a>
       </div>
+      {#- In a tab a link asked to save the package (&save=1): it is saved, and the tab closes itself. -#}
+      <div class="play-saved" id="saved" hidden>
+        <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg>
+        <h1 class="play-heading">Your .h5p is saved</h1>
+        <p class="play-text" id="saved-text"></p>
+        <p class="play-saved-actions">
+          <button type="button" class="button" id="saved-stay">Keep this tab open</button>
+          <button type="button" class="button" id="saved-play" hidden>Play it here</button>
+        </p>
+      </div>
     </div>
   </div>
   <div class="play-bar">
