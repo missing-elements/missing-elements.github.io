@@ -535,7 +535,7 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 
 If you're coming from an older version:
 
-- **From 4.6.0:** the Vite plugin's output moves into a folder such as `assets/pdfjs-viewer-84204294/`, so that an upgrade changes its URLs. If you excluded the data folders from an `immutable` cache rule, as the 4.6.0 docs suggested, you can remove that rule.
+- **From 4.6.0:** the Vite plugin's output moves into a folder such as `assets/pdfjs-viewer-84204294/`, so that an upgrade changes its URLs. If you gave the data folders a short cache, as the 4.6.0 docs suggested, that rule no longer matches them, and you can remove it.
 - **From 4.5.0 or earlier:** nothing needs to change. In a Vite app, the new [Vite plugin](#vite-plugin) can replace a copy of `dist` that you serve with `assets-base`. Add the plugin, then remove `assets-base`, any resource attributes that point at the copy, and the copy step. While `assets-base` is set, the element ignores the plugin's copy.
 - **From 4.4.2 or earlier:** version 4.5 moved from PDF.js 6.4 to 6.5. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. TypeScript now rejects a bare `Uint8Array` in `viewerApp.open()`, which already failed at runtime. Pass `{ data }`, as in [Open a PDF from bytes](#open-a-pdf-from-bytes).
 - **From 4.4.0 or earlier:** if your Content Security Policy allows `blob:` in `connect-src` only for locales, you can remove it.
