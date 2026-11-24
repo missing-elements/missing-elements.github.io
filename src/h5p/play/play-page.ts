@@ -122,6 +122,8 @@ let hostOpens = false
 /** The address each file of the preview plays from, by its path in the source, and the sizes the parent gave, by address. */
 let shownFrom: Record<string, string> = {}
 const sizeAt = new Map<string, number>()
+/** What the preview's package weighs without those files: its libraries and its content. */
+let previewWeighs = 0
 /** What the link carried beside its source: addresses, and the wish to save with no press. Read once, and taken out of the address bar. */
 const carried = linksFromFragment(location.hash)
 if (carried.rest !== location.hash) history.replaceState(null, '', `${location.pathname}${location.search}${carried.rest}`)
@@ -326,9 +328,14 @@ function saying(text: string, { busy = false } = {}): void {
   announce(text)
 }
 
-/** What the files of a preview weigh, where the parent said for each: the package is that and a little. */
+/**
+ * What the package to keep will weigh, about: the preview's own package and the files it plays
+ * from addresses, where the parent said what each weighs. `null` where it did not, and where a
+ * file of the activity is here and not at an address: a tab could not fetch that one.
+ */
 function previewSize(): number | null {
-  let total = 0
+  if (previewed.length !== wanted.length) return null
+  let total = previewWeighs
   for (const path of previewed) {
     const size = sizeAt.get(shownFrom[path] ?? '')
     if (size === undefined) return null
@@ -514,6 +521,7 @@ async function play(): Promise<void> {
     const file = new File([result.blob], name, { type: 'application/zip' })
     previewed = result.linked
     shownFrom = linked
+    previewWeighs = result.blob.size
     download.hidden = false
     if (previewed.length) {
       // A preview is not a file to hand out: its address expires. Download fetches the bytes first.
@@ -591,12 +599,13 @@ keepInstead.addEventListener('click', () => filesInput.click())
 download.addEventListener('click', (event) => {
   if (previewed.length) {
     event.preventDefault()
-    // A video the parent says weighs more than it saves is not fetched here, where it could not be
+    // A package that will weigh more than the parent saves is not made here, where it could not be
     // saved with a press: a tab of this page is opened by the parent, at once, and saves it there.
+    // Only where every file of the activity is at an address, which is all a tab can reach.
     const size = hostSaves !== null && hostOpens && !keeping ? previewSize() : null
     if (size !== null && size > hostSaves!) {
       toParent({ type: 'open', href: savingLink() })
-      return saying(`This .h5p is over ${sized(size)}, more than the chat saves. A new tab gets your ${previewedAs()} and saves it there.`)
+      return saying(`This .h5p is about ${sized(size)}, more than the chat saves. A new tab gets your ${previewedAs()} and saves it there.`)
     }
     return fetchToKeep()
   }
