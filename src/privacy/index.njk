@@ -37,9 +37,12 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section aria-labelledby="who">
     <h2 id="who">Who we are</h2>
     <p>
-      {{ site.name }} makes free, open-source tools that run in the browser. We run this site,
-      {{ site.url | replace("https://", "") }}, and the app {{ site.app.name }} in ChatGPT
-      (“the app”). Write to us at <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
+      {{ site.name }} is an open-source project on GitHub that makes free tools for the browser.
+      It is not a company. It is run by {{ site.operator }}, who is responsible for this site,
+      {{ site.url | replace("https://", "") }}, and for the app {{ site.app.name }} in ChatGPT
+      (“the app”), and is the controller of the personal data this page describes. “We” on this
+      page means {{ site.operator }}. Write to us at
+      <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
     </p>
   </section>
 

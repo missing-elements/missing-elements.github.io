@@ -21,6 +21,9 @@ export default {
   name: "Missing Elements",
   // Where to reach the project: the privacy, terms and support pages give it.
   contact,
+  // Missing Elements is an organisation on GitHub, not a company: the person who runs it is the
+  // one the privacy and terms pages name as responsible (the owner, 2026-11-24). No postal address.
+  operator: "Oleksandr Shevchuk",
   // The app in ChatGPT, as the privacy, terms and support pages name it, and the address of its
   // server (h5p-toolkit's apps/mcp-worker). A name that leads with "H5P" says whose it is.
   app: { name: "H5P Author by Missing Elements", server: "mcp.embed-my.org" },
