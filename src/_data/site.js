@@ -1,6 +1,6 @@
 // The address the project answers at: the one h5p-toolkit's code of conduct and security
 // policy give, and the organization's on GitHub.
-const contact = "alekswebnet@gmail.com";
+const contact = "alekswebnet@proton.me";
 
 // Where to say how the H5P build page and the h5p-author skill went, in two ways that start from
 // the same title and two questions. An email asks for no account, and a teacher may have none on
