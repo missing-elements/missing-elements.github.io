@@ -40,8 +40,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       {{ site.name }} is an open-source project on GitHub that makes free tools for the browser.
       It is not a company. It is run by {{ site.operator }}, who is responsible for this site,
       {{ site.url | replace("https://", "") }}, and for the app {{ site.app.name }} in ChatGPT
-      (“the app”), and is the controller of the personal data this page describes. “We” on this
-      page means {{ site.operator }}. Write to us at
+      (“the app”), and is the controller of the personal data we process: what the app's server
+      handles in a request, and an email you write to us. The services named below decide for
+      their own data. “We” on this page means {{ site.operator }}. Write to us at
       <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
     </p>
   </section>
@@ -109,6 +110,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <li><strong>OpenAI</strong> runs ChatGPT and decides what it sends to the app. See <a href="https://openai.com/policies/privacy-policy/">OpenAI's privacy policy</a>.</li>
       <li><strong>Cloudflare</strong> runs our server, as our processor. For our account it counts the requests, their outcomes and the time they took, without their content, and shows those counts for up to three months. See <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</li>
       <li><strong>GitHub</strong> hosts this site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</li>
+      <li><strong>Proton</strong> hosts our mailbox, where an email you write to us is kept. See <a href="https://proton.me/legal/privacy">Proton's privacy policy</a>.</li>
       <li><strong>The sites an activity names.</strong> An activity can show a picture, a video or other content from any web address, YouTube and Vimeo among them. Your browser then contacts that site, which receives your IP address and handles it under its own privacy policy.</li>
     </ul>
     <p>We sell nothing and share nothing: we hold nothing to share.</p>
