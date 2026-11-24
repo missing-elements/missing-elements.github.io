@@ -626,6 +626,13 @@ tbody th a:hover code { text-decoration: underline; }
    types it lists by name and use. */
 .guide > * { max-inline-size: 48rem; }
 .guide h3 + .code { margin-top: 0.75rem; }
+/* The privacy, terms and support pages: the guide's column, its lists at its prose's measure, the
+   date a page last changed under its lead, and a problem's name over what to do. */
+.legal :is(ul, dl) { max-width: var(--measure); }
+.legal li + li { margin-top: 0.5rem; }
+.legal-date { margin: 0; color: var(--muted); font-size: 0.875rem; }
+.legal-list dt { margin-top: 1rem; font-weight: 600; }
+.legal-list dd { margin: 0.25rem 0 0; }
 /* A row each, the name beside its use where the list is wide enough for both, over it where not. */
 .type-list {
   margin: 0 0 1.5rem;

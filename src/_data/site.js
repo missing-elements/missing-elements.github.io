@@ -1,6 +1,6 @@
 // The address the project answers at: the one h5p-toolkit's code of conduct and security
 // policy give, and the organization's on GitHub.
-const contact = "alekswebnet@gmail.com";
+const contact = "alekswebnet@proton.me";
 
 // Where to say how the H5P build page and the h5p-author skill went, in two ways that start from
 // the same title and two questions. An email asks for no account, and a teacher may have none on
@@ -19,6 +19,16 @@ const buildFeedback = {
 
 export default {
   name: "Missing Elements",
+  // Where to reach the project: the privacy, terms and support pages give it.
+  contact,
+  // Missing Elements is an organisation on GitHub, not a company: the person who runs it is the
+  // one the privacy and terms pages name as responsible (the owner, 2026-11-24). No postal address.
+  operator: "Oleksandr Shevchuk",
+  // The app in ChatGPT, as the privacy, terms and support pages name it, and the address of its
+  // server (h5p-toolkit's apps/mcp-worker). A name that leads with "H5P" says whose it is.
+  app: { name: "H5P Author by Missing Elements", server: "mcp.embed-my.org" },
+  // When the privacy and terms pages last changed what they say: the date they show.
+  legalUpdated: "24 November 2026",
   // What the organization makes, in a line: under the name in the top bar.
   tagline: "Browser-based OSS and tools",
   url: "https://missing-elements.github.io",

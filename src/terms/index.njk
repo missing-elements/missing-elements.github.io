@@ -1,0 +1,77 @@
+---
+layout: base.njk
+title: Terms of use · Missing Elements
+description: The terms for using the Missing Elements site, its tools and its H5P app in ChatGPT.
+# No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
+# is added to script-src by its hash at build (eleventy.config.js).
+csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
+---
+{#- The terms an app listed in ChatGPT links to beside its privacy policy (h5p-toolkit#210). Not
+    legal advice: a lawyer should confirm them before the app is submitted. -#}
+{% include "topbar.njk" %}
+
+<main class="guide legal wrap" id="main">
+  <header class="docs-header">
+    <h1>Terms of use</h1>
+    <p class="lead">The terms for using this site, its tools and the app {{ site.app.name }} in ChatGPT.</p>
+    <p class="legal-date">Updated {{ site.legalUpdated }}</p>
+  </header>
+
+  <section aria-labelledby="what">
+    <h2 id="what">What they are</h2>
+    <p>
+      {{ site.name }} is an open-source project on GitHub, not a company, run by
+      {{ site.operator }} (“we”). We offer this site, its tools and the app free of charge. Our code is open
+      source under the MIT licence, on <a href="{{ site.github }}">GitHub</a>. The H5P runtime it
+      plays activities with is under the GPL-3.0, and each H5P library keeps its own licence. No
+      account is needed.
+    </p>
+  </section>
+
+  <section aria-labelledby="use">
+    <h2 id="use">Your use</h2>
+    <ul>
+      <li>You may use them for any lawful purpose.</li>
+      <li>What you make with them is yours, and so is the responsibility for it: you need the right to use the texts, pictures and videos you put in an activity.</li>
+      <li>In ChatGPT, OpenAI's terms and usage policies apply as well.</li>
+      <li>Do not use them to harm others, or to overload or attack the app's server.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="warranty">
+    <h2 id="warranty">No warranty</h2>
+    <p>
+      They are provided as they are, without any warranty. We work to keep them running and
+      correct, but an activity may be built wrongly, and a service may change or stop at any time,
+      without notice. Check an activity before you use it with learners.
+    </p>
+  </section>
+
+  <section aria-labelledby="liability">
+    <h2 id="liability">Liability</h2>
+    <p>
+      As far as the law allows, we are not liable for any loss or damage that comes
+      from using this site, its tools or the app. Nothing here limits a liability the law does not
+      allow to be limited.
+    </p>
+  </section>
+
+  <section aria-labelledby="names">
+    <h2 id="names">Names</h2>
+    <p>
+      {{ site.name }} is not affiliated with H5P Group or with OpenAI. H5P is a registered
+      trademark of H5P Group AS. ChatGPT is a trademark of OpenAI.
+    </p>
+  </section>
+
+  <section aria-labelledby="more">
+    <h2 id="more">Privacy, changes and contact</h2>
+    <p>
+      What we receive and keep is on the <a href="/privacy/">privacy page</a>. When these terms
+      change, the date at the top says when. Write to us at
+      <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
+    </p>
+  </section>
+</main>
+
+{% include "site-foot.njk" %}

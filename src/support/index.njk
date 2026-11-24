@@ -1,0 +1,51 @@
+---
+layout: base.njk
+title: Support · Missing Elements
+description: How to get help with the Missing Elements tools and the H5P app in ChatGPT, and what to do when an activity does not play or save.
+# No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
+# is added to script-src by its hash at build (eleventy.config.js).
+csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
+---
+{#- The support page an app listed in ChatGPT links to (h5p-toolkit#210). The problems below are
+    the play page's own messages, as play-page.ts and the app's card say them. -#}
+{% include "topbar.njk" %}
+
+<main class="guide legal wrap" id="main">
+  <header class="docs-header">
+    <h1>Support</h1>
+    <p class="lead">How to get help with this site's tools and the app {{ site.app.name }} in ChatGPT.</p>
+  </header>
+
+  <section aria-labelledby="contact">
+    <h2 id="contact">Ask us</h2>
+    <ul>
+      <li><strong>By email:</strong> <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>. We answer as soon as we can, with no set time.</li>
+      <li><strong>A bug or an idea:</strong> <a href="{{ site.github }}/h5p-toolkit/issues">open an issue on GitHub</a>. Issues are public: leave out personal data and files you cannot share.</li>
+    </ul>
+    <p>Say what you asked the chat for, which content type it made, and what you saw.</p>
+  </section>
+
+  <section aria-labelledby="problems">
+    <h2 id="problems">When something goes wrong</h2>
+    <dl class="legal-list">
+      <dt>The chat shows no activity</dt>
+      <dd>Ask the chat to show it again. A card that says “No activity arrived” got nothing from the chat to play.</dd>
+      <dt>“Your video could not be fetched from the chat”</dt>
+      <dd>Its address in the chat may have run out. Choose the file from your computer when the page asks: it stays in your browser.</dd>
+      <dt>The activity is bigger than the chat can save</dt>
+      <dd>The chat saves up to a size it sets, about 8 MB in ChatGPT in November 2026. Above that, when your file plays from the chat, Download opens a tab of this site that fetches it, builds the <code>.h5p</code>, saves it and closes. When the page says to, right-click Download, or press and hold it, and open the link in a new tab: that tab saves it.</dd>
+      <dt>Using the activity elsewhere</dt>
+      <dd>The <code>.h5p</code> file plays in Moodle or any other H5P site. The <a href="/h5p/build/">build page</a> builds and plays a chat's source in your browser too.</dd>
+    </dl>
+  </section>
+
+  <section aria-labelledby="more">
+    <h2 id="more">More</h2>
+    <p>
+      How to make activities with a chat: <a href="/h5p/create-with-ai/">Create H5P content with AI</a>.
+      What the app receives and keeps: <a href="/privacy/">Privacy</a>.
+    </p>
+  </section>
+</main>
+
+{% include "site-foot.njk" %}
