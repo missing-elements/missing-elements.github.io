@@ -211,7 +211,7 @@ If your page has a Content Security Policy, allow the locale file's origin in `c
 
 The element loads the viewer at runtime from five files next to `pdfjs-viewer-element.js` in the package's `dist` folder: `viewer.mjs`, `pdf.mjs`, `pdf.worker.min.mjs`, `viewer.css` and `paper-and-ink.css`. All of them must come from the same release as the element. The [data some PDFs need](#cmaps-fonts-and-other-resources) sits beside them. With [worker rendering](#worker) on, the viewer also loads `pdf.renderer.min.mjs` from the same folder.
 
-### Bundlers and `assets-base`
+### Bundlers
 
 **Vite, webpack 5 and Next.js**, with webpack or Turbopack, need no configuration for the viewer. The element references its files as `new URL('./file', import.meta.url)`, so these bundlers emit them as assets and rewrite the URLs.
 
@@ -222,9 +222,38 @@ They don't copy the PDF.js [data folders](#cmaps-fonts-and-other-resources), tho
 - JavaScript in PDFs, such as form calculations, doesn't run.
 - Note icons are missing, and ICC color profiles aren't applied.
 
+`vite dev` serves the package's own files, so in a Vite app all of this works during development and breaks only in the build.
+
 **esbuild, plain Rollup and other bundlers** that don't handle that pattern move the element into your bundle without the files, and the viewer fails with 404s.
 
-To support every PDF with any bundler, copy the package's `dist` folder into your static files and point `assets-base` at it. A `postinstall` script keeps the copy at the installed version:
+To support every PDF, add the [Vite plugin](#vite-plugin) in a Vite app. With any other bundler, [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base).
+
+### Vite plugin
+
+Since version 4.6 the package ships a Vite plugin that copies the data into the build output:
+
+```js
+// vite.config.js
+import { pdfjsViewerData } from '@missing-elements/pdfjs-viewer/vite'
+
+export default {
+  plugins: [pdfjsViewerData()]
+}
+```
+
+It finds `viewer.mjs` and `pdf.mjs` in the build output under whatever names Vite gives them, and writes the data where the element looks for it: `wasm/`, `cmaps/`, `standard_fonts/`, `iccs/` and `images/` next to `viewer.mjs`, and `pdf.sandbox.mjs` next to `pdf.mjs`. That adds 286 files, 3.4 MB, to the build, and browsers download only the files a document needs. The plugin works with Vite 4.5 and later and adds nothing to server builds. It doesn't work with webpack, Rspack, Turbopack or esbuild.
+
+Frameworks built on Vite take it in their Vite config: `vite.config.js` in SvelteKit and React Router, and `vite.plugins` in `nuxt.config.ts` and `astro.config.mjs`.
+
+The copied files keep the names PDF.js asks for, so their URLs stay the same across upgrades. SvelteKit, Nuxt and Astro serve the build's asset folder as `immutable`, and many hosts do the same for Vite's `assets/`. A browser that visited before an upgrade can then keep the old files for as long as its cache lasts, often a year. PDF.js can't use data from another PDF.js version: the `openjpeg.wasm` that shipped with 4.4, for example, doesn't load in 4.6. If your host lets you, serve the data folders with a short cache. Otherwise, [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base) instead.
+
+With `assets-base` or a resource attribute set, the element loads the data from there, and the plugin's copy goes unused.
+
+[demo/vite-plugin](https://github.com/missing-elements/pdfjs-viewer/tree/master/demo/vite-plugin) in the repository is a minimal app that uses the plugin.
+
+### Other bundlers and `assets-base`
+
+<span id="bundlers-and-assets-base"></span>With webpack, Next.js and any other bundler, copy the package's `dist` folder into your static files and point `assets-base` at it. This works in Vite too. A `postinstall` script keeps the copy at the installed version:
 
 ```js
 // scripts/copy-pdfjs-viewer.mjs
@@ -301,7 +330,7 @@ That worker runs the bundled `pdf.renderer.min.mjs`. PDF.js starts it from a `bl
 
 Most PDFs render with just the viewer files. Some need extra PDF.js data: CMaps for some CJK text, standard fonts for non-embedded base fonts, WASM decoders for JBIG2, CCITT and JPEG 2000 images, ICC color profiles, annotation icons, and the scripting sandbox for PDFs with JavaScript. All of it ships in the package and loads only for documents that need it.
 
-Each resource is loaded from next to the viewer files by default, so nothing needs setting when the element comes from a CDN or you serve `dist` with `assets-base`. In bundled apps, [copy `dist` and set `assets-base`](#bundlers-and-assets-base), or point the attributes at your own copy. Relative URLs work, and folder URLs get a missing trailing `/` added:
+Each resource is loaded from next to the viewer files by default, so nothing needs setting when the element comes from a CDN or you serve `dist` with `assets-base`. In bundled apps, add the [Vite plugin](#vite-plugin) or [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base), or point the attributes at your own copy. Relative URLs work, and folder URLs get a missing trailing `/` added:
 
 ```html
 <pdfjs-viewer-element
@@ -325,11 +354,12 @@ If your page has a Content Security Policy, the WASM decoders and the scripting 
 
 ## Frameworks
 
-The element works anywhere HTML does. Three things to remember in every framework:
+The element works anywhere HTML does. Four things to remember in every framework:
 
 - Import the package once, on the client. It needs `window`, so in server-rendered apps (Next.js, Nuxt, SvelteKit, Astro) import it in a client-only hook or component.
 - Give the element a height.
 - Attributes are strings. Call methods (`setViewerOptions`, `injectViewerStyles`) through a ref.
+- Bundlers don't copy the data some PDFs need. Add the [Vite plugin](#vite-plugin) in SvelteKit, Nuxt and Astro, or [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base) in Next.js.
 
 ### React
 
@@ -505,6 +535,7 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 
 If you're coming from an older version:
 
+- **From 4.5.0 or earlier:** nothing needs to change. In a Vite app, the new [Vite plugin](#vite-plugin) can replace a copy of `dist` that you serve with `assets-base` for the data.
 - **From 4.4.2 or earlier:** version 4.5 moved from PDF.js 6.4 to 6.5. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. TypeScript now rejects a bare `Uint8Array` in `viewerApp.open()`, which already failed at runtime. Pass `{ data }`, as in [Open a PDF from bytes](#open-a-pdf-from-bytes).
 - **From 4.4.0 or earlier:** if your Content Security Policy allows `blob:` in `connect-src` only for locales, you can remove it.
 - **From 4.3 or earlier:** if you worked around region locales with a lowercase code and lowercase locale folders, rename the folders back to their original case, such as `pt-BR`, and use any case in `locale`. PDF JavaScript now runs; see [PDF.js resources](#cmaps-fonts-and-other-resources) to turn it off. Absolute resource URLs keep working, and `debugger-src` is gone (it never had an effect).
