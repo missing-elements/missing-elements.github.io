@@ -128,6 +128,48 @@ function isJson(text: string): boolean {
   }
 }
 
+/** A text as base64url, and back; `null` for what is not one. */
+const toBase64Url = (text: string): string => {
+  let binary = ''
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+const fromBase64Url = (value: string): string | null => {
+  try {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
+    return new TextDecoder().decode(Uint8Array.from(atob(base64 + '='.repeat((4 - (base64.length % 4)) % 4)), (char) => char.charCodeAt(0)))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * What a play link may carry beside its source, for a tab that saves the package with no press:
+ * `&links=`, the addresses of the person's files by name, as JSON in base64url, and `&save=1`.
+ * `rest` is the fragment without them, which is what stays in the address bar: an address of a
+ * person's file is not left in the history. A source written as readable JSON takes the whole
+ * fragment, so such a link carries neither.
+ */
+export function linksFromFragment(hash: string): { links: Record<string, unknown>, save: boolean, rest: string } {
+  const fragment = hash.replace(/^#/, '')
+  const none = { links: {}, save: false, rest: hash }
+  if (/(?:^|&)source=(?=\{|%7B)/i.test(fragment)) return none
+  const params = new URLSearchParams(fragment)
+  if (!params.has('links') && !params.has('save')) return none
+  let links: Record<string, unknown> = {}
+  try {
+    const given: unknown = JSON.parse(fromBase64Url(params.get('links') ?? '') ?? '')
+    if (given && typeof given === 'object' && !Array.isArray(given)) links = given as Record<string, unknown>
+  } catch {
+    // Not addresses: none.
+  }
+  const rest = fragment.split('&').filter((part) => !/^(links|save)(=|$)/.test(part)).join('&')
+  return { links, save: params.get('save') === '1', rest: rest ? `#${rest}` : '' }
+}
+
+/** A fragment from `fragmentFromSource` with addresses and the wish to save beside it, as `linksFromFragment` reads them. */
+export const fragmentWithLinks = (fragment: string, links: Record<string, string>): string => `${fragment}&links=${toBase64Url(JSON.stringify(links))}&save=1`
+
 /** Whether a fragment has a `source=` at all, whatever it carries: a link of this page's kind. */
 export const linksSource = (hash: string): boolean => new URLSearchParams(hash.replace(/^#/, '')).has('source')
 
