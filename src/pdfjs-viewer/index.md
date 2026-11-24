@@ -245,7 +245,7 @@ It finds `viewer.mjs` and `pdf.mjs` in the build output under whatever names Vit
 
 Frameworks built on Vite take it in their Vite config: `vite.config.js` in SvelteKit and React Router, and `vite.plugins` in `nuxt.config.ts` and `astro.config.mjs`.
 
-The copied files keep the names PDF.js asks for, so their URLs stay the same across upgrades. SvelteKit, Nuxt and Astro serve the build's asset folder as `immutable`, and many hosts do the same for Vite's `assets/`. A browser that visited before an upgrade can then keep the old files for as long as its cache lasts, often a year. PDF.js can't use data from another PDF.js version: the `openjpeg.wasm` that shipped with 4.4, for example, doesn't load in 4.6. If your host lets you, serve the data folders with a short cache. Otherwise, [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base) instead.
+The plugin puts `viewer.mjs`, `pdf.mjs` and their data in a folder named after a hash of their content, such as `assets/pdfjs-viewer-84204294/`. An app's own `assetFileNames` still decides where the two files go, and the plugin adds the folder in front of their names. An upgrade that changes any of these files gets a new folder, so caching the build's assets as `immutable`, as SvelteKit, Nuxt and Astro do, is safe.
 
 With `assets-base` set, the element loads all the data from there, and the plugin's copy goes unused. Without `assets-base`, a [resource attribute](#pdf-js-resources) such as `c-map-url` replaces only its own folder, and the element still loads the rest from the plugin's copy.
 
@@ -535,6 +535,7 @@ import '@missing-elements/pdfjs-viewer' // was: import 'pdfjs-viewer-element'
 
 If you're coming from an older version:
 
+- **From 4.6.0:** the Vite plugin's output moves into a folder such as `assets/pdfjs-viewer-84204294/`, so that an upgrade changes its URLs. If you gave the data folders a short cache, as the 4.6.0 docs suggested, that rule no longer matches them, and you can remove it.
 - **From 4.5.0 or earlier:** nothing needs to change. In a Vite app, the new [Vite plugin](#vite-plugin) can replace a copy of `dist` that you serve with `assets-base`. Add the plugin, then remove `assets-base`, any resource attributes that point at the copy, and the copy step. While `assets-base` is set, the element ignores the plugin's copy.
 - **From 4.4.2 or earlier:** version 4.5 moved from PDF.js 6.4 to 6.5. If you set `worker-src`, point it at `pdfjs-dist@{{ pdfjsViewer.pdfjsVersion }}`. TypeScript now rejects a bare `Uint8Array` in `viewerApp.open()`, which already failed at runtime. Pass `{ data }`, as in [Open a PDF from bytes](#open-a-pdf-from-bytes).
 - **From 4.4.0 or earlier:** if your Content Security Policy allows `blob:` in `connect-src` only for locales, you can remove it.
