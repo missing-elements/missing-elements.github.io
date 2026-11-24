@@ -2,7 +2,7 @@ import '@missing-elements/h5p-offline-player'
 import { buildPackage, openPack, SourceError } from '@missing-elements/h5p-author/browser'
 import { pack as installPack } from '@missing-elements/h5p-libraries/install'
 import { runtime } from '@missing-elements/h5p-runtime'
-import { baseName, kindOf, matchFiles, matchNamed, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
+import { baseName, compactSource, fragmentFromSource, fragmentWithLinks, kindOf, linksFromFragment, matchFiles, matchNamed, namedFiles, packageName, parseSource, sized, sourceFromFragment, type Problem } from '../build/build-source'
 
 /**
  * The play page, `/h5p/play/`: the activity in a link's `#source=` built in the browser, as the
@@ -32,6 +32,15 @@ import { baseName, kindOf, matchFiles, matchNamed, namedFiles, packageName, pars
  * tab), so that is said under the stage, and nobody is sent out of the chat to choose the video
  * again (#100). A link of this page opens nothing there on a press, so a parent that opens links
  * says so too, and is handed the address.
+ *
+ * One press is asked for all the same (#102), and a package built in a frame cannot be passed to
+ * a tab: the browser keeps a framed page's storage apart. But a tab can build it again from what
+ * the frame had, the source and the files' addresses, where the store behind the addresses answers
+ * any site, as the chat's was found to (2026-11-24). So a link to this page may carry `&links=`
+ * and `&save=1` beside its source: the page then fetches the files itself, shows them coming,
+ * builds the package and saves it, with no press. Framed by a parent that saves files and opens
+ * links, Download of a video said to weigh more than the parent saves hands it such a link, at
+ * once, while the press still lets a tab open.
  *
  * What is seen is one stage, in one of five states (`data-state` on `main`): `building`, a loader
  * over the place the player takes; `fetching`, the loader with how much of a file the parent has
@@ -110,6 +119,19 @@ let handedId = 0
 let handedTimer: ReturnType<typeof setTimeout> | undefined
 /** Whether the parent opens links itself, where a press on one of this page's opens nothing. */
 let hostOpens = false
+/** The address each file of the preview plays from, by its path in the source, and the sizes the parent gave, by address. */
+let shownFrom: Record<string, string> = {}
+const sizeAt = new Map<string, number>()
+/** What the link carried beside its source: addresses, and the wish to save with no press. Read once, and taken out of the address bar. */
+const carried = linksFromFragment(location.hash)
+if (carried.rest !== location.hash) history.replaceState(null, '', `${location.pathname}${location.search}${carried.rest}`)
+let saveUnasked = carried.save
+/** Whether the save now made was asked for by the link: said under the stage, where nobody pressed anything. */
+let unasked = false
+/** The source as a link's fragment, for a tab of this page that saves the package. */
+let ownFragment = ''
+/** Stops the page's own fetch of a file, where the person chooses it themselves meanwhile. */
+let fetchStop: AbortController | null = null
 /** Shows the question for the person's files a moment late, where the parent may bring them first. */
 let askTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -304,6 +326,20 @@ function saying(text: string, { busy = false } = {}): void {
   announce(text)
 }
 
+/** What the files of a preview weigh, where the parent said for each: the package is that and a little. */
+function previewSize(): number | null {
+  let total = 0
+  for (const path of previewed) {
+    const size = sizeAt.get(shownFrom[path] ?? '')
+    if (size === undefined) return null
+    total += size
+  }
+  return total
+}
+
+/** A link to this page, in a tab of its own, that fetches what the preview plays from its addresses and saves the package. */
+const savingLink = (): string => `${location.origin}${location.pathname}${fragmentWithLinks(ownFragment, Object.fromEntries(links))}`
+
 /**
  * The way to the package where the parent does not save it and its frame may let this page save
  * nothing: Download is a link to it, and the browser's own menu opens a link from any frame.
@@ -347,7 +383,48 @@ function fetchToKeep(): void {
   bringing = true
   preparing(`Getting your ${previewedAs()} from the chat for the download…`, true)
   announce(`Getting your ${previewedAs()} from the chat for the download.`)
-  toParent({ type: 'needs-bytes', names: previewed.map(baseName) })
+  if (framed) toParent({ type: 'needs-bytes', names: previewed.map(baseName) })
+  else void fetchFiles()
+}
+
+/**
+ * The files of a preview fetched by this page, where no parent holds them: from the addresses it
+ * plays from, counted as they come. The browser keeps each as a Blob, which it may hold on disk.
+ */
+async function fetchFiles(): Promise<void> {
+  const stop = fetchStop = new AbortController()
+  try {
+    const files: File[] = []
+    for (const path of previewed) {
+      const response = await fetch(shownFrom[path] ?? '', { signal: stop.signal })
+      if (!response.ok || !response.body) throw new Error(`the chat answered ${response.status}`)
+      const total = Number(response.headers.get('content-length')) || 0
+      let received = 0
+      let shown = 0
+      const counted = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
+          received += chunk.byteLength
+          // Shown ten times a second at most.
+          if (performance.now() - shown > 100) { shown = performance.now(); keepCount(baseName(path), received, total) }
+          controller.enqueue(chunk)
+        },
+      }))
+      files.push(new File([await new Response(counted).blob()], baseName(path), { type: response.headers.get('content-type') ?? '' }))
+    }
+    if (stop.signal.aborted) return
+    take(files)
+  } catch (error) {
+    // Stopped for a file the person chose: that one is built from.
+    if (stop.signal.aborted) return
+    bringing = false
+    const text = `Your ${previewedAs()} could not be fetched from the chat (${error instanceof Error ? error.message : String(error)}): its address may have run out. Choose it from your computer instead.`
+    keepInstead.hidden = false
+    keepProgress.hidden = true
+    keepLabel.textContent = text
+    download.removeAttribute('aria-disabled')
+    downloadLabel.textContent = 'Try again'
+    announce(text)
+  }
 }
 
 /** How much of a file for the download has come. */
@@ -377,6 +454,7 @@ async function keep(): Promise<void> {
   }
   packing = true
   bringing = false
+  fetchStop?.abort()
   if (keeping) preparing(`Building the .h5p with your ${previewedAs()} in it…`, false)
   try {
     opened ??= openPack(installPack)
@@ -400,8 +478,10 @@ async function keep(): Promise<void> {
     if (!asked) return
     // The download the person asked for: made by a parent that saves files, where it takes this one, or by this page.
     if (hostSaves !== null && kept.size <= hostSaves) return handOver(kept)
-    announce(`The .h5p is ready, ${sized(result.blob.size)}: downloading.`)
     download.click()
+    // A save the link asked for, with no press: said where it shows, with the way on where the browser saved nothing.
+    if (unasked) saying(`Your .h5p is saved to your downloads, ${sized(result.blob.size)}. You can close this tab. If nothing was saved, press Download.`)
+    else announce(`The .h5p is ready, ${sized(result.blob.size)}: downloading.`)
   } catch (error) {
     // Unasked, nothing is said: the preview plays on, and Download builds from the same files.
     if (!keeping) return
@@ -433,12 +513,14 @@ async function play(): Promise<void> {
     if (packageUrl) URL.revokeObjectURL(packageUrl)
     const file = new File([result.blob], name, { type: 'application/zip' })
     previewed = result.linked
+    shownFrom = linked
     download.hidden = false
     if (previewed.length) {
       // A preview is not a file to hand out: its address expires. Download fetches the bytes first.
-      // Its link is this page's own, for a press that opens it elsewhere; a press here is taken below.
+      // Its link is this page's own, with the addresses and the wish to save, for a press that opens
+      // it in a tab, which then saves the package; a press here is taken below.
       packageUrl = null
-      download.href = location.href
+      download.href = savingLink()
       download.removeAttribute('download')
       about(result.manifest.title, result.builtWith, `${previewedAs() === 'files' ? 'its files play' : `its ${previewedAs()} plays`} from the chat`)
     } else {
@@ -476,13 +558,24 @@ async function start(): Promise<void> {
   const parsed = parseSource(text)
   if ('problem' in parsed) return fail('The activity cannot be read', 'Open it in the build page to see why.', true)
   source = parsed.source
+  ownFragment = await fragmentFromSource(compactSource(text) ?? '')
+  // The addresses the link carried, kept before the files are known to be wanted: the build below is the one that uses them.
+  takeLinks(carried.links, {})
   wanted = namedFiles(source)
   const written = source as { title?: unknown, type?: unknown }
   about(written.title, written.type)
   await play()
 }
 
-player.addEventListener('ready', () => show('ready', `“${title.textContent}” is ready.`))
+player.addEventListener('ready', () => {
+  show('ready', `“${title.textContent}” is ready.`)
+  // The save a link asked for: made once, as Download would, with no press.
+  if (!saveUnasked) return
+  saveUnasked = false
+  unasked = true
+  if (previewed.length) fetchToKeep()
+  else download.click()
+})
 player.addEventListener('error', (event) => {
   if (player.state === 'ready') return
   fail('It was built, but does not play', (event as unknown as CustomEvent<{ message: string }>).detail.message, true)
@@ -498,6 +591,13 @@ keepInstead.addEventListener('click', () => filesInput.click())
 download.addEventListener('click', (event) => {
   if (previewed.length) {
     event.preventDefault()
+    // A video the parent says weighs more than it saves is not fetched here, where it could not be
+    // saved with a press: a tab of this page is opened by the parent, at once, and saves it there.
+    const size = hostSaves !== null && hostOpens && !keeping ? previewSize() : null
+    if (size !== null && size > hostSaves!) {
+      toParent({ type: 'open', href: savingLink() })
+      return saying(`This .h5p is over ${sized(size)}, more than the chat saves. A new tab gets your ${previewedAs()} and saves it there.`)
+    }
     return fetchToKeep()
   }
   if (hostSaves === null || !kept) return
@@ -542,11 +642,14 @@ const amount = (value: unknown): number | null => typeof value === 'number' && N
  * video or a recording, and the activity built with them where a file of its own is still missing.
  * While a preview plays they are only kept: a new address for the same file is not a new activity.
  */
-function takeLinks(given: Record<string, unknown>): void {
+function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown>): void {
   let added = false
   for (const [name, address] of Object.entries(given)) {
     if (typeof address !== 'string' || !/^https?:\/\//i.test(address) || !URL.canParse(address) || !playable(name)) continue
-    // The same address again is nothing new to build with.
+    // What the file there weighs, where the parent knows: a tab is opened for one it could not save.
+    const size = amount(sizes[name])
+    if (size !== null) sizeAt.set(address, size)
+    // The same address again, as with its size once that is known, is nothing new to build with.
     if (links.get(baseName(name)) === address) continue
     links.set(baseName(name), address)
     added = true
@@ -560,10 +663,10 @@ function takeLinks(given: Record<string, unknown>): void {
 // one that opens links itself, that it does.
 window.addEventListener('message', (event) => {
   if (!framed || event.source !== window.parent) return
-  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
+  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
-  else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>)
+  else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>, message.sizes && typeof message.sizes === 'object' ? message.sizes as Record<string, unknown> : {})
   else if (message.type === 'saves') hostSaves = amount(message.max) ?? Infinity
   else if (message.type === 'opens') hostOpens = true
   else if (message.type === 'saved' && handedId && message.id === handedId && typeof message.ok === 'boolean' && (handed || message.ok)) saveDone(message.ok)
