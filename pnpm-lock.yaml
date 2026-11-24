@@ -45,8 +45,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       '@missing-elements/pdfjs-viewer':
-        specifier: 4.5.0
-        version: 4.5.0
+        specifier: 4.6.0
+        version: 4.6.0
       '@zip.js/zip.js':
         specifier: 2.25.0
         version: 2.25.0
@@ -191,8 +191,8 @@ packages:
     resolution: {integrity: sha512-Z97zWfBZW2jRQQoacGZmyO0coMHM8KlbjK/UAXZFVFvqSuV3lznuNONFdxz34sXUED2asAVW/tS58rDY23xtqA==}
     engines: {node: '>=20'}
 
-  '@missing-elements/pdfjs-viewer@4.5.0':
-    resolution: {integrity: sha512-BxwuHJxt0PYGNYweqQzV5XBHxdFmZRrmyrnDyQUmNvUPsdAMja+Ms86Kxz+9ruWrntw1Zg/gX5kr2o/en6wo4Q==}
+  '@missing-elements/pdfjs-viewer@4.6.0':
+    resolution: {integrity: sha512-3j2hsG6JDdQCJDq2Clf2tgS5JdHozLolRNlcVgZ3/9iL5W0YeSCFM8855gYuau/IQBQQTMYszLL8BHSr8rJXkQ==}
 
   '@napi-rs/canvas-android-arm64@1.0.13':
     resolution: {integrity: sha512-trn7AaDzQ+yeeA0ezhkC7cB1ZDPtp4UYk0EvB5F8qtYL9jEVWtVrU30WOpI52DszoTxaTsCgf5PP4ZVaOlOIHQ==}
@@ -1302,7 +1302,7 @@ snapshots:
 
   '@missing-elements/h5p-runtime@1.0.2': {}
 
-  '@missing-elements/pdfjs-viewer@4.5.0':
+  '@missing-elements/pdfjs-viewer@4.6.0':
     dependencies:
       pdfjs-dist: 6.5.438
 
