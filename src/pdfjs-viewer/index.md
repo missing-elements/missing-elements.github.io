@@ -247,7 +247,7 @@ Frameworks built on Vite take it in their Vite config: `vite.config.js` in Svelt
 
 The copied files keep the names PDF.js asks for, so their URLs stay the same across upgrades. SvelteKit, Nuxt and Astro serve the build's asset folder as `immutable`, and many hosts do the same for Vite's `assets/`. A browser that visited before an upgrade can then keep the old files for as long as its cache lasts, often a year. PDF.js can't use data from another PDF.js version: the `openjpeg.wasm` that shipped with 4.4, for example, doesn't load in 4.6. If your host lets you, serve the data folders with a short cache. Otherwise, [copy `dist` and set `assets-base`](#other-bundlers-and-assets-base) instead.
 
-With `assets-base` set, the element loads all the data from there, and the plugin's copy goes unused. A [resource attribute](#pdf-js-resources) such as `c-map-url` replaces only its own folder, and the element still loads the rest from the plugin's copy.
+With `assets-base` set, the element loads all the data from there, and the plugin's copy goes unused. Without `assets-base`, a [resource attribute](#pdf-js-resources) such as `c-map-url` replaces only its own folder, and the element still loads the rest from the plugin's copy.
 
 [demo/vite-plugin](https://github.com/missing-elements/pdfjs-viewer/tree/master/demo/vite-plugin) in the repository is a minimal app that uses the plugin.
 
