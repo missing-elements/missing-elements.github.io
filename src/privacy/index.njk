@@ -84,7 +84,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>The app's card in your chat shows this site's play page, which builds the activity and plays it in your browser.</p>
     <ul>
       <li>A file you attached is fetched by your browser straight from ChatGPT's file store, and goes nowhere else.</li>
-      <li>When an activity is bigger than the chat can save, about 8 MB, a new tab of this site fetches the file again, builds the <code>.h5p</code> and saves it to your computer.</li>
+      <li>The chat saves an activity's <code>.h5p</code> of up to about 8 MB. For a bigger one whose file plays from the chat, Download opens a tab of this site, which fetches the file again, builds the <code>.h5p</code> and saves it to your computer. Where the file is already in the page, the page says how to open Download in a new tab, which saves it the same way.</li>
       <li>Where an activity names a picture or a video by web address, your browser fetches it from that site, and asks YouTube or Vimeo whether a video is there. A video on YouTube, Vimeo or a similar service plays from that service, which may set its own cookies. A few content types load fonts or tools from other services in the same way.</li>
       <li>Your browser keeps the activity's files in its storage for this site, on your device, so that the player can serve them. Clearing this site's data in your browser removes them. Your answers in the activity are not kept.</li>
     </ul>
@@ -94,8 +94,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <h2 id="site">This site</h2>
     <p>
       GitHub Pages hosts this site. GitHub logs the IP address of each visitor for security, as
-      the controller of that data. The site sets no cookies and runs no analytics. The build page
-      works as the play page does: what you build stays in your browser.
+      the controller of that data. The site sets no cookies and runs no analytics. If you choose a
+      light or a dark theme, your browser remembers the choice for this site. The build page works
+      as the play page does: what you build stays in your browser.
     </p>
   </section>
 
@@ -105,6 +106,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
       <li><strong>OpenAI</strong> runs ChatGPT and decides what it sends to the app. See <a href="https://openai.com/policies/privacy-policy/">OpenAI's privacy policy</a>.</li>
       <li><strong>Cloudflare</strong> runs our server, as our processor. For our account it counts the requests, their outcomes and the time they took, without their content, and shows those counts for up to three months. See <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</li>
       <li><strong>GitHub</strong> hosts this site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</li>
+      <li><strong>The sites an activity names.</strong> An activity can show a picture, a video or other content from any web address, YouTube and Vimeo among them. Your browser then contacts that site, which receives your IP address and handles it under its own privacy policy.</li>
     </ul>
     <p>We sell nothing and share nothing: we hold nothing to share.</p>
   </section>
@@ -112,8 +114,9 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section aria-labelledby="rights">
     <h2 id="rights">Your choices and rights</h2>
     <p>
-      We keep no personal data about you, so there is nothing for us to show, correct or delete.
-      What your browser keeps for this site, you remove by clearing the site's data. For what
+      The app and this site keep no personal data about you, so there is nothing for us to show,
+      correct or delete. If you write to us, we keep your email to answer it, and delete it when
+      you ask. What your browser keeps for this site, you remove by clearing the site's data. For what
       ChatGPT, Cloudflare or GitHub hold, ask them. You may also complain to your data protection
       authority. For any question, write to <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
     </p>
