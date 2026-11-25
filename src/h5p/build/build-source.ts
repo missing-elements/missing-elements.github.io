@@ -167,8 +167,11 @@ export function linksFromFragment(hash: string): { links: Record<string, unknown
   return { links, save: params.get('save') === '1', rest: rest ? `#${rest}` : '' }
 }
 
-/** A fragment from `fragmentFromSource` with addresses and the wish to save beside it, as `linksFromFragment` reads them. */
-export const fragmentWithLinks = (fragment: string, links: Record<string, string>): string => `${fragment}&links=${toBase64Url(JSON.stringify(links))}&save=1`
+/**
+ * A fragment from `fragmentFromSource` with addresses beside it, and the wish to save unless `save`
+ * is false, as `linksFromFragment` reads them.
+ */
+export const fragmentWithLinks = (fragment: string, links: Record<string, string>, save = true): string => `${fragment}&links=${toBase64Url(JSON.stringify(links))}${save ? '&save=1' : ''}`
 
 /** Whether a fragment has a `source=` at all, whatever it carries: a link of this page's kind. */
 export const linksSource = (hash: string): boolean => new URLSearchParams(hash.replace(/^#/, '')).has('source')

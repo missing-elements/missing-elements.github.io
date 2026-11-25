@@ -57,12 +57,24 @@ import { baseName, compactSource, fragmentFromSource, fragmentWithLinks, kindOf,
  * the activity can then be played there. Such a tab builds from files only, never from an
  * address: what it fetched, or what the person chose in its place.
  *
- * What is seen is one stage, in one of six states (`data-state` on `main`): `building`, a loader
+ * The player may not start where the page is, for the frame's sake or the browser's, not the
+ * activity's (#116): a browser that blocks third-party cookies lets no framed page of another site
+ * register a worker (Chrome's setting, which Incognito turns on, and Firefox's, 2026-11-25); WebKit
+ * framed by another site could not read the archive the page had just built; a frame sandboxed
+ * without an origin, or under a page on plain http, has no worker at all; nor has an app's built-in
+ * browser. A tab of the page's own plays in each of the frame's cases: it is first-party, with its
+ * own storage and worker, on https. So where the page knows from the browser that the player cannot
+ * start, before anything is built, or the player says it could not register, read or store what the
+ * page gave it, the page says so and offers the tab, or, in a tab already, another browser, with the
+ * address to copy where no tab opens. Not a player without the worker: some activities would play
+ * in part, which confuses more than it helps (the owner, 2026-11-25).
+ *
+ * What is seen is one stage, in one of seven states (`data-state` on `main`): `building`, a loader
  * over the place the player takes; `fetching`, the loader with how much of a file has come so far,
  * from the parent or from its address; `asking`, for the person's files; `error`, with the one
- * thing to do about it; `ready`, the player; `saved`, in a tab that only saves, the package saved
- * and the tab about to close. The parent is told each as a `status`, in words a screen reader is
- * told too.
+ * thing to do about it; `elsewhere`, the way to a tab or another browser where the player cannot
+ * start here; `ready`, the player; `saved`, in a tab that only saves, the package saved and the tab
+ * about to close. The parent is told each as a `status`, in words a screen reader is told too.
  */
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
@@ -84,6 +96,13 @@ const savedBox = $('saved')
 const savedText = $('saved-text')
 const savedStay = $<HTMLButtonElement>('saved-stay')
 const savedPlay = $<HTMLButtonElement>('saved-play')
+const elsewhereBox = $('elsewhere')
+const elsewhereTitle = $('elsewhere-title')
+const elsewhereText = $('elsewhere-text')
+const elsewhereOpen = $<HTMLAnchorElement>('elsewhere-open')
+const elsewhereNote = $('elsewhere-note')
+const elsewhereAddress = $<HTMLInputElement>('elsewhere-address')
+const elsewhereCopy = $<HTMLButtonElement>('elsewhere-copy')
 const errorTitle = $('error-title')
 const errorText = $('error-text')
 const fix = $<HTMLAnchorElement>('fix')
@@ -102,7 +121,7 @@ const edit = $<HTMLAnchorElement>('edit')
 const player = $('player') as HTMLElementTagNameMap['h5p-player']
 player.runtime = runtime
 
-type State = 'building' | 'fetching' | 'asking' | 'ready' | 'error' | 'saved'
+type State = 'building' | 'fetching' | 'asking' | 'ready' | 'error' | 'elsewhere' | 'saved'
 type Opened = Awaited<ReturnType<typeof openPack>>
 /** The pack, opened at the first build and kept for the next, which a file chosen later starts. */
 let opened: Promise<Opened> | null = null
@@ -172,6 +191,7 @@ function show(state: State, text: string): void {
   loader.hidden = state !== 'building' && state !== 'fetching'
   filesBox.hidden = state !== 'asking'
   errorBox.hidden = state !== 'error'
+  elsewhereBox.hidden = state !== 'elsewhere'
   savedBox.hidden = state !== 'saved'
   // The way to the build page is the problem's own button where it has one.
   edit.hidden = state === 'error' && !fix.hidden
@@ -198,6 +218,67 @@ function fail(heading: string, text: string, fixable = false): void {
   fix.hidden = !fixable
   // The headings above end in no full stop, and a message from elsewhere may be empty.
   show('error', text ? `${heading}. ${text}` : `${heading}.`)
+}
+
+/**
+ * Why the player cannot start where the page is: no secure context; a frame sandboxed without an
+ * origin, which is the chat's doing; or a browser that keeps the player from starting.
+ */
+type Why = 'insecure' | 'sandboxed' | 'kept'
+
+/**
+ * Why the player cannot start here, as the browser shows it before anything is built: a page
+ * outside a secure context, or with no origin, has no Service Worker, as one whose browser gives
+ * none. `null` where it may start; the player says the rest.
+ */
+function cannotStart(): Why | null {
+  if (!window.isSecureContext) return 'insecure'
+  if (self.origin === 'null') return 'sandboxed'
+  try {
+    return navigator.serviceWorker ? null : 'kept'
+  } catch {
+    return 'kept'
+  }
+}
+
+/**
+ * The way on where the player cannot start here (#116). Framed: a tab of this page's own, which
+ * the parent opens where it opens links (the click handler below hands it the address) and the
+ * link opens otherwise, where the frame lets it. In a tab: another browser. The address is there
+ * to copy in both, since whether a tab opened is not this page's to see. It carries the addresses
+ * the parent gave for the person's files, so a tab plays them from there, and not the wish to
+ * save. Download stays where a package was built: it is the person's even where it does not play.
+ */
+function elsewhere(why: Why): void {
+  const given = Object.fromEntries(links)
+  // The address's own origin, which is the page's URL's even in a frame with no origin of its own
+  // (`self.origin` is "null" there, `location.origin` is not: Chromium, Firefox and WebKit,
+  // 2026-11-25). A tab of its own off https is sent to https, where the player starts.
+  const origin = framed ? location.origin : location.origin.replace(/^http:/, 'https:')
+  const address = `${origin}${location.pathname}${Object.keys(given).length ? fragmentWithLinks(ownFragment, given, false) : ownFragment}`
+  elsewhereAddress.value = address
+  elsewhereOpen.href = address
+  elsewhereOpen.hidden = !framed
+  elsewhereCopy.textContent = 'Copy'
+  if (framed) {
+    elsewhereTitle.textContent = 'Open it in a new tab'
+    elsewhereText.textContent = {
+      insecure: 'This chat’s page is not on a secure connection, and the player starts only on one. In a tab of its own it plays, still built in your browser.',
+      sandboxed: 'This chat does not let the player start inside its reply. In a tab of its own it plays, still built in your browser.',
+      kept: 'Your browser does not let the player start inside this chat’s reply, as where it blocks third-party cookies. In a tab of its own it plays, still built in your browser.'
+    }[why]
+    elsewhereNote.textContent = 'If no tab opens, copy this address into your browser.'
+  } else if (why === 'insecure') {
+    elsewhereTitle.textContent = 'Open it on a secure connection'
+    elsewhereText.textContent = 'This page is not on a secure connection, and the player starts only on one. Its https address is below.'
+    elsewhereNote.textContent = 'Copy this address into your browser.'
+  } else {
+    elsewhereTitle.textContent = 'Open it in another browser'
+    elsewhereText.textContent = 'The player needs a Service Worker, which this browser does not give, as an app’s built-in browser often does not. Chrome, Edge, Firefox and Safari give one.'
+    elsewhereNote.textContent = 'Copy this address into another browser.'
+  }
+  playerBox.hidden = true
+  show('elsewhere', `${elsewhereTitle.textContent}. ${elsewhereText.textContent}`)
 }
 
 /** What the activity is, under the stage: its title, and its type with the package's size once built. */
@@ -401,16 +482,23 @@ function tooBig(size: number): void {
   saying(`This .h5p is ${sized(size)}, more than the chat saves with one press. ${BY_HAND}`)
 }
 
-/** The package handed to a parent that saves files itself, which says how that went; no word in a minute is taken as no. */
+/**
+ * The package handed to a parent that saves files itself, which says how that went. No word in a
+ * few seconds is said with the way by hand (#116): a parent that never answers left the person
+ * waiting a minute, and one that asks the person first still has its yes said when it comes.
+ */
 function handOver(file: File): void {
   handed = true
   saying('The chat is saving the .h5p…', { busy: true })
   toParent({ type: 'save', id: ++handedId, file })
   clearTimeout(handedTimer)
-  handedTimer = setTimeout(() => saveDone(false), 60_000)
+  handedTimer = setTimeout(() => {
+    handed = false
+    saying(`Nothing saved yet? ${BY_HAND_TOO}`)
+  }, 10_000)
 }
 
-/** How the parent's save of the last package handed went. A yes that comes after the minute is still said. */
+/** How the parent's save of the last package handed went. A yes that comes after the wait is still said. */
 function saveDone(ok: boolean): void {
   clearTimeout(handedTimer)
   handed = false
@@ -706,6 +794,10 @@ async function start(): Promise<void> {
   wanted = namedFiles(source)
   const written = source as { title?: unknown, type?: unknown }
   about(written.title, written.type)
+  // Where the player cannot start here, nothing is built for it: the way on at once. Not in a tab
+  // that only saves, which builds and downloads the package with no player.
+  const why = savingOnly ? null : cannotStart()
+  if (why) return elsewhere(why)
   // A tab that only saves fetches what the link gave addresses for first, and builds once.
   const { linked } = savingOnly ? linksFor(wanted) : { linked: {} }
   if (Object.keys(linked).length) return fetchThenBuild(linked)
@@ -723,9 +815,27 @@ player.addEventListener('ready', () => {
 })
 player.addEventListener('error', (event) => {
   if (player.state === 'ready') return
-  fail('It was built, but does not play', (event as unknown as CustomEvent<{ message: string }>).detail.message, true)
+  const { code, message } = (event as unknown as CustomEvent<{ code?: string, message: string }>).detail
+  // Not the activity's: a worker that could not register is the browser's. Framed, so is an
+  // archive the player could not read or store, which the page built a moment ago and which plays
+  // in a tab (WebKit framed by another site, 2026-11-25).
+  if (code === 'no-worker' || (framed && (code === 'bad-archive' || code === 'quota'))) return elsewhere('kept')
+  fail('It was built, but does not play', message, true)
 })
 
+// The address of the way on, copied, or left selected for the person's own keys where no clipboard is let.
+elsewhereAddress.addEventListener('focus', () => elsewhereAddress.select())
+elsewhereCopy.addEventListener('click', async () => {
+  let copied = false
+  try {
+    await navigator.clipboard.writeText(elsewhereAddress.value)
+    copied = true
+  } catch {
+    elsewhereAddress.select()
+    try { copied = document.execCommand('copy') } catch { /* selected, at least */ }
+  }
+  if (copied) elsewhereCopy.textContent = 'Copied'
+})
 savedStay.addEventListener('click', stay)
 // The package that was saved, played in the tab that was kept open.
 savedPlay.addEventListener('click', () => {

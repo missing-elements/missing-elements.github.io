@@ -43,6 +43,18 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' da
         <p class="play-text" id="error-text"></p>
         <a class="button button-solid button-large" id="fix" target="_blank" rel="noopener" hidden>Open in the build page</a>
       </div>
+      {#- Where the player cannot start in this frame or this browser (#116): the way on, a tab of
+          the page's own or another browser, with the address to copy where no tab opens. -#}
+      <div class="play-elsewhere" id="elsewhere" hidden>
+        <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/></svg>
+        <h1 class="play-heading" id="elsewhere-title"></h1>
+        <p class="play-text" id="elsewhere-text"></p>
+        <a class="button button-solid button-large" id="elsewhere-open" target="_blank" rel="noopener" hidden>Open in a new tab</a>
+        <div class="play-copy">
+          <p class="play-note" id="elsewhere-note"></p>
+          <span class="play-copy-row"><input id="elsewhere-address" readonly aria-label="The activity's address"><button type="button" class="button" id="elsewhere-copy">Copy</button></span>
+        </div>
+      </div>
       {#- In a tab a link asked to save the package (&save=1): it is saved, and the tab closes itself. -#}
       <div class="play-saved" id="saved" hidden>
         <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17.5 19 7"/></svg>
