@@ -220,8 +220,11 @@ function fail(heading: string, text: string, fixable = false): void {
   show('error', text ? `${heading}. ${text}` : `${heading}.`)
 }
 
-/** Why the player cannot start where the page is: no secure context, or a browser that keeps it from starting. */
-type Why = 'insecure' | 'kept'
+/**
+ * Why the player cannot start where the page is: no secure context; a frame sandboxed without an
+ * origin, which is the chat's doing; or a browser that keeps the player from starting.
+ */
+type Why = 'insecure' | 'sandboxed' | 'kept'
 
 /**
  * Why the player cannot start here, as the browser shows it before anything is built: a page
@@ -230,7 +233,7 @@ type Why = 'insecure' | 'kept'
  */
 function cannotStart(): Why | null {
   if (!window.isSecureContext) return 'insecure'
-  if (self.origin === 'null') return 'kept'
+  if (self.origin === 'null') return 'sandboxed'
   try {
     return navigator.serviceWorker ? null : 'kept'
   } catch {
@@ -248,17 +251,27 @@ function cannotStart(): Why | null {
  */
 function elsewhere(why: Why): void {
   const given = Object.fromEntries(links)
-  const address = `${location.origin}${location.pathname}${Object.keys(given).length ? fragmentWithLinks(ownFragment, given, false) : ownFragment}`
+  // The address's own origin, which is the page's URL's even in a frame with no origin of its own
+  // (`self.origin` is "null" there, `location.origin` is not: Chromium, Firefox and WebKit,
+  // 2026-11-25). A tab of its own off https is sent to https, where the player starts.
+  const origin = framed ? location.origin : location.origin.replace(/^http:/, 'https:')
+  const address = `${origin}${location.pathname}${Object.keys(given).length ? fragmentWithLinks(ownFragment, given, false) : ownFragment}`
   elsewhereAddress.value = address
   elsewhereOpen.href = address
   elsewhereOpen.hidden = !framed
   elsewhereCopy.textContent = 'Copy'
   if (framed) {
     elsewhereTitle.textContent = 'Open it in a new tab'
-    elsewhereText.textContent = why === 'insecure'
-      ? 'This chat’s page is not on a secure connection, and the player starts only on one. In a tab of its own it plays, still built in your browser.'
-      : 'Your browser does not let the player start inside this chat’s reply, as where it blocks third-party cookies. In a tab of its own it plays, still built in your browser.'
+    elsewhereText.textContent = {
+      insecure: 'This chat’s page is not on a secure connection, and the player starts only on one. In a tab of its own it plays, still built in your browser.',
+      sandboxed: 'This chat does not let the player start inside its reply. In a tab of its own it plays, still built in your browser.',
+      kept: 'Your browser does not let the player start inside this chat’s reply, as where it blocks third-party cookies. In a tab of its own it plays, still built in your browser.'
+    }[why]
     elsewhereNote.textContent = 'If no tab opens, copy this address into your browser.'
+  } else if (why === 'insecure') {
+    elsewhereTitle.textContent = 'Open it on a secure connection'
+    elsewhereText.textContent = 'This page is not on a secure connection, and the player starts only on one. Its https address is below.'
+    elsewhereNote.textContent = 'Copy this address into your browser.'
   } else {
     elsewhereTitle.textContent = 'Open it in another browser'
     elsewhereText.textContent = 'The player needs a Service Worker, which this browser does not give, as an app’s built-in browser often does not. Chrome, Edge, Firefox and Safari give one.'
@@ -781,8 +794,9 @@ async function start(): Promise<void> {
   wanted = namedFiles(source)
   const written = source as { title?: unknown, type?: unknown }
   about(written.title, written.type)
-  // Where the player cannot start here, nothing is built for it: the way on at once.
-  const why = cannotStart()
+  // Where the player cannot start here, nothing is built for it: the way on at once. Not in a tab
+  // that only saves, which builds and downloads the package with no player.
+  const why = savingOnly ? null : cannotStart()
   if (why) return elsewhere(why)
   // A tab that only saves fetches what the link gave addresses for first, and builds once.
   const { linked } = savingOnly ? linksFor(wanted) : { linked: {} }
