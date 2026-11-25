@@ -36,9 +36,9 @@ import { baseName, compactSource, fragmentFromSource, fragmentWithLinks, kindOf,
  * A parent may save no file for the page, in a frame that drops the page's own download all the
  * same: in Grok a press on Download did nothing, with nothing said (2026-11-25, #114), and nothing
  * tells a page that its frame drops a download. So a framed page does not count on its own: where
- * the parent opens links and a tab can build the package, from its source and the addresses of its
- * files, Download hands the parent a link to a tab that saves it, as below; elsewhere the browser
- * is left to try, and the way by hand is said under the stage at the press.
+ * the parent opens links and the source names no file, so that a tab builds the same package from
+ * the source alone, Download hands the parent a link to a tab that saves it, as below; elsewhere
+ * the browser is left to try, and the way by hand is said under the stage at the press.
  *
  * One press is asked for all the same (#102), and a package built in a frame cannot be passed to
  * a tab: the browser keeps a framed page's storage apart. But a tab can build it again from what
@@ -389,11 +389,12 @@ const BY_HAND = 'To save it, right-click Download, or press and hold it, and ope
 const BY_HAND_TOO = 'Right-click Download, or press and hold it, and open the link in a new tab.'
 
 /**
- * Whether a tab of this page could build the package that plays: every file the source names is
- * at an address the parent gave, or it names none. A file the person chose here is in this frame
- * only.
+ * Whether a tab of this page would build the package kept here: only where its source names no
+ * file. A file it was built with is in this frame, chosen here or brought here, whatever address
+ * a preview played it from before: a tab would fetch that address again, for a file that may be
+ * another by now.
  */
-const tabBuilds = (): boolean => !linksFor(wanted).missing.length
+const tabBuilds = (): boolean => !wanted.length
 
 /** A package bigger than the parent saves: the browser is left to save it, and the way is said where it may not. */
 function tooBig(size: number): void {
@@ -759,7 +760,7 @@ download.addEventListener('click', (event) => {
     // A tab of the page's own: the browser saves what its link names.
     if (!framed) return
     // Framed, with no parent that saves: the frame may drop the download with nothing said (#114).
-    // A tab the parent opens builds the package again and saves it, where a tab can build it.
+    // A tab the parent opens builds the package again and saves it, where a tab builds the same one.
     if (hostOpens && tabBuilds()) {
       event.preventDefault()
       toParent({ type: 'open', href: savingLink() })
