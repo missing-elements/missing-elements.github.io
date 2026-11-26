@@ -28,9 +28,9 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
-    "@missing-elements/h5p-author": "0.20.0",
+    "@missing-elements/h5p-author": "1.0.0",
     "@missing-elements/h5p-libraries": "1.1.1",
-    "@missing-elements/h5p-offline-player": "1.7.0",
+    "@missing-elements/h5p-offline-player": "1.7.1",
     "@missing-elements/h5p-runtime": "1.0.2",
     "@missing-elements/pdfjs-viewer": "4.6.1",
     "@zip.js/zip.js": "2.25.0"
