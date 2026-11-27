@@ -58,7 +58,8 @@ export async function sourceFromFragment(hash: string): Promise<string | null> {
   if (!value) return null
   let bytes: Uint8Array<ArrayBuffer>
   try {
-    const base64 = value.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')
+    // URLSearchParams reads a "+" as a space: in base64 that space was a "+" (#130).
+    const base64 = value.replace(/ /g, '+').replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')
     bytes = Uint8Array.from(atob(base64 + '='.repeat((4 - (base64.length % 4)) % 4)), (char) => char.charCodeAt(0))
   } catch {
     throw new Error('The link’s #source= is not base64url')

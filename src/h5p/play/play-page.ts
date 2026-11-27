@@ -130,6 +130,8 @@ let source: unknown
 let wanted: string[] = []
 /** The files given so far, by name. */
 const chosen = new Map<string, File>()
+/** The names of those the person chose themselves: one from the chat does not take their place. */
+const own = new Set<string>()
 /** The address of the package last built, given back when the next one replaces it. */
 let packageUrl: string | null = null
 /** Counts builds, so that one overtaken by a newer one shows nothing. */
@@ -389,8 +391,10 @@ function fetching(name: string, received: number, total: number): void {
   if (main.dataset.state !== 'fetching') show('fetching', `Getting your ${what} from the chat.`)
 }
 
-/** Files given, by the person or by the parent: the activity is built once none is missing. */
-function take(files: File[]): void {
+/** Files given, by the person (`mine`) or by the parent: the activity is built once none is missing. */
+function take(given: File[], mine = false): void {
+  // One from the chat that comes after the person chose theirs is not built from again (#130).
+  const files = mine ? given : given.filter((file) => !own.has(file.name) && !(wanted.length === 1 && own.size))
   if (!files.length || !wanted.length) return
   // A file that comes late, from a parent still bringing what the person chose themselves
   // meanwhile, must not start the activity again under them, nor take the place of the file
@@ -403,8 +407,14 @@ function take(files: File[]): void {
     links.clear()
   }
   // Where one file is named, a second choice replaces the first.
-  if (wanted.length === 1) chosen.clear()
-  for (const file of files) chosen.set(file.name, file)
+  if (wanted.length === 1) {
+    chosen.clear()
+    own.clear()
+  }
+  for (const file of files) {
+    chosen.set(file.name, file)
+    if (mine) own.add(file.name)
+  }
   // While a preview plays, the files make the package to keep, and the player is left playing:
   // saved where Download asked for them, and only made ready for it where the parent sent them unasked.
   if (previewed.length) void keep()
@@ -895,7 +905,7 @@ document.addEventListener('click', (event) => {
 filesInput.addEventListener('change', () => {
   const files = [...(filesInput.files ?? [])]
   filesInput.value = ''
-  take(files)
+  take(files, true)
 })
 // A file dropped on the stage while it is asked for, as one chosen.
 const asked = (): boolean => main.dataset.state === 'asking' || main.dataset.state === 'fetching'
@@ -909,7 +919,7 @@ main.addEventListener('drop', (event) => {
   delete main.dataset.drop
   if (!asked() || !event.dataTransfer?.files.length) return
   event.preventDefault()
-  take([...event.dataTransfer.files])
+  take([...event.dataTransfer.files], true)
 })
 
 /** A count of bytes as a message gives it: a number that is one, and not below nothing. */
