@@ -33,8 +33,8 @@ importers:
         specifier: 1.2.5
         version: 1.2.5
       '@missing-elements/h5p-author':
-        specifier: 1.0.0
-        version: 1.0.0(@missing-elements/h5p-runtime@1.0.2)
+        specifier: 1.1.0
+        version: 1.1.0(@missing-elements/h5p-runtime@1.0.2)
       '@missing-elements/h5p-libraries':
         specifier: 1.1.1
         version: 1.1.1
@@ -164,8 +164,8 @@ packages:
   '@marijn/find-cluster-break@1.0.4':
     resolution: {integrity: sha512-Wy0V7+SGUjnF9/TkiM1hKVDPj7jKXduPNboMVtHTA8dySMURWqfg/JZ9E2Sq8JgSJmkl7k7Qe9FLeMSrSraWmQ==}
 
-  '@missing-elements/h5p-author@1.0.0':
-    resolution: {integrity: sha512-ev3QBrRoPrakmjLODwLJ7MGddOLaGczKpU4qd4KixjNNYP6oHCcGR/mH/mKSfIeYGhoOR8g6+w2qiJiyMGokfw==}
+  '@missing-elements/h5p-author@1.1.0':
+    resolution: {integrity: sha512-yAsbhjSm0jJq0rqspTuWG2EEjDYbUHnbHW9NS0ds8hq/tm5sAH0fmETUx9pKWu3UnrLgtmc3LdEmMJqpGl6kfw==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -1278,7 +1278,7 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.4': {}
 
-  '@missing-elements/h5p-author@1.0.0(@missing-elements/h5p-runtime@1.0.2)':
+  '@missing-elements/h5p-author@1.1.0(@missing-elements/h5p-runtime@1.0.2)':
     dependencies:
       '@missing-elements/h5p-libraries': 1.1.1
       '@missing-elements/h5p-normalize': 1.5.1
