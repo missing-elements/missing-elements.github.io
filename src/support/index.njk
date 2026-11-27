@@ -1,19 +1,19 @@
 ---
 layout: base.njk
 title: Support · Missing Elements
-description: How to get help with the Missing Elements tools and the H5P app in ChatGPT, and what to do when an activity does not play or save.
+description: How to get help with the Missing Elements tools, and what to do when an activity does not play or save.
 # No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
 ---
-{#- The support page an app listed in ChatGPT links to (h5p-toolkit#210). The problems below are
-    the play page's own messages, as play-page.ts and the app's card say them. -#}
+{#- How to get help with the site's tools. The problems below are the play page's own messages,
+    as play-page.ts and a chat app's card say them. -#}
 {% include "topbar.njk" %}
 
 <main class="guide legal wrap" id="main">
   <header class="docs-header">
     <h1>Support</h1>
-    <p class="lead">How to get help with this site's tools and the app {{ site.app.name }} in ChatGPT.</p>
+    <p class="lead">How to get help with this site's tools.</p>
   </header>
 
   <section aria-labelledby="contact">
@@ -43,7 +43,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <h2 id="more">More</h2>
     <p>
       How to make activities with a chat: <a href="/h5p/create-with-ai/">Create H5P content with AI</a>.
-      What the app receives and keeps: <a href="/privacy/">Privacy</a>.
+      What this site receives and keeps: <a href="/privacy/">Privacy</a>.
     </p>
   </section>
 </main>

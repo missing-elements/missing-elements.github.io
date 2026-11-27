@@ -1,26 +1,21 @@
 ---
 layout: base.njk
 title: Privacy · Missing Elements
-description: What the Missing Elements site and its H5P app in ChatGPT receive, what they keep, and who else takes part.
+description: What the Missing Elements site receives and keeps when you use it and its H5P pages, and who else takes part.
 # No script but the site's: base.njk writes the policy first in <head>, and the color-scheme script
 # is added to script-src by its hash at build (eleventy.config.js).
 csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'"
 ---
-{#- The privacy policy an app listed in ChatGPT must publish (h5p-toolkit#210): the categories of
-    data, why, who receives them, how long, and what a person can do. It names ChatGPT and OpenAI,
-    where the site's other pages go by what a chat has: the app runs in that one chat app. What it
-    says of the app's server is held there by tests (h5p-toolkit design/mcp.md, *The app server*);
-    of the player, by h5p-toolkit docs/privacy.md. Checked on 2026-11-24 against the providers'
-    pages: OpenAI's Apps SDK reference for what ChatGPT adds to a call, Cloudflare's for its
-    metrics and Workers Logs, GitHub's for what Pages logs. Not legal advice: a lawyer should
-    confirm it before the app is submitted. -#}
+{#- The site's privacy policy: the categories of data, why, who receives them, how long, and what
+    a person can do. What it says of the player is held by h5p-toolkit docs/privacy.md. The app in
+    ChatGPT it covered until 2026-11-27 has its own policy where it is hosted now. -#}
 {% include "topbar.njk" %}
 
 <main class="guide legal wrap" id="main">
   <header class="docs-header">
     <h1>Privacy</h1>
     <p class="lead">
-      What this site and our app in ChatGPT receive, what they keep, and who else takes part.
+      What this site receives and keeps when you use it and its H5P pages, and who else takes part.
     </p>
     <p class="legal-date">Updated {{ site.legalUpdated }}</p>
   </header>
@@ -29,8 +24,7 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <h2 id="short">In short</h2>
     <ul>
       <li>No account, no cookies, no analytics and no advertising.</li>
-      <li>An activity is built and played in your browser. A file you add stays on your device and in ChatGPT: it never reaches a server of ours.</li>
-      <li>Our app's server checks the text of the activity the chat writes, and keeps nothing of it.</li>
+      <li>An activity is built and played in your browser. A file you add stays on your device: it never reaches a server of ours.</li>
     </ul>
   </section>
 
@@ -39,56 +33,18 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       {{ site.name }} is an open-source project on GitHub that makes free tools for the browser.
       It is not a company. It is run by {{ site.operator }}, who is responsible for this site,
-      {{ site.url | replace("https://", "") }}, and for the app {{ site.app.name }} in ChatGPT
-      (“the app”), and is the controller of the personal data we process: what the app's server
-      handles in a request, and an email you write to us. The services named below decide for
+      {{ site.url | replace("https://", "") }}, and is the controller of the personal data we
+      process: an email you write to us. The services named below decide for
       their own data. “We” on this page means {{ site.operator }}. Write to us at
       <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
     </p>
   </section>
 
-  <section aria-labelledby="app">
-    <h2 id="app">The app in ChatGPT</h2>
-    <p>
-      When ChatGPT uses the app, ChatGPT's servers send a request to our server,
-      {{ site.app.server }}, which runs on Cloudflare. A request carries:
-    </p>
-    <ul>
-      <li>
-        <strong>The activity's source:</strong> its title and text, its questions and answers, as
-        the chat wrote them from your conversation. Anything you put in your request, personal
-        data included, can be in it.
-      </li>
-      <li>
-        <strong>For a file you attached, ChatGPT's reference to it:</strong> an id, the file's name
-        and type, and an address in ChatGPT's file store. Our server reads the id, the name and the
-        type, and hands them to the app's card in your chat. It never opens the address and never
-        receives the file.
-      </li>
-      <li>
-        <strong>Details ChatGPT adds to each request,</strong> such as your language, an
-        approximate location, and anonymous ids for you and for the conversation. Our server does
-        not use them.
-      </li>
-    </ul>
-    <p>
-      Our server checks the source against the rules of its H5P content type and answers whether
-      it is valid, with a short outline of what it holds. That is the only use: to show you the
-      activity you asked for. In the terms of the EU's GDPR, we process the request because you
-      ask for it by using the app (Article 6(1)(b)).
-    </p>
-    <p>
-      <strong>It keeps nothing.</strong> It writes no log of a request, has no database and stores
-      nothing. Cloudflare's logs of the server's requests are switched off.
-    </p>
-  </section>
-
   <section aria-labelledby="play">
     <h2 id="play">Playing and saving the activity</h2>
-    <p>The app's card in your chat shows this site's play page, which builds the activity and plays it in your browser.</p>
+    <p>The build page and the play page build an activity and play it in your browser. A chat app may show the play page in its reply.</p>
     <ul>
-      <li>A file you attached is fetched by your browser straight from ChatGPT's file store, and goes nowhere else.</li>
-      <li>The chat saves an activity's <code>.h5p</code> up to a size it sets, about 8 MB in ChatGPT in November 2026. For a bigger one whose file plays from the chat, Download opens a tab of this site, which fetches the file again, builds the <code>.h5p</code> and saves it to your computer. Where the file is already in the page, the page says how to open Download in a new tab, which saves it the same way.</li>
+      <li>A file you add is read by your browser. One a chat holds is fetched by your browser straight from the chat's file store, and goes nowhere else.</li>
       <li>Where an activity names a picture or a video by web address, your browser fetches it from that site, and asks YouTube or Vimeo whether a video is there. A video on YouTube, Vimeo or a similar service plays from that service, which may set its own cookies. A few content types load fonts or tools from other services in the same way.</li>
       <li>Your browser keeps the activity's files in its storage for this site, on your device, so that the player can serve them. Clearing this site's data in your browser removes them. Your answers in the activity are not kept.</li>
     </ul>
@@ -99,16 +55,13 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
     <p>
       GitHub Pages hosts this site. GitHub logs the IP address of each visitor for security, as
       the controller of that data. The site sets no cookies and runs no analytics. If you choose a
-      light or a dark theme, your browser remembers the choice for this site. The build page works
-      as the play page does: what you build stays in your browser.
+      light or a dark theme, your browser remembers the choice for this site.
     </p>
   </section>
 
   <section aria-labelledby="others">
     <h2 id="others">Who else takes part</h2>
     <ul>
-      <li><strong>OpenAI</strong> runs ChatGPT and decides what it sends to the app. See <a href="https://openai.com/policies/privacy-policy/">OpenAI's privacy policy</a>.</li>
-      <li><strong>Cloudflare</strong> runs our server, as our processor. For our account it counts the requests, their outcomes and the time they took, without their content, and shows those counts for up to three months. See <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</li>
       <li><strong>GitHub</strong> hosts this site. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</li>
       <li><strong>Proton</strong> hosts our mailbox, where an email you write to us is kept. See <a href="https://proton.me/legal/privacy">Proton's privacy policy</a>.</li>
       <li><strong>The sites an activity names.</strong> An activity can show a picture, a video or other content from any web address, YouTube and Vimeo among them. Your browser then contacts that site, which receives your IP address and handles it under its own privacy policy.</li>
@@ -119,19 +72,19 @@ csp: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; o
   <section aria-labelledby="rights">
     <h2 id="rights">Your choices and rights</h2>
     <p>
-      The app and this site keep no personal data about you. The one piece of personal data we
+      This site keeps no personal data about you. The one piece of personal data we
       keep is an email you write to us: we keep it as long as we need it to answer you and to
       follow up on what you asked. You can ask us to show it to you, correct it or delete it, and
       we delete it when you ask. What your browser keeps for this site, you remove by clearing
       the site's data. For what
-      ChatGPT, Cloudflare or GitHub hold, ask them. You may also complain to your data protection
+      GitHub holds, ask GitHub. You may also complain to your data protection
       authority. For any question, write to <a href="mailto:{{ site.contact }}">{{ site.contact }}</a>.
     </p>
   </section>
 
   <section aria-labelledby="children">
     <h2 id="children">Children</h2>
-    <p>The app and this site are for a general audience. They are not meant for children under 13.</p>
+    <p>This site is for a general audience. They are not meant for children under 13.</p>
   </section>
 
   <section aria-labelledby="changes">
