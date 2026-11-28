@@ -374,14 +374,15 @@ function showAsk(listed: string, one: boolean): void {
  * has come, drawn as a bar where its size is known. The person can still choose the file from
  * their computer, which needs no wait. Told a screen reader once, not with every number.
  */
-function fetching(name: string, received: number, total: number): void {
-  if (keeping) return keepCount(name, received, total)
+function fetching(name: string, received: number, total: number, index = 1, count = 1): void {
+  if (keeping) return keepCount(name, received, total, index, count)
   // Asked for, the question shown or still held back a moment: the file on its way is shown in its place.
   if (main.dataset.state !== 'asking' && main.dataset.state !== 'fetching' && askTimer === undefined) return
   clearTimeout(askTimer)
   askTimer = undefined
-  const what = wanted.length === 1 ? called(name || wanted[0]!) : 'file'
-  label.textContent = `Getting your ${what}… ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
+  // Several come one after another (h5p-toolkit#301): which one this is, and its own bytes.
+  const what = count > 1 ? 'files' : wanted.length === 1 ? called(name || wanted[0]!) : 'file'
+  label.textContent = `Getting your ${what}…${count > 1 ? ` ${index} of ${count},` : ''} ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
   note.textContent = 'From the chat to your browser, nowhere else.'
   const done = total > 0 ? Math.min(100, Math.round(received / total * 100)) : 0
   progress.hidden = total <= 0
@@ -665,10 +666,10 @@ function stay(): void {
 }
 
 /** How much of a file for the download has come. */
-function keepCount(name: string, received: number, total: number): void {
+function keepCount(name: string, received: number, total: number, index = 1, count = 1): void {
   if (!bringing) return
-  const what = previewed.length === 1 ? called(name || previewed[0]!) : 'file'
-  keepLabel.textContent = `Getting your ${what} for the download… ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
+  const what = count > 1 ? 'files' : previewed.length === 1 ? called(name || previewed[0]!) : 'file'
+  keepLabel.textContent = `Getting your ${what} for the download…${count > 1 ? ` ${index} of ${count},` : ''} ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
   if (total > 0) {
     const done = Math.min(100, Math.round(received / total * 100))
     delete keepProgress.dataset.indeterminate
@@ -951,7 +952,7 @@ function takeLinks(given: Record<string, unknown>, sizes: Record<string, unknown
 // one that opens links itself, that it does. And that a file it was asked for did not come.
 window.addEventListener('message', (event) => {
   if (!framed || event.source !== window.parent) return
-  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
+  const message = event.data as { source?: unknown, type?: unknown, files?: unknown, links?: unknown, sizes?: unknown, name?: unknown, received?: unknown, total?: unknown, index?: unknown, count?: unknown, theme?: unknown, max?: unknown, id?: unknown, ok?: unknown } | null
   if (message?.source !== 'h5p-play-host') return
   if (message.type === 'files' && Array.isArray(message.files)) take(message.files.filter((file): file is File => file instanceof File))
   else if (message.type === 'links' && message.links && typeof message.links === 'object') takeLinks(message.links as Record<string, unknown>, message.sizes && typeof message.sizes === 'object' ? message.sizes as Record<string, unknown> : {})
@@ -959,7 +960,7 @@ window.addEventListener('message', (event) => {
   else if (message.type === 'saves') hostSaves = amount(message.max) ?? Infinity
   else if (message.type === 'opens') hostOpens = true
   else if (message.type === 'saved' && handedId && message.id === handedId && typeof message.ok === 'boolean' && (handed || message.ok)) saveDone(message.ok)
-  else if (message.type === 'progress' && amount(message.received) !== null) fetching(typeof message.name === 'string' ? message.name : '', amount(message.received)!, amount(message.total) ?? 0)
+  else if (message.type === 'progress' && amount(message.received) !== null) fetching(typeof message.name === 'string' ? message.name : '', amount(message.received)!, amount(message.total) ?? 0, amount(message.index) || 1, amount(message.count) || 1)
   else if (message.type === 'theme' && (message.theme === 'light' || message.theme === 'dark')) document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]')!.content = message.theme
 })
 
