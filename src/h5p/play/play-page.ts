@@ -386,10 +386,11 @@ function fetching(name: string, received: number, total: number, index = 1, coun
   note.textContent = 'From the chat to your browser, nowhere else.'
   const done = total > 0 ? Math.min(100, Math.round(received / total * 100)) : 0
   progress.hidden = total <= 0
+  progress.setAttribute('aria-label', count > 1 ? `Getting file ${index} of ${count}` : 'Getting the file')
   progress.setAttribute('aria-valuenow', String(done))
   progressBar.style.setProperty('--done', `${done}%`)
   instead.hidden = false
-  if (main.dataset.state !== 'fetching') show('fetching', `Getting your ${what} from the chat.`)
+  if (main.dataset.state !== 'fetching') show('fetching', count > 1 ? `Getting your ${count} files from the chat.` : `Getting your ${what} from the chat.`)
 }
 
 /** Files given, by the person (`mine`) or by the parent: the activity is built once none is missing. */
@@ -540,9 +541,10 @@ function fetchToKeep(): void {
  * Files fetched by this page from their addresses, by their paths in the source, counted as they
  * come, ten times a second at most. The browser keeps each as a Blob, which it may hold on disk.
  */
-async function fetched(from: Record<string, string>, signal: AbortSignal, count: (name: string, received: number, total: number) => void): Promise<File[]> {
+async function fetched(from: Record<string, string>, signal: AbortSignal, count: (name: string, received: number, total: number, index: number, of: number) => void): Promise<File[]> {
   const files: File[] = []
-  for (const [path, address] of Object.entries(from)) {
+  const entries = Object.entries(from)
+  for (const [index, [path, address]] of entries.entries()) {
     const response = await fetch(address, { signal })
     if (!response.ok || !response.body) throw new Error(`the chat answered ${response.status}`)
     const total = Number(response.headers.get('content-length')) || 0
@@ -551,7 +553,7 @@ async function fetched(from: Record<string, string>, signal: AbortSignal, count:
     const counted = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
         received += chunk.byteLength
-        if (performance.now() - shown > 100) { shown = performance.now(); count(baseName(path), received, total) }
+        if (performance.now() - shown > 100) { shown = performance.now(); count(baseName(path), received, total, index + 1, entries.length) }
         controller.enqueue(chunk)
       },
     }))
@@ -670,6 +672,7 @@ function keepCount(name: string, received: number, total: number, index = 1, cou
   if (!bringing) return
   const what = count > 1 ? 'files' : previewed.length === 1 ? called(name || previewed[0]!) : 'file'
   keepLabel.textContent = `Getting your ${what} for the download…${count > 1 ? ` ${index} of ${count},` : ''} ${sized(received)}${total > 0 ? ` of ${sized(total)}` : ''}`
+  keepProgress.setAttribute('aria-label', count > 1 ? `Getting file ${index} of ${count} for the download` : 'Getting the file for the download')
   if (total > 0) {
     const done = Math.min(100, Math.round(received / total * 100))
     delete keepProgress.dataset.indeterminate
